@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  /* Design tokens — Alt.FFF */
+  --paper: #f6f1e7; /* page background (calico) */
+  --surface: #efe7d8; /* cards and nav fill (raw cotton) */
+  --ink: #171c26; /* primary text (indigo-black) */
+  --indigo: #1e2a4a; /* secondary text and dark surfaces */
+  --gold: #e0a122; /* primary accent — fills and large type only */
+  --gold-deep: #9a6e0f; /* gold for small text on paper (contrast) */
+  --madder: #c8402f; /* secondary accent */
+  --forest: #2f5d3a; /* sparing third accent */
+  --hairline: rgba(23, 28, 38, 0.14); /* borders and dividers */
+
+  /* Font aliases (populated by next/font on <html>) */
+  --font-display: var(--font-bricolage), "Arial Black", sans-serif;
+  --font-body: var(--font-archivo), Arial, sans-serif;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-indigo: var(--indigo);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-madder: var(--madder);
+  --color-forest: var(--forest);
+  --color-hairline: var(--hairline);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+/* Display type is never italic. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-display {
+  font-style: normal;
+}
+
+/* Gold focus ring on every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* Africa map country states */
+.africa-country-path {
+  fill: rgba(30, 42, 74, 0.08);
+  stroke: rgba(30, 42, 74, 0.28);
+  stroke-width: 0.75;
+  pointer-events: none;
+}
+.africa-participating {
+  fill: rgba(224, 161, 34, 0.32);
+  stroke: #9a6e0f;
+  stroke-width: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    fill 0.25s ease,
+    stroke 0.25s ease;
+}
+.africa-participating:hover,
+.africa-participating:focus-visible,
+.africa-participating[data-selected],
+.africa-island-group:hover .africa-participating,
+.africa-island-group:focus-visible .africa-participating {
+  fill: rgba(224, 161, 34, 0.55);
+  stroke: var(--gold);
+}
+
+/* Textile-tier countries (materials-education zoom feature): must accept
+   pointer events even when not a participant (muted fill, pointer-events:
+   none by default). The in-place scale-from-centroid is done by hand in
+   JS (AfricaMap.tsx) via an explicit translate/scale/translate matrix
+   using each country's known SVG-space centroid — deliberately no
+   transform-box/transform-origin here: fill-box shifts the element's own
+   transform coordinate frame to its bounding-box origin, which would
+   silently reinterpret those hand-computed absolute coordinates in the
+   wrong space. */
+.africa-textile {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Lenis smooth-scroll integration */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
