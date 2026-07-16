@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   title: "Alt.FFF: A Fabric Spree of African Descent",
   description:
     "Ghana's first alternative fashion fabric fair. Three days of fibres, dyes, weaves and the people behind them. Palm Convention Centre, La Palm Royal Beach Hotel, Accra, September 17 to 19, 2026.",
+  icons: {
+    icon: "/Afff_icon.png",
+    shortcut: "/Afff_icon.png",
+    apple: "/Afff_icon.png",
+  },
 };
 
 export default function RootLayout({

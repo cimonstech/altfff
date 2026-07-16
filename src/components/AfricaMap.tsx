@@ -16,6 +16,7 @@ import {
   type Participant,
 } from "@/data/participants";
 import { textileProfiles, type TextileProfile } from "@/data/textileProfiles";
+import TextileMotifBorder from "@/components/TextileMotifBorder";
 
 type Country = { code: string; name: string; d: string };
 
@@ -160,14 +161,17 @@ function ParticipantInfo({ p }: { p: Participant }) {
   );
 }
 
-/** Content for the below-map textile detail panel, shared across every
- * input type and viewport width. Sourced strictly from textileProfiles.ts. */
-function TextileInfo({ t }: { t: TextileProfile }) {
+/** Content for the textile detail modal, shared across every input type
+ * and viewport width. Sourced strictly from textileProfiles.ts. */
+function TextileInfo({ t, headingId }: { t: TextileProfile; headingId?: string }) {
   return (
     <>
-      <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-tight text-ink">
+      <h2
+        id={headingId}
+        className="font-display text-2xl font-extrabold uppercase leading-none tracking-tight text-ink"
+      >
         {t.country}
-      </p>
+      </h2>
       <p className="mt-2 text-sm font-semibold text-gold-deep">{t.headline}</p>
       <ul className="mt-3 flex flex-wrap gap-1.5">
         {t.materials.map((m) => (
@@ -193,8 +197,14 @@ export default function AfricaMap({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const panelOuterRef = useRef<HTMLDivElement>(null);
-  const panelInnerRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  // The element that opened the modal, so closing it (Escape, backdrop,
+  // the close button) can return focus there instead of dropping it. The
+  // trigger is always the SVG hit-rect, hence SVGElement rather than
+  // HTMLElement.
+  const lastTriggerRef = useRef<SVGElement | null>(null);
   // Persisted per-country scale (1 = rest, 1.2 = zoomed), so the reverse
   // tween starts from the actual current value rather than snapping.
   const textileScale = useRef<Record<string, number>>({});
@@ -202,16 +212,26 @@ export default function AfricaMap({
   const [selected, setSelected] = useState<string | null>(null);
 
   // Textile-detail tier (materials-education feature): independent of the
-  // participants tier above. One unified state drives both the map zoom
-  // and the below-map detail panel, regardless of input type — hover
-  // (mouse), focus (keyboard), or tap (touch, toggles) all set the same
-  // value, since the panel's fixed position below the map (rather than a
-  // per-device side-panel/card split) means there's no longer a reason
-  // for touch and desktop to behave differently.
-  const [textileActive, setTextileActive] = useState<string | null>(null);
-  // Panel keeps showing the last-active country while it collapses, so
-  // its content doesn't blank mid-exit-animation.
-  const [panelCode, setPanelCode] = useState<string | null>(null);
+  // participants tier above. Two states, matching the two-stage
+  // interaction: hover/focus (`textileHover`) is a "this is clickable"
+  // affordance only — it drives the map zoom and a pulsing ring cue, but
+  // never reveals the detail content. Click/Enter/Space/tap
+  // (`textileOpen`) is what actually opens the detail modal.
+  const [textileHover, setTextileHover] = useState<string | null>(null);
+  const [textileOpen, setTextileOpen] = useState<string | null>(null);
+  // Modal stays mounted through its own exit animation (cleared once that
+  // tween completes) so it doesn't just vanish, and keeps showing the
+  // last-open country's content through that fade so it doesn't blank
+  // mid-exit.
+  const [modalMounted, setModalMounted] = useState(false);
+  const [modalCode, setModalCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (textileOpen) {
+      setModalMounted(true);
+      setModalCode(textileOpen);
+    }
+  }, [textileOpen]);
 
   const byCode = useMemo(
     () => new Map(participants.map((p) => [p.code, p])),
@@ -224,10 +244,12 @@ export default function AfricaMap({
 
   const hoverParticipant = hoverCode ? byCode.get(hoverCode) : undefined;
   const selectedParticipant = selected ? byCode.get(selected) : undefined;
-  // Kept as a separate const (rather than renaming every reference below)
-  // so the zoom/dim effect — deliberately left untouched — needs no edits.
-  const textileActiveCode = textileActive;
-  const panelTextile = panelCode ? textileByCode.get(panelCode) : undefined;
+  // The country that should read as "zoomed" on the map: open takes
+  // priority over hover (the country stays zoomed while its modal is open,
+  // even after the cursor moves off it), otherwise whichever is
+  // hovered/focused.
+  const zoomCode = textileOpen ?? textileHover;
+  const modalTextile = modalCode ? textileByCode.get(modalCode) : undefined;
 
   // Cursor-following tooltip, clamped inside the section bounds.
   const moveTooltip = (e: React.PointerEvent) => {
@@ -265,43 +287,52 @@ export default function AfricaMap({
     },
   });
 
-  // Textile-tier props: hover/focus (desktop, keyboard) or tap (touch,
-  // toggles) all open the same below-map panel and trigger the same map
-  // zoom. Takes priority over `interactiveProps` above for any country in
-  // both tiers (only Ghana currently). Attached to a stable invisible
-  // hit-rect (see TEXTILE_HIT_BOUNDS), not the path itself — the path is
-  // what scales for the zoom effect, and a moving hit-target would fire
-  // spurious leave/enter as its boundary sweeps past the cursor, fighting
-  // its own animation.
+  // Textile-tier props. Two-stage interaction: hover/focus is an
+  // affordance-only cue (map zoom + pulsing ring, no content), while
+  // click/Enter/Space/tap opens the detail modal — on touch, where there's
+  // no real hover, tapping goes straight to opening it. Takes priority
+  // over `interactiveProps` above for any country in both tiers (only
+  // Ghana currently). Attached to a stable invisible hit-rect (see
+  // TEXTILE_HIT_BOUNDS), not the path itself — the path is what scales for
+  // the zoom effect, and a moving hit-target would fire spurious
+  // leave/enter as its boundary sweeps past the cursor, fighting its own
+  // animation.
   const textileInteractiveProps = (code: string, country: string) => ({
     tabIndex: 0,
     role: "button",
     "aria-label": `${country}, view textile details`,
-    onPointerEnter: (e: React.PointerEvent) => {
-      if (e.pointerType === "mouse") setTextileActive(code);
+    "aria-haspopup": "dialog" as const,
+    "aria-expanded": textileOpen === code,
+    onPointerEnter: (e: React.PointerEvent<SVGRectElement>) => {
+      if (e.pointerType === "mouse") setTextileHover(code);
     },
-    onPointerLeave: (e: React.PointerEvent) => {
-      if (e.pointerType === "mouse") setTextileActive(null);
+    onPointerLeave: (e: React.PointerEvent<SVGRectElement>) => {
+      if (e.pointerType === "mouse") setTextileHover(null);
     },
-    onPointerUp: (e: React.PointerEvent) => {
+    onPointerUp: (e: React.PointerEvent<SVGRectElement>) => {
       if (e.pointerType === "touch") {
         e.stopPropagation();
-        setTextileActive((cur) => (cur === code ? null : code));
+        lastTriggerRef.current = e.currentTarget;
+        setTextileOpen(code);
       }
     },
     // Browsers synthesize a click after a touch's pointerup regardless of
     // that event's own stopPropagation — without also stopping this one,
-    // it bubbles to the SVG's onClick (which clears the tap selection)
-    // and immediately wipes out the state just set above.
-    onClick: (e: React.MouseEvent) => {
+    // it bubbles to the SVG's onClick (which clears the participant
+    // selection) and, for a real mouse click, this is also what opens the
+    // modal.
+    onClick: (e: React.MouseEvent<SVGRectElement>) => {
       e.stopPropagation();
+      lastTriggerRef.current = e.currentTarget;
+      setTextileOpen(code);
     },
-    onFocus: () => setTextileActive(code),
-    onBlur: () => setTextileActive((cur) => (cur === code ? null : cur)),
-    onKeyDown: (e: React.KeyboardEvent) => {
+    onFocus: () => setTextileHover(code),
+    onBlur: () => setTextileHover((cur) => (cur === code ? null : cur)),
+    onKeyDown: (e: React.KeyboardEvent<SVGRectElement>) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        setTextileActive(code);
+        lastTriggerRef.current = e.currentTarget;
+        setTextileOpen(code);
       }
     },
   });
@@ -406,9 +437,9 @@ export default function AfricaMap({
         const pos = TEXTILE_MARKER_POSITIONS[t.code];
         if (!el || !pos) return;
 
-        const targetScale = t.code === textileActiveCode ? 1.2 : 1;
+        const targetScale = t.code === zoomCode ? 1.2 : 1;
         const targetFilter =
-          t.code === textileActiveCode
+          t.code === zoomCode
             ? "drop-shadow(0 10px 18px rgba(23, 28, 38, 0.35))"
             : "none";
         const applyTransform = (s: number) => {
@@ -436,8 +467,8 @@ export default function AfricaMap({
       });
 
       const runner = reduced ? gsap.set : gsap.to;
-      if (textileActiveCode) {
-        runner(`path.africa-country-path:not(#${textileActiveCode})`, {
+      if (zoomCode) {
+        runner(`path.africa-country-path:not(#${zoomCode})`, {
           opacity: 0.5,
           duration,
           ease: "power2.out",
@@ -446,46 +477,86 @@ export default function AfricaMap({
         runner("path.africa-country-path", { opacity: 1, duration, ease: "power2.out" });
       }
     },
-    { scope: wrapRef, dependencies: [textileActiveCode] },
+    { scope: wrapRef, dependencies: [zoomCode] },
   );
 
-  useEffect(() => {
-    if (textileActive) setPanelCode(textileActive);
-  }, [textileActive]);
-
-  // Below-map detail panel — one unified pattern for every input type and
-  // viewport width. The outer wrapper's height animates from 0 to its
-  // natural content height (measured via scrollHeight) so the panel
-  // pushes page content below it down smoothly rather than snapping in;
-  // the inner content fades up (opacity 0→1, y 16→0) inside that.
-  // Reduced motion: instant show/hide, no animation.
+  // Hover/focus affordance cue: a soft pulsing gold ring around the
+  // country currently signaling "clickable" (reuses the same
+  // fromTo/scale/opacity/repeat pulse pattern as the Accra marker above),
+  // suppressed once its modal is actually open since the affordance has
+  // already served its purpose by then.
   useGSAP(
     () => {
-      const outer = panelOuterRef.current;
-      const inner = panelInnerRef.current;
-      if (!outer || !inner) return;
+      if (prefersReducedMotion()) return;
+      gsap.fromTo(
+        ".textile-hover-ring",
+        { scale: 0.85, opacity: 0.9 },
+        {
+          scale: 1.35,
+          opacity: 0,
+          duration: 1.1,
+          repeat: -1,
+          ease: "power1.out",
+          transformOrigin: "50% 50%",
+        },
+      );
+    },
+    { scope: wrapRef, dependencies: [textileHover, textileOpen] },
+  );
+
+  // Textile detail modal — click/Enter/Space (any input) opens it as a
+  // centered overlay above the map, dimmed backdrop behind it. Kept
+  // mounted through its own exit tween (see modalMounted) so it doesn't
+  // just vanish; reduced motion swaps both tweens for instant show/hide.
+  useGSAP(
+    () => {
+      const modal = modalRef.current;
+      const backdrop = backdropRef.current;
+      if (!modal || !backdrop) return;
       const reduced = prefersReducedMotion();
 
-      if (reduced) {
-        gsap.set(outer, { height: textileActive ? "auto" : 0 });
-        gsap.set(inner, { autoAlpha: textileActive ? 1 : 0, y: 0 });
-        return;
-      }
-
-      if (textileActive) {
-        const targetHeight = outer.scrollHeight;
-        gsap.fromTo(outer, { height: 0 }, { height: targetHeight, duration: 0.35, ease: "power2.out" });
-        gsap.fromTo(
-          inner,
-          { autoAlpha: 0, y: 16 },
-          { autoAlpha: 1, y: 0, duration: 0.35, ease: "power2.out" },
-        );
-      } else {
-        gsap.to(outer, { height: 0, duration: 0.35, ease: "power2.out" });
-        gsap.to(inner, { autoAlpha: 0, y: 16, duration: 0.35, ease: "power2.out" });
+      // Plain opacity, not autoAlpha: the modal is conditionally mounted
+      // by React (modalMounted) rather than kept in the DOM and hidden via
+      // visibility, so there's no visibility toggling to do here — and
+      // critically, autoAlpha's "from" state sets visibility: hidden
+      // synchronously the instant the tween is created, which would make
+      // the immediate closeButtonRef.current?.focus() below silently fail
+      // (browsers refuse to focus a hidden element). It'd also cap the
+      // backdrop at opacity 1 on its "visible" end, when the spec wants it
+      // dimmed to 0.4, not opaque.
+      if (textileOpen) {
+        if (reduced) {
+          gsap.set(backdrop, { opacity: 0.4 });
+          gsap.set(modal, { opacity: 1, scale: 1 });
+        } else {
+          gsap.fromTo(backdrop, { opacity: 0 }, { opacity: 0.4, duration: 0.3, ease: "power2.out" });
+          gsap.fromTo(
+            modal,
+            { opacity: 0, scale: 0.94 },
+            { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" },
+          );
+        }
+        closeButtonRef.current?.focus();
+      } else if (modalMounted) {
+        const finishClose = () => {
+          setModalMounted(false);
+          lastTriggerRef.current?.focus();
+        };
+        if (reduced) {
+          finishClose();
+        } else {
+          gsap.to(backdrop, { opacity: 0, duration: 0.25, ease: "power2.in" });
+          gsap.to(modal, {
+            opacity: 0,
+            scale: 0.94,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: finishClose,
+          });
+        }
       }
     },
-    { scope: wrapRef, dependencies: [textileActive] },
+    { scope: wrapRef, dependencies: [textileOpen, modalMounted] },
   );
 
   return (
@@ -495,7 +566,7 @@ export default function AfricaMap({
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           setSelected(null);
-          setTextileActive(null);
+          setTextileOpen(null);
         }
       }}
     >
@@ -506,7 +577,6 @@ export default function AfricaMap({
         className="h-auto w-full"
         onClick={() => {
           setSelected(null);
-          setTextileActive(null);
         }}
       >
         {COUNTRIES.map((c) => {
@@ -537,7 +607,7 @@ export default function AfricaMap({
               d={c.d}
               className={classes}
               data-selected={
-                selected === c.code || (t && textileActiveCode === c.code) || undefined
+                selected === c.code || (t && zoomCode === c.code) || undefined
               }
               {...props}
             />
@@ -662,6 +732,31 @@ export default function AfricaMap({
             </g>
           );
         })}
+
+        {/* Hover/focus affordance ring — "this is clickable", not the
+            detail content. Sized per country from its own hit-bounds so
+            the halo reads proportionally whether it's Ghana or Ethiopia.
+            Suppressed once the modal is open (see the pulse effect above
+            for the animation itself). */}
+        {textileProfiles.map((t) => {
+          const pos = TEXTILE_MARKER_POSITIONS[t.code];
+          const bounds = TEXTILE_HIT_BOUNDS[t.code];
+          if (!pos || !bounds || textileHover !== t.code || textileOpen === t.code) return null;
+          const ringRadius = Math.max(bounds.width, bounds.height) / 2 + 15;
+          return (
+            <circle
+              key={`hover-ring-${t.code}`}
+              className="textile-hover-ring"
+              cx={pos.x}
+              cy={pos.y}
+              r={ringRadius}
+              fill="none"
+              stroke="var(--gold)"
+              strokeWidth={3}
+              pointerEvents="none"
+            />
+          );
+        })}
       </svg>
 
       {/* Cursor tooltip (mouse only) */}
@@ -681,19 +776,55 @@ export default function AfricaMap({
         </div>
       )}
 
-      {/* Textile detail panel — one unified pattern at every viewport
-          width and for every input type (hover, focus, tap), positioned
-          directly below the map so it can never cover the country it's
-          describing (the bug this replaced: a side panel that overlapped
-          east-side countries like Ethiopia/Kenya). Outer wrapper animates
-          height for a smooth push-down of anything after it; inner
-          content fades up. Content persists through the exit animation so
-          it doesn't blank mid-collapse. */}
-      <div ref={panelOuterRef} className="w-full overflow-hidden" style={{ height: 0 }}>
-        <div ref={panelInnerRef} className="rounded-md border border-hairline bg-surface p-5">
-          {panelTextile && <TextileInfo t={panelTextile} />}
+      {/* Textile detail modal — click/Enter/Space/tap opens this as a
+          centered overlay floating above the map, with a dimmed backdrop
+          behind it (closing on Escape, a backdrop click, or the close
+          button). Kept mounted through its own exit tween via
+          modalMounted; content keeps showing the last-open country
+          through that fade via modalCode so it doesn't blank mid-exit. */}
+      {modalMounted && (
+        <div className="fixed inset-0 z-[100]">
+          <div
+            ref={backdropRef}
+            aria-hidden="true"
+            onClick={() => setTextileOpen(null)}
+            className="absolute inset-0 bg-ink"
+            style={{ opacity: 0 }}
+          />
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+            <div
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="textile-modal-heading"
+              onClick={(e) => e.stopPropagation()}
+              className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-lg bg-surface shadow-[0_30px_70px_rgba(23,28,38,0.35)]"
+              style={{ opacity: 0 }}
+            >
+              <button
+                ref={closeButtonRef}
+                type="button"
+                aria-label="Close"
+                onClick={() => setTextileOpen(null)}
+                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+              >
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                  <path
+                    d="M1 1 L15 15 M15 1 L1 15"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+              <div className="p-6">
+                {modalTextile && <TextileInfo t={modalTextile} headingId="textile-modal-heading" />}
+              </div>
+              <TextileMotifBorder />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

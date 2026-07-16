@@ -28,6 +28,18 @@ export default function Materials() {
     { scope: container },
   );
 
+  // Card lift on hover: a subtle whole-card scale via GSAP, paired with a
+  // CSS-transitioned shadow + border brighten (kept modest on all three so
+  // it reads as a deliberate lift, not a busy hover state).
+  const handleEnter = (e: React.MouseEvent<HTMLElement>) => {
+    if (prefersReducedMotion()) return;
+    gsap.to(e.currentTarget, { scale: 1.04, duration: 0.3, ease: "power2.out" });
+  };
+  const handleLeave = (e: React.MouseEvent<HTMLElement>) => {
+    if (prefersReducedMotion()) return;
+    gsap.to(e.currentTarget, { scale: 1, duration: 0.3, ease: "power2.out" });
+  };
+
   return (
     <section
       ref={container}
@@ -42,27 +54,37 @@ export default function Materials() {
         {MATERIALS.map((m) => (
           <article
             key={m.id}
-            className="material-card group relative aspect-[4/5] overflow-hidden rounded-xl"
+            className="material-card relative aspect-[4/5] overflow-hidden rounded-xl border border-hairline transition-[box-shadow,border-color] duration-300 hover:border-gold/45 hover:shadow-[0_22px_44px_rgba(23,28,38,0.28)]"
+            onMouseEnter={handleEnter}
+            onMouseLeave={handleLeave}
           >
             <Image
               src={m.background}
               alt={`${m.name} from ${m.origin}`}
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover"
             />
+            {/* Bottom scrim: dark gradient sized independently of the text
+                content (58% of the card's own height, not the text block's),
+                so the name/origin always sit on a reliable dark backing
+                regardless of what the photo looks like underneath. */}
             <div
-              className="absolute inset-x-0 bottom-0 p-5 pt-16"
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%]"
               style={{
                 background:
-                  "linear-gradient(to top, color-mix(in srgb, var(--paper) 88%, transparent), transparent)",
+                  "linear-gradient(to top, color-mix(in srgb, var(--ink) 88%, transparent), transparent)",
               }}
-            >
-              <h3 className="font-display text-2xl font-extrabold uppercase leading-none text-ink">
+            />
+            <div className="absolute inset-x-0 bottom-0 p-5">
+              <h3 className="font-display text-2xl font-extrabold uppercase leading-none text-paper">
                 {m.name}
               </h3>
-              <p className="mt-1 text-sm font-semibold text-gold-deep">{m.origin}</p>
-              <p className="mt-2 max-w-[36ch] text-sm text-indigo">{m.description}</p>
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">
+                {m.origin}
+              </p>
+              <p className="mt-2 max-w-[36ch] text-sm text-paper/75">{m.description}</p>
             </div>
           </article>
         ))}

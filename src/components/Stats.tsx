@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import AfricaMap from "@/components/AfricaMap";
+import AmbientAtmosphere from "@/components/AmbientAtmosphere";
 
 const STATS = [
   { value: 54, suffix: "", label: "Countries represented" },
@@ -49,7 +50,7 @@ export default function Stats() {
     <section
       ref={container}
       aria-label="The fair in numbers"
-      className="bg-paper px-6 py-24 md:px-16 md:py-32"
+      className="relative bg-paper px-6 py-24 md:px-16 md:py-32"
     >
       <div className="mx-auto grid max-w-6xl items-center gap-16 md:grid-cols-2">
         <AfricaMap className="mx-auto w-full max-w-lg" />
@@ -68,6 +69,8 @@ export default function Stats() {
           ))}
         </dl>
       </div>
+
+      <AmbientAtmosphere containerRef={container} />
     </section>
   );
 }

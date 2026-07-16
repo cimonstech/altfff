@@ -1,19 +1,29 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
+import { getLenis } from "@/lib/scroll";
 
+// `page: true` entries are real, standalone routes (rendered as next/link
+// for client-side navigation). The rest are sections that only exist on
+// the homepage — those get a "/#id" href (not bare "#id") specifically so
+// they still work correctly when clicked from another page: a bare hash
+// only ever touches the current page's URL, so from e.g. /about it just
+// silently rewrote the address bar without navigating anywhere. "/#id"
+// navigates home first, then the browser (or Lenis, via SmoothScroll's
+// `anchors: true`) scrolls to the section on arrival.
 const LEFT_LINKS = [
-  { label: "About", href: "#about" },
-  { label: "Materials", href: "#materials" },
-  { label: "Exhibiting", href: "#visit" },
+  { label: "About", href: "/about", page: true },
+  { label: "Materials", href: "/#materials", page: false },
+  { label: "Exhibiting", href: "/exhibiting", page: true },
 ];
 
 const RIGHT_LINKS = [
-  { label: "Visit", href: "#visit" },
-  { label: "Sponsorship", href: "#sponsorship" },
-  { label: "Contact", href: "#contact" },
+  { label: "Visit", href: "/#visit", page: false },
+  { label: "Sponsorship", href: "/#sponsorship", page: false },
+  { label: "Contact", href: "/contact", page: true },
 ];
 
 const CHAMFER = 22;
@@ -57,21 +67,37 @@ export default function Nav() {
     return () => ro.disconnect();
   }, []);
 
-  // Hide while actively scrolling (any direction), leaving a 2px lip;
+  // Hide while actively scrolling (any direction), leaving a 3px lip;
   // slide back ~400ms after scrolling stops. Activity-based, not
-  // direction-based, so this is a plain scroll listener + debounce timer.
+  // direction-based, so this is a scroll listener + debounce timer.
+  //
+  // This listens to Lenis's own "scroll" event, not the native window
+  // scroll event: Lenis drives scrolling itself (via rAF-smoothed native
+  // scrollTo calls), and the browser coalesces/suppresses most of the
+  // native scroll events that would otherwise fire during that animated
+  // scroll — in practice as few as one native event for an entire
+  // multi-hundred-ms scroll gesture, which starves this debounce logic of
+  // the continuous signal it needs to know scrolling is still happening.
+  // Lenis's own event fires every animation frame instead (the same event
+  // this app already uses to drive ScrollTrigger.update in
+  // SmoothScroll.tsx), so it's the reliable source here.
   useEffect(() => {
     const bar = barRef.current;
     if (!bar || prefersReducedMotion()) return;
 
+    const HIDDEN_LIP = 3; // px of the bar left visible when hidden
+
     let hidden = false;
     let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    let unsubscribe: (() => void) | undefined;
+    let waitId: number | undefined;
+    let cancelled = false;
 
-    const onScroll = () => {
-      if (window.scrollY > 80 && !hidden) {
+    const onScroll = (lenis: { animatedScroll: number }) => {
+      if (lenis.animatedScroll > 80 && !hidden) {
         hidden = true;
         gsap.to(bar, {
-          y: -(bar.offsetHeight - 2),
+          y: -(bar.offsetHeight - HIDDEN_LIP),
           duration: 0.35,
           ease: "power3.out",
           overwrite: "auto",
@@ -84,9 +110,26 @@ export default function Nav() {
       }, 400);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // SmoothScroll.tsx creates the Lenis instance in an effect of its own,
+    // and effects fire child-first — this component's effect can run
+    // before that one has, so the instance isn't guaranteed to exist yet.
+    // Poll a frame at a time (bounded by `cancelled` on unmount) until it
+    // does; SmoothScroll's effect will always have run by the next frame.
+    const waitForLenis = () => {
+      if (cancelled) return;
+      const lenis = getLenis();
+      if (lenis) {
+        unsubscribe = lenis.on("scroll", onScroll);
+      } else {
+        waitId = requestAnimationFrame(waitForLenis);
+      }
+    };
+    waitForLenis();
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      cancelled = true;
+      if (waitId !== undefined) cancelAnimationFrame(waitId);
+      unsubscribe?.();
       clearTimeout(idleTimer);
       gsap.killTweensOf(bar);
     };
@@ -105,6 +148,10 @@ export default function Nav() {
         style={{
           backgroundColor: "#FFFFFF",
           clipPath: path ? `path("${path}")` : undefined,
+          // The bottom edge doubles as the 3px "lip" left on screen when
+          // the bar is hidden (see the scroll effect above) — a plain
+          // hairline for now, no color treatment yet.
+          borderBottom: "1px solid var(--hairline)",
         }}
       >
         <nav
@@ -121,27 +168,39 @@ export default function Nav() {
               <span className="h-[2px] w-5 bg-ink" />
             </button>
             <div className="hidden items-center gap-6 md:flex">
-              {LEFT_LINKS.map((l) => (
-                <a key={l.label} href={l.href} className={linkClass}>
-                  {l.label}
-                </a>
-              ))}
+              {LEFT_LINKS.map((l) =>
+                l.page ? (
+                  <Link key={l.label} href={l.href} className={linkClass}>
+                    {l.label}
+                  </Link>
+                ) : (
+                  <a key={l.label} href={l.href} className={linkClass}>
+                    {l.label}
+                  </a>
+                ),
+              )}
             </div>
           </div>
 
-          <a
-            href="#top"
+          <Link
+            href="/"
             className="font-display text-xl font-extrabold tracking-tight text-ink"
           >
             Alt.FFF
-          </a>
+          </Link>
 
           <div className="hidden items-center justify-end gap-6 md:flex">
-            {RIGHT_LINKS.map((l) => (
-              <a key={l.label} href={l.href} className={linkClass}>
-                {l.label}
-              </a>
-            ))}
+            {RIGHT_LINKS.map((l) =>
+              l.page ? (
+                <Link key={l.label} href={l.href} className={linkClass}>
+                  {l.label}
+                </Link>
+              ) : (
+                <a key={l.label} href={l.href} className={linkClass}>
+                  {l.label}
+                </a>
+              ),
+            )}
           </div>
         </nav>
 
