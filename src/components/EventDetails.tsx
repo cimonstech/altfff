@@ -71,7 +71,7 @@ export default function EventDetails() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-4">
-          {/* Information-seeking CTA — takes the visitor to the full Visit
+          {/* Information-seeking CTA - takes the visitor to the full Visit
               page (details + the Register to visit modal trigger) rather
               than popping a form immediately. */}
           <Link
@@ -92,3 +92,5 @@ export default function EventDetails() {
     </section>
   );
 }
+
+

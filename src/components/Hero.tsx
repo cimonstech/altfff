@@ -17,7 +17,7 @@ const BLOB_R = 26; // gooey blob radius (slightly larger than thumb radius)
 // headline text legible. Peak opacity at the left edge, fading to 0 by the
 // horizontal midpoint. A flat value didn't hold up across all six photos
 // (kente and raw cotton are both far too light for white text at a low
-// peak) — each material now carries its own scrimOpacity in constants.ts,
+// peak) - each material now carries its own scrimOpacity in constants.ts,
 // tuned by eye; this is just the fallback for one that omits it. The
 // scrim div itself renders the gradient at a fixed reference alpha of 1
 // and reaches its real per-material peak via the div's own `opacity`
@@ -25,7 +25,7 @@ const BLOB_R = 26; // gooey blob radius (slightly larger than thumb radius)
 // material changes rather than trying to interpolate a gradient string.
 const DEFAULT_SCRIM_OPACITY = 0.15;
 
-const HEADLINE = "A FABRIC SPREE OF AFRICAN DESCENT.";
+const HEADLINE = "BEFORE FASHION, THERE ARE MATERIALS.";
 
 // Giant material word: fixed font-size ceiling. Short words render at this
 // size, left-aligned; long words scale down below it just enough to span
@@ -33,9 +33,9 @@ const HEADLINE = "A FABRIC SPREE OF AFRICAN DESCENT.";
 const MAX_WORD_FONT_CLAMP = "clamp(3rem, 12vw, 11rem)";
 // Line-box multiplier for the wrapper that holds the giant word. The word
 // itself now anchors to the wrapper's bottom edge directly (see the button
-// below), so this factor only controls headroom above the glyph — how much
+// below), so this factor only controls headroom above the glyph - how much
 // the wrapper's own overflow:hidden top boundary can clip into a tall
-// word — not the bottom anchor point, which no longer depends on this
+// word - not the bottom anchor point, which no longer depends on this
 // value at all. Kept generous as safety margin against font-rendering
 // variance across sizes/browsers.
 const WORD_HEIGHT_FACTOR = 1.25;
@@ -48,7 +48,7 @@ const WORD_HEIGHT_FACTOR = 1.25;
  *
  * Width is the only dimension that needs solving for here: both this probe
  * and the live button share `whiteSpace: nowrap` (see the button below), so
- * a word can never wrap to a second line — scaled sizes only ever shrink
+ * a word can never wrap to a second line - scaled sizes only ever shrink
  * from the cap, so the tallest any word's single line box can be is bounded
  * by the cap's own height, which the wrapper is already sized to contain
  * (WORD_HEIGHT_FACTOR). A separate height pass would be solving for a
@@ -176,7 +176,23 @@ export default function Hero() {
   const [gooEnabled, setGooEnabled] = useState<boolean | null>(null);
   const { openVisitorModal } = useSiteModals();
   const { sizes: wordFontSizes } = useMaterialWordSizes(
-    MATERIALS.map((m) => m.heroWord),
+    // Desktop-specific order: start with cotton, place kente near the end
+    ((): string[] => {
+      const m = MATERIALS.slice();
+      const cottonIdx = m.findIndex((x) => x.id === "cotton");
+      const kenteIdx = m.findIndex((x) => x.id === "kente");
+      const cotton = cottonIdx >= 0 ? m.splice(cottonIdx, 1)[0] : null;
+      const kente = kenteIdx >= 0 ? m.splice(m.findIndex((x) => x.id === "kente"), 1)[0] : null;
+      const ordered = [] as typeof MATERIALS;
+      if (cotton) ordered.push(cotton);
+      ordered.push(...m);
+      // place kente second-to-last
+      if (kente) {
+        const insertAt = Math.max(ordered.length - 1, 0);
+        ordered.splice(insertAt, 0, kente);
+      }
+      return ordered.map((x) => x.heroWord);
+    })(),
   );
 
   const container = useRef<HTMLElement>(null);
@@ -204,7 +220,7 @@ export default function Hero() {
 
   // Auto-rotation: advance every 6s, pause on hover, reset on manual pick
   // (manual setActive re-runs this effect, restarting the timer). Skipped
-  // below md — HeroMobile renders there instead, but this component stays
+  // below md - HeroMobile renders there instead, but this component stays
   // mounted (display:none) so its breakpoint can flip with a plain media
   // query with no hydration flash; without this guard its timers and GSAP
   // loops would keep running invisibly and burn the low-end frame budget
@@ -212,8 +228,10 @@ export default function Hero() {
   useEffect(() => {
     if (paused) return;
     if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) return;
+    // use the same desktop ordering as above
+    const orderedLength = MATERIALS.length; // we'll index into an ordered view elsewhere
     const t = setTimeout(
-      () => setActive((a) => (a + 1) % MATERIALS.length),
+      () => setActive((a) => (a + 1) % orderedLength),
       ROTATE_MS,
     );
     return () => clearTimeout(t);
@@ -238,7 +256,7 @@ export default function Hero() {
         });
 
         if (cardRef.current) {
-          // Idle float amplitude reduced 60% (was -6) — read as too much
+          // Idle float amplitude reduced 60% (was -6) - read as too much
           // motion for a small floating card.
           gsap.to(cardRef.current, {
             y: -2.4,
@@ -289,7 +307,7 @@ export default function Hero() {
       const old = thumbCenter(prev);
 
       // Gooey liquid merge: an outgoing blob bulges then travels toward the
-      // new thumbnail while an incoming blob grows from 0 at the target —
+      // new thumbnail while an incoming blob grows from 0 at the target -
       // their motion paths overlap mid-transition, and the blur+threshold
       // filter fuses the overlap into a bridge that pinches as the outgoing
       // blob shrinks away. A crisp (unfiltered) circle holds the resting
@@ -351,7 +369,7 @@ export default function Hero() {
               { attr: { r: BLOB_R * 1.3 }, duration: DUR * 0.3, ease: "power2.out" },
               0,
             )
-            // ...then travels toward the target, still large — this is what
+            // ...then travels toward the target, still large - this is what
             // makes its blur radius overlap the growing incoming blob
             .to(
               blobOutRef.current,
@@ -395,7 +413,7 @@ export default function Hero() {
         return;
       }
 
-      const targetScrimOpacity = MATERIALS[active]?.scrimOpacity ?? DEFAULT_SCRIM_OPACITY;
+      const targetScrimOpacity = ORDERED_MATERIALS[active]?.scrimOpacity ?? DEFAULT_SCRIM_OPACITY;
 
       if (reduced) {
         if (bgOut) gsap.set(bgOut, { autoAlpha: 0 });
@@ -415,9 +433,9 @@ export default function Hero() {
 
       // Background: incoming starts scaled/offset, fades in after the
       // selector starts moving (~0.25s), settles over 1.4s with expo ease.
-      // Outgoing fades away underneath. Scrim opacity — a plain number, so
+      // Outgoing fades away underneath. Scrim opacity - a plain number, so
       // GSAP can tween it directly rather than interpolating the gradient
-      // string — settles on the same timing so the two read as one change.
+      // string - settles on the same timing so the two read as one change.
       if (bgIn && bgOut) {
         gsap.set(bgIn, { zIndex: 2, autoAlpha: 0, scale: 1.15, x: 40 });
         gsap.set(bgOut, { zIndex: 1 });
@@ -456,7 +474,24 @@ export default function Hero() {
     { scope: container, dependencies: [active, gooEnabled] },
   );
 
-  const material = MATERIALS[active];
+  // Recreate desktop ordering for runtime reads
+  const ORDERED_MATERIALS = (() => {
+    const m = MATERIALS.slice();
+    const cottonIdx = m.findIndex((x) => x.id === "cotton");
+    const kenteIdx = m.findIndex((x) => x.id === "kente");
+    const cotton = cottonIdx >= 0 ? m.splice(cottonIdx, 1)[0] : null;
+    const kente = kenteIdx >= 0 ? m.splice(m.findIndex((x) => x.id === "kente"), 1)[0] : null;
+    const ordered = [] as typeof MATERIALS;
+    if (cotton) ordered.push(cotton);
+    ordered.push(...m);
+    if (kente) {
+      const insertAt = Math.max(ordered.length - 1, 0);
+      ordered.splice(insertAt, 0, kente);
+    }
+    return ordered;
+  })();
+
+  const material = ORDERED_MATERIALS[active];
 
   return (
     <section
@@ -466,13 +501,13 @@ export default function Hero() {
       className="relative min-h-svh overflow-hidden bg-paper"
     >
       <div ref={frameRef} className="relative min-h-svh">
-        {/* Fabric background layer — full-bleed at every viewport width */}
+        {/* Fabric background layer - full-bleed at every viewport width */}
         <div
           className="absolute inset-0"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          {MATERIALS.map((m, i) => (
+          {ORDERED_MATERIALS.map((m, i) => (
             <div
               key={m.id}
               ref={(el) => {
@@ -497,7 +532,7 @@ export default function Hero() {
           ))}
         </div>
 
-        {/* Left-side scrim — keeps the white headline legible against the
+        {/* Left-side scrim - keeps the white headline legible against the
             full-bleed photo without recreating a solid paper panel. The
             gradient itself is fixed at a reference alpha of 1; the real
             per-material peak (constants.ts, MATERIALS[i].scrimOpacity)
@@ -507,20 +542,20 @@ export default function Hero() {
           ref={scrimRef}
           aria-hidden
           className="pointer-events-none absolute inset-0 z-[5]"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(23, 28, 38, 1) 0%, rgba(23, 28, 38, 0) 50%)",
-            opacity: MATERIALS[0]?.scrimOpacity ?? DEFAULT_SCRIM_OPACITY,
+            style={{
+              background:
+                "linear-gradient(to right, rgba(23, 28, 38, 1) 0%, rgba(23, 28, 38, 0) 50%)",
+              opacity: ORDERED_MATERIALS[0]?.scrimOpacity ?? DEFAULT_SCRIM_OPACITY,
           }}
         />
 
-        {/* Left column — stable across material changes */}
+        {/* Left column - stable across material changes */}
         <div className="relative z-10 flex min-h-svh max-w-[720px] flex-col justify-center px-6 pt-32 max-md:pb-[30rem] md:px-16 md:pb-40 md:pt-24">
           <h1 className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
             <HeadlineChars />
           </h1>
           {/* Side by side from md up so the CTA doesn't stack a whole
-              extra row of vertical space onto the left column — this is
+              extra row of vertical space onto the left column - this is
               what buys the giant material word room to breathe at the
               bottom without the two colliding. Stacks back to
               paragraph-then-button below md, where there isn't enough
@@ -541,7 +576,7 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Floating event card — upper right, level with the top of the
+        {/* Floating event card - upper right, level with the top of the
             headline rather than the body copy below it, and pulled well
             clear of the thumbnail rail (rail sits at md:right-16 to
             mirror the hero's own left margin; the card's right offset
@@ -572,7 +607,7 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* Thumbnail rail — vertical on desktop, horizontal row on mobile.
+        {/* Thumbnail rail - vertical on desktop, horizontal row on mobile.
             Right offset matches the left column's own px-16 (64px) at
             md+, so the rail sits the same distance from the right edge
             as the text content does from the left. */}
@@ -627,7 +662,7 @@ export default function Hero() {
             />
           )}
 
-          {MATERIALS.map((m, i) => (
+          {ORDERED_MATERIALS.map((m, i) => (
             <button
               key={m.id}
               ref={(el) => {
@@ -639,15 +674,15 @@ export default function Hero() {
               aria-pressed={i === active}
               className="relative z-10 h-11 w-11"
             >
-              {/* Backing disc — separates the thumbnail from the busy
+              {/* Backing disc - separates the thumbnail from the busy
                   full-bleed photo behind it. Larger than the thumb (44px)
                   and centered behind it; -z-10 keeps it below both the
                   goo/ring selection indicator and the thumb image, so the
                   existing selection logic (untouched) still reads on top.
                   Lives on the button (not an outer wrapper) so it isn't
                   clipped by the image's own overflow-hidden circle, and so
-                  thumbCenter()'s offsetLeft/offsetTop math — which expects
-                  the button's offsetParent to stay railRef — is unaffected. */}
+                  thumbCenter()'s offsetLeft/offsetTop math - which expects
+                  the button's offsetParent to stay railRef - is unaffected. */}
               <span
                 aria-hidden
                 className="absolute left-1/2 top-1/2 -z-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper"
@@ -681,8 +716,8 @@ export default function Hero() {
             long words scale down just enough to span edge-to-edge of the
             same content width, without wrapping or clipping.
             Each button anchors via `bottom: 0` (not `top: 0`) inside this
-            fixed-position wrapper, so its own line box — whatever the
-            browser actually computes for that word's specific font-size —
+            fixed-position wrapper, so its own line box - whatever the
+            browser actually computes for that word's specific font-size -
             sits flush against the wrapper's bottom edge directly. That's
             deliberately more robust than positioning from the top and
             trusting a height formula (WORD_HEIGHT_FACTOR) to contain the
@@ -700,7 +735,7 @@ export default function Hero() {
             height: `calc(${WORD_HEIGHT_FACTOR} * ${MAX_WORD_FONT_CLAMP})`,
           }}
         >
-          {MATERIALS.map((m, i) => (
+          {ORDERED_MATERIALS.map((m, i) => (
             <button
               key={m.id}
               ref={(el) => {
@@ -709,11 +744,11 @@ export default function Hero() {
               type="button"
               onClick={() => scrollToSection("#materials")}
               aria-label={`${m.heroWord}, view in materials section`}
-              className="absolute bottom-0 left-6 whitespace-nowrap text-left font-display font-extrabold uppercase leading-none tracking-tight text-paper md:left-16 [font-size:clamp(3rem,12vw,11rem)]"
-              style={{
-                visibility: i === 0 ? "visible" : "hidden",
-                fontSize: wordFontSizes ? wordFontSizes[i] : undefined,
-              }}
+                className="absolute bottom-0 left-6 whitespace-nowrap text-left font-display font-extrabold uppercase leading-none tracking-tight text-paper md:left-16 [font-size:clamp(3rem,12vw,11rem)]"
+                style={{
+                  visibility: i === 0 ? "visible" : "hidden",
+                  fontSize: wordFontSizes ? wordFontSizes[i] : undefined,
+                }}
               tabIndex={i === active ? 0 : -1}
             >
               <WordChars text={m.heroWord} />
@@ -728,3 +763,5 @@ export default function Hero() {
     </section>
   );
 }
+
+

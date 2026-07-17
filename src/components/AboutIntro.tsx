@@ -12,7 +12,7 @@ const PARAGRAPHS = [
 ];
 
 /** Line-by-line scrubbed-opacity reveal, adapted from Manifesto.tsx's
- * treatment for this page's remaining intro copy — same mechanic, sized
+ * treatment for this page's remaining intro copy - same mechanic, sized
  * for body-length paragraphs rather than short manifesto lines. */
 export default function AboutIntro() {
   const container = useRef<HTMLElement>(null);
@@ -60,7 +60,7 @@ export default function AboutIntro() {
         sizes="100vw"
         className="object-cover"
       />
-      {/* Cotton is bright, near-white — the same material that needed the
+      {/* Cotton is bright, near-white - the same material that needed the
           heaviest scrim anywhere on the site (Hero.tsx's own cotton
           background) for white text to hold up against it, so this one
           leans just as dark. */}
@@ -84,3 +84,5 @@ export default function AboutIntro() {
     </section>
   );
 }
+
+

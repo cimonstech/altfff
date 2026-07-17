@@ -3,14 +3,14 @@
 import { EVENT } from "@/lib/constants";
 
 /**
- * Newsletter signup block — visual only for now, no submission wiring.
+ * Newsletter signup block - visual only for now, no submission wiring.
  * Extracted out of Footer.tsx (which renders it bare, as one column of
  * its own grid) so pages that want it as a standalone section can reuse
  * it too; the caller controls surrounding layout/background/padding.
  *
  * `fieldId` defaults to "newsletter-email" but must be overridden if this
  * ever renders twice on the same page (e.g. a standalone band above a
- * Footer that also renders one) — otherwise the input id/label pairing
+ * Footer that also renders one) - otherwise the input id/label pairing
  * collides.
  */
 export default function NewsletterBand({ fieldId = "newsletter-email" }: { fieldId?: string }) {
@@ -45,3 +45,5 @@ export default function NewsletterBand({ fieldId = "newsletter-email" }: { field
     </div>
   );
 }
+
+

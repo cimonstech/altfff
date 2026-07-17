@@ -7,13 +7,13 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 type FAQItem = { question: string; answer: string };
 
 // Answers are written from what's already established elsewhere on this
-// site (dates/venue, materials, exhibitor packages, partners) — the old
+// site (dates/venue, materials, exhibitor packages, partners) - the old
 // altfff.com page's own answer copy wasn't available to reuse.
 const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What types of materials and innovations will be showcased at Alt.FFF 2026?",
     answer:
-      "Alt.FFF showcases African-sourced materials across fibres, dyes and finished textiles — including kente, natural dyes, raffia, leather, cotton and cowrie craft — alongside the manufacturers and innovators working with them. Expect both raw material sourcing and finished-product innovation on the floor.",
+      "Alt.FFF showcases African-sourced materials across fibres, dyes and finished textiles - including kente, natural dyes, raffia, leather, cotton and cowrie craft - alongside the manufacturers and innovators working with them. Expect both raw material sourcing and finished-product innovation on the floor.",
   },
   {
     question: "What are the dates and location for the Alternative Fashion Fabric Fair (Alt.FFF) 2026?",
@@ -22,7 +22,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",
-    // TODO: confirm the founder's name with the client before launch —
+    // TODO: confirm the founder's name with the client before launch -
     // deliberately not naming anyone here rather than guessing.
     answer:
       "Alt.FFF is organised by Fashion Forum Africa. We're confirming the individual founder credit with the organising team and will update this answer before launch.",
@@ -30,18 +30,18 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "How can I register as an exhibitor for Alt.FFF 2026?",
     answer:
-      "Exhibitor registration happens through the Exhibiting page, where you can review the package tiers — Standard, Medium and Premium booths, plus the Innovation Start-up Pod — and apply directly via the online form.",
+      "Exhibitor registration happens through the Exhibiting page, where you can review the package tiers - Standard, Medium and Premium booths, plus the Innovation Start-up Pod - and apply directly via the online form.",
   },
   {
     question: "How can I participate in exhibitions that focus on sustainable fashion materials in Africa?",
     answer:
-      "Alt.FFF exists specifically for this — apply to exhibit via the Exhibiting page if you produce or work with raw or semi-processed materials across Africa. Retail-only businesses aren't eligible to exhibit but can still advertise in the Trade Show Guide.",
+      "Alt.FFF exists specifically for this - apply to exhibit via the Exhibiting page if you produce or work with raw or semi-processed materials across Africa. Retail-only businesses aren't eligible to exhibit but can still advertise in the Trade Show Guide.",
   },
   {
     question:
       "Where can I find information about upcoming fashion trade fairs in Africa focusing on sustainable materials?",
     answer:
-      "Alt.FFF itself is Ghana's alternative fashion fabric fair — this site and Fashion Forum Africa's own channels are the best source for updates on this and future editions.",
+      "Alt.FFF itself is Ghana's alternative fashion fabric fair - this site and Fashion Forum Africa's own channels are the best source for updates on this and future editions.",
   },
   {
     question: "Which organisations are supporting the Alternative Fashion Fabric Fair?",
@@ -57,16 +57,16 @@ const FAQ_ITEMS: FAQItem[] = [
     question:
       "How can textile producers in Africa connect with designers and buyers interested in alternative materials?",
     answer:
-      "The most direct route is exhibiting at Alt.FFF, where producers get a booth on the trade floor in front of buyers actively sourcing alternative materials — apply via the Exhibiting page.",
+      "The most direct route is exhibiting at Alt.FFF, where producers get a booth on the trade floor in front of buyers actively sourcing alternative materials - apply via the Exhibiting page.",
   },
   {
     question: "What are some events in 2026 that highlight African heritage textiles and innovations?",
     answer:
-      "Alt.FFF, September 17 to 19, 2026 in Accra, is designed as exactly this kind of event — a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.",
+      "Alt.FFF, September 17 to 19, 2026 in Accra, is designed as exactly this kind of event - a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.",
   },
 ];
 
-/** Rotating "+" / "−" indicator — a horizontal bar that's always there,
+/** Rotating "+" / "−" indicator - a horizontal bar that's always there,
  * plus a vertical bar that rotates 90° via GSAP to lie flat on top of it
  * when open, turning "+" into "−". */
 function Indicator({ open }: { open: boolean }) {
@@ -158,7 +158,7 @@ function AccordionItem({ item, open, onToggle }: { item: FAQItem; open: boolean;
   );
 }
 
-/** One open at a time, scoped per column — the two columns are
+/** One open at a time, scoped per column - the two columns are
  * independent accordion groups, not one shared state. */
 function AccordionColumn({ items }: { items: FAQItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -229,3 +229,5 @@ export default function ContactFAQ() {
     </section>
   );
 }
+
+

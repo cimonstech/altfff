@@ -1,11 +1,11 @@
 /**
  * News data access layer. No CMS on this project yet, so this reads from
- * the local NEWS_ARTICLES array below — but every component that needs
+ * the local NEWS_ARTICLES array below - but every component that needs
  * news data goes through the async functions at the bottom (getAllArticles,
  * getFeaturedArticle, getArticleBySlug, getLatestArticles), never the
  * array directly. That's deliberate: swapping the source for R2-hosted
  * JSON or a real CMS later means rewriting the bodies of those functions
- * only — no component that calls them needs to change, since they're
+ * only - no component that calls them needs to change, since they're
  * already being awaited as if they were remote calls.
  */
 
@@ -17,13 +17,13 @@ export interface NewsArticle {
   category: NewsCategory;
   date: string; // ISO
   excerpt: string;
-  image: string; // path under public/ — reusing existing site imagery, not a dedicated /news/ asset set yet
+  image: string; // path under public/ - reusing existing site imagery, not a dedicated /news/ asset set yet
   body: string[]; // paragraphs
   featured?: boolean;
   externalUrl?: string; // if set, card links out instead of to /news/[slug]
 }
 
-// PLACEHOLDER CONTENT — every entry below is plausible-but-invented copy
+// PLACEHOLDER CONTENT - every entry below is plausible-but-invented copy
 // for a first build. Replace with real client-approved copy before launch.
 const NEWS_ARTICLES: NewsArticle[] = [
   {
@@ -78,8 +78,8 @@ const NEWS_ARTICLES: NewsArticle[] = [
       "Kente, natural dyes, raffia, leather, cotton, cowrie craft: a look at the raw materials Alt.FFF puts centre stage.",
     image: "/materials/Raw-Materials/leather_hides.jpg",
     body: [
-      "Before a single garment is cut, there is a material — grown, woven, dyed or tanned somewhere on the continent. Alt.FFF exists to put those materials, and the people behind them, at the centre of the conversation.",
-      "The fair's exhibitor floor spans strip-woven kente, resist-dyed indigo and adire, raffia fibre, tanned leather, raw cotton, and cowrie shell craft — six material families, each with its own regional story.",
+      "Before a single garment is cut, there is a material - grown, woven, dyed or tanned somewhere on the continent. Alt.FFF exists to put those materials, and the people behind them, at the centre of the conversation.",
+      "The fair's exhibitor floor spans strip-woven kente, resist-dyed indigo and adire, raffia fibre, tanned leather, raw cotton, and cowrie shell craft - six material families, each with its own regional story.",
       "Expect both raw material sourcing and finished-product innovation on display across the three days.",
     ],
   },
@@ -89,7 +89,7 @@ const NEWS_ARTICLES: NewsArticle[] = [
     category: "Announcement",
     date: "2026-03-24",
     excerpt:
-      "Brands can now back the future of African materials — sponsorship packages for Alt.FFF 2026 are live.",
+      "Brands can now back the future of African materials - sponsorship packages for Alt.FFF 2026 are live.",
     image: "/materials/kente-bg.webp",
     body: [
       "Alt.FFF has opened sponsorship opportunities for its 2026 edition. Sponsorship puts a brand behind the platform bridging African creativity with global commerce.",
@@ -102,12 +102,12 @@ const NEWS_ARTICLES: NewsArticle[] = [
     title: "Alt.FFF Featured in African Fashion Press",
     category: "Press",
     date: "2026-04-02",
-    excerpt: "Placeholder coverage entry — swap for a real press mention and link before launch.",
+    excerpt: "Placeholder coverage entry - swap for a real press mention and link before launch.",
     image: "/materials/adire-bg.webp",
     body: [
-      "PLACEHOLDER CONTENT — replace with a real excerpt or summary of the press coverage once a piece is confirmed.",
+      "PLACEHOLDER CONTENT - replace with a real excerpt or summary of the press coverage once a piece is confirmed.",
     ],
-    // TODO: replace with the real external article URL once confirmed —
+    // TODO: replace with the real external article URL once confirmed -
     // left as "#" (a safe no-op link) rather than an invented URL.
     externalUrl: "#",
   },
@@ -132,3 +132,5 @@ export async function getArticleBySlug(slug: string): Promise<NewsArticle | unde
 export async function getLatestArticles(count: number): Promise<NewsArticle[]> {
   return sortByDateDesc(NEWS_ARTICLES).slice(0, count);
 }
+
+

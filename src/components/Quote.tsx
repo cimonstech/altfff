@@ -30,7 +30,7 @@ export default function Quote({
   dark?: boolean;
   image?: { src: string; alt: string };
   /** Ambient, ultra-subtle rotating Three.js wireframe behind the quote
-   * text — a deliberate one-off mood element, not a general prop for
+   * text - a deliberate one-off mood element, not a general prop for
    * every use of this component. */
   ambient3d?: boolean;
 }) {
@@ -98,3 +98,5 @@ export default function Quote({
     </section>
   );
 }
+
+

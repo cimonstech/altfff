@@ -3,7 +3,7 @@
 /**
  * Map geometry from the Simplemaps.com Africa SVG (src/assets/africa.svg).
  * Copyright (c) 2015 Pareto Software, LLC DBA Simplemaps.com
- * Offered under the MIT License — http://opensource.org/licenses/MIT
+ * Offered under the MIT License - http://opensource.org/licenses/MIT
  * Attribution is appreciated! http://simplemaps.com
  */
 
@@ -21,7 +21,7 @@ import Modal from "@/components/Modal";
 
 type Country = { code: string; name: string; d: string };
 
-/** Resolves a CSS custom property to its actual value at call time — GSAP's
+/** Resolves a CSS custom property to its actual value at call time - GSAP's
  * color parser doesn't understand var() references passed directly as a
  * tween value, so entrance-tween colors below resolve the token first. */
 function cssVar(name: string): string {
@@ -96,7 +96,7 @@ const COUNTRIES: Country[] = [
 
 /**
  * Island nations absent from the source SVG, as labeled dot markers.
- * Coordinates are approximate positions in the 1000×1001 viewBox —
+ * Coordinates are approximate positions in the 1000�-1001 viewBox -
  * nudge x/y freely. `anchor` places the label left or right of the dot.
  */
 export const ISLAND_POSITIONS: Record<
@@ -115,7 +115,7 @@ export const ACCRA_POSITION = { x: 292, y: 441 };
 
 /**
  * Approximate centroids (bounding-box midpoints) of the four textile-detail
- * countries, for placing the "explorable" pulse marker. Nudge freely — this
+ * countries, for placing the "explorable" pulse marker. Nudge freely - this
  * is a separate, independent tier from the participants system: a country
  * can be in both, neither, or just one.
  */
@@ -129,7 +129,7 @@ export const TEXTILE_MARKER_POSITIONS: Record<string, { x: number; y: number }> 
 /**
  * Bounding boxes (SVG user-space units) for the same four countries, used
  * as a stable invisible hit-target. The visible path itself can't double
- * as the pointer target while it's being scaled for the zoom effect —
+ * as the pointer target while it's being scaled for the zoom effect -
  * its rendered boundary moves as it grows, which can sweep across a
  * cursor near an edge and fire a spurious pointerleave that reverses the
  * animation, which sweeps the boundary back and re-triggers enter, in a
@@ -217,7 +217,7 @@ export default function AfricaMap({
   // The element that opened the modal, so closing it (Escape, backdrop,
   // the close button) can return focus there instead of dropping it. The
   // trigger is always the SVG hit-rect, hence SVGElement rather than
-  // HTMLElement — passed to the shared Modal as restoreFocusRef, since
+  // HTMLElement - passed to the shared Modal as restoreFocusRef, since
   // relying on document.activeElement alone isn't reliable cross-browser
   // for a non-native-control trigger like this.
   const lastTriggerRef = useRef<SVGElement | null>(null);
@@ -230,7 +230,7 @@ export default function AfricaMap({
   // Textile-detail tier (materials-education feature): independent of the
   // participants tier above. Two states, matching the two-stage
   // interaction: hover/focus (`textileHover`) is a "this is clickable"
-  // affordance only — it drives the map zoom and a pulsing ring cue, but
+  // affordance only - it drives the map zoom and a pulsing ring cue, but
   // never reveals the detail content. Click/Enter/Space/tap
   // (`textileOpen`) is what actually opens the detail modal.
   const [textileHover, setTextileHover] = useState<string | null>(null);
@@ -302,11 +302,11 @@ export default function AfricaMap({
 
   // Textile-tier props. Two-stage interaction: hover/focus is an
   // affordance-only cue (map zoom + pulsing ring, no content), while
-  // click/Enter/Space/tap opens the detail modal — on touch, where there's
+  // click/Enter/Space/tap opens the detail modal - on touch, where there's
   // no real hover, tapping goes straight to opening it. Takes priority
   // over `interactiveProps` above for any country in both tiers (only
   // Ghana currently). Attached to a stable invisible hit-rect (see
-  // TEXTILE_HIT_BOUNDS), not the path itself — the path is what scales for
+  // TEXTILE_HIT_BOUNDS), not the path itself - the path is what scales for
   // the zoom effect, and a moving hit-target would fire spurious
   // leave/enter as its boundary sweeps past the cursor, fighting its own
   // animation.
@@ -330,7 +330,7 @@ export default function AfricaMap({
       }
     },
     // Browsers synthesize a click after a touch's pointerup regardless of
-    // that event's own stopPropagation — without also stopping this one,
+    // that event's own stopPropagation - without also stopping this one,
     // it bubbles to the SVG's onClick (which clears the participant
     // selection) and, for a real mouse click, this is also what opens the
     // modal.
@@ -351,7 +351,7 @@ export default function AfricaMap({
   });
 
   // Entry animation (once, on scroll into view) + Accra pulse.
-  // Reduced motion: no tweens run — the DOM already holds the final state.
+  // Reduced motion: no tweens run - the DOM already holds the final state.
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
@@ -435,7 +435,7 @@ export default function AfricaMap({
   // own inline `transform-origin` for any SVG element it animates a
   // transform on, unconditionally, regardless of the CSS
   // `transform-box: fill-box` declared on .africa-textile or an explicit
-  // `svgOrigin` tween property — both were observed collapsing to
+  // `svgOrigin` tween property - both were observed collapsing to
   // "0px 0px" (the SVG's own origin) at runtime, scaling the shape from a
   // point far outside itself. Building the matrix by hand from each
   // country's precomputed centroid (TEXTILE_MARKER_POSITIONS) sidesteps
@@ -549,7 +549,7 @@ export default function AfricaMap({
             .join(" ");
           // Textile-tier countries get their interactive props on a
           // separate, stable hit-rect (rendered after all paths, below)
-          // instead of on the path itself — see TEXTILE_HIT_BOUNDS comment.
+          // instead of on the path itself - see TEXTILE_HIT_BOUNDS comment.
           // This also gives textile tier priority over the plain
           // participant tooltip for any country in both tiers (Ghana).
           const props = t
@@ -573,7 +573,7 @@ export default function AfricaMap({
         })}
 
         {/* Stable pointer/keyboard targets for the four textile-tier
-            countries — always the topmost hit target within their bounds,
+            countries - always the topmost hit target within their bounds,
             regardless of alphabetical paint order among the 50 paths. */}
         {textileProfiles.map((t) => {
           const b = TEXTILE_HIT_BOUNDS[t.code];
@@ -670,7 +670,7 @@ export default function AfricaMap({
           </text>
         </g>
 
-        {/* Textile-tier "explorable" markers — smaller-scale version of the
+        {/* Textile-tier "explorable" markers - smaller-scale version of the
             Accra pulse, purely decorative (the path itself is the hit
             target, via .africa-textile). */}
         {textileProfiles.map((t) => {
@@ -691,7 +691,7 @@ export default function AfricaMap({
           );
         })}
 
-        {/* Hover/focus affordance ring — "this is clickable", not the
+        {/* Hover/focus affordance ring - "this is clickable", not the
             detail content. Sized per country from its own hit-bounds so
             the halo reads proportionally whether it's Ghana or Ethiopia.
             Suppressed once the modal is open (see the pulse effect above
@@ -727,14 +727,14 @@ export default function AfricaMap({
         </div>
       )}
 
-      {/* Info card — tap (touch) and keyboard focus render here */}
+      {/* Info card - tap (touch) and keyboard focus render here */}
       {selectedParticipant && (
         <div className="mt-4 rounded-md border border-hairline bg-surface p-4">
           <ParticipantInfo p={selectedParticipant} />
         </div>
       )}
 
-      {/* Textile detail modal — click/Enter/Space/tap opens this as a
+      {/* Textile detail modal - click/Enter/Space/tap opens this as a
           centered overlay floating above the map. Content keeps showing
           the last-open country through the shared Modal's own exit fade
           via modalCode, so it doesn't blank mid-exit. */}
@@ -752,3 +752,5 @@ export default function AfricaMap({
     </div>
   );
 }
+
+

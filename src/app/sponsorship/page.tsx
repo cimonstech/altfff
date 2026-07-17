@@ -33,7 +33,7 @@ export default function SponsorshipPage() {
         <SponsorshipBenefits />
 
         {/* Same Partners component used site-wide (homepage, About,
-            Exhibiting) — reusing it exactly rather than a bespoke
+            Exhibiting) - reusing it exactly rather than a bespoke
             monochrome treatment keeps the partner tier structure and
             Black Star Experience's prominence consistent everywhere. */}
         <Partners />
@@ -64,7 +64,7 @@ export default function SponsorshipPage() {
           </div>
         </section>
 
-        {/* Closing band — madder, no animation needed. */}
+        {/* Closing band - madder, no animation needed. */}
         <section aria-label="Request the sponsorship deck" className="bg-madder px-6 py-16 text-paper md:px-16">
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <h2 className="font-display text-2xl font-extrabold uppercase tracking-tight md:text-3xl">
@@ -83,3 +83,5 @@ export default function SponsorshipPage() {
     </>
   );
 }
+
+

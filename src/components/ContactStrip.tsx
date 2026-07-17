@@ -33,7 +33,7 @@ const TILES: Tile[] = [
   },
   {
     // lucide-react dropped brand/logo icons (no Instagram/LinkedIn glyphs
-    // available in this version) — AtSign is a neutral stand-in for
+    // available in this version) - AtSign is a neutral stand-in for
     // "social handle" rather than a literal platform logo.
     icon: AtSign,
     circleClass: "bg-ink",
@@ -41,7 +41,7 @@ const TILES: Tile[] = [
     label: "Follow Us On",
     links: [
       { text: "Instagram @Alt.FashionFabricFair", href: "https://instagram.com/Alt.FashionFabricFair" },
-      // TODO: placeholder href — needs the real Fashion Forum Africa
+      // TODO: placeholder href - needs the real Fashion Forum Africa
       // LinkedIn company page URL before launch.
       { text: "LinkedIn Fashion Forum Africa", href: "#" },
     ],
@@ -71,3 +71,5 @@ export default function ContactStrip() {
     </section>
   );
 }
+
+

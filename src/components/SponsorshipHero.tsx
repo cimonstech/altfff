@@ -9,7 +9,7 @@ import HeroArtifacts from "@/components/HeroArtifacts";
 
 /**
  * Dark hero for the Sponsorship page. `id="sponsorship-hero"` and
- * `position: relative` are deliberate hooks — a separate, later piece of
+ * `position: relative` are deliberate hooks - a separate, later piece of
  * work adds an ambient cowrie/cotton artifacts layer here, and needs a
  * stable positioned parent to mount into.
  */
@@ -59,3 +59,5 @@ export default function SponsorshipHero() {
     </section>
   );
 }
+
+

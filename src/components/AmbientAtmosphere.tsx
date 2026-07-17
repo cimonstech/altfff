@@ -4,12 +4,12 @@
  * Ambient cursor-driven decoration for the map section: small material
  * artifacts (cowrie, raffia) drift near the cursor, cotton wisps float
  * independently, and a woven "kente thread" trail traces recent cursor
- * movement. Purely atmospheric — no informational value, so it's skipped
+ * movement. Purely atmospheric - no informational value, so it's skipped
  * entirely under reduced motion or on touch-only devices, and every layer
  * is pointer-events: none so it can never intercept clicks meant for the
  * map paths or the stat numbers underneath it.
  *
- * Everything here is imperative DOM/GSAP (not React state) — artifacts are
+ * Everything here is imperative DOM/GSAP (not React state) - artifacts are
  * created and destroyed dozens of times a minute while the cursor moves,
  * and routing that through re-renders would be wasteful for something this
  * disposable. The component's own render output never changes.
@@ -31,7 +31,7 @@ const MAX_ARTIFACTS = 10;
 const SPAWN_MIN_MS = 150;
 const SPAWN_MAX_MS = 300;
 // Recent cursor history the thread keeps, capped by point count rather than
-// a time window — at typical cursor speeds that reads the same and avoids
+// a time window - at typical cursor speeds that reads the same and avoids
 // stamping/filtering timestamps on every move.
 const TRAIL_MAX_POINTS = 24;
 const IDLE_MS = 180; // no movement for this long => thread starts settling
@@ -84,11 +84,11 @@ export default function AmbientAtmosphere({
     // Every img/div this effect instance has imperatively appended to
     // `layer`, tracked so cleanup can remove exactly those and nothing
     // else. `layer` itself also holds the React-rendered <svg> (the trail)
-    // as a child — a blunter cleanup like `layer.replaceChildren()` would
+    // as a child - a blunter cleanup like `layer.replaceChildren()` would
     // rip that out too, which is invisible in production but breaks under
     // React Strict Mode's dev-only double-invoke: the first (throwaway)
     // mount's cleanup would detach the real SVG from the DOM, orphaning
-    // trailGroupRef/trailPathRefs for the second (live) mount — the trail
+    // trailGroupRef/trailPathRefs for the second (live) mount - the trail
     // keeps computing and setting its `d` attribute correctly from then
     // on, just on an element no longer attached to the page.
     const liveNodes = new Set<HTMLElement>();
@@ -335,3 +335,5 @@ export default function AmbientAtmosphere({
     </div>
   );
 }
+
+

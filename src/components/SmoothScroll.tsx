@@ -38,7 +38,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
   // Web fonts swapping in (font-display: swap) after that initial
   // calculation can reflow text and shift everything below it, leaving a
   // trigger stale. A single refresh once fonts have actually loaded
-  // corrects that — deliberately one-shot rather than a continuous
+  // corrects that - deliberately one-shot rather than a continuous
   // ResizeObserver: refreshing while a stagger reveal is mid-flight can
   // reset its progress and strand later-staggered elements never
   // finishing, which is worse than the staleness it'd be fixing.
@@ -49,3 +49,5 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+

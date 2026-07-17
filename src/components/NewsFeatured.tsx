@@ -59,3 +59,5 @@ export default function NewsFeatured({ article }: { article: NewsArticle }) {
     </section>
   );
 }
+
+

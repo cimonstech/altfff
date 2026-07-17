@@ -15,7 +15,7 @@ export default function ShareRow({ slug }: { slug: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard API unavailable (permissions/older browser) — no-op,
+      // Clipboard API unavailable (permissions/older browser) - no-op,
       // the button just won't confirm. Not worth a visible error state
       // for a non-critical share affordance.
     }
@@ -44,3 +44,5 @@ export default function ShareRow({ slug }: { slug: string }) {
     </div>
   );
 }
+
+

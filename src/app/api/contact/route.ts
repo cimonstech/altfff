@@ -20,7 +20,7 @@ type ContactPayload = {
   company?: unknown;
 };
 
-// No Upstash/rate-limit helper exists in this project yet — the brief was
+// No Upstash/rate-limit helper exists in this project yet - the brief was
 // explicit not to add a new dependency just for this route, so this
 // deliberately ships without rate limiting. Worth revisiting if spam
 // becomes a real problem.
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid request body." }, { status: 400 });
   }
 
-  // Honeypot tripped — pretend success so the bot doesn't learn anything,
+  // Honeypot tripped - pretend success so the bot doesn't learn anything,
   // but never actually send the email.
   if (typeof body.company === "string" && body.company.trim().length > 0) {
     return NextResponse.json({ ok: true });
@@ -54,10 +54,10 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    // Fails loudly in server logs rather than silently pretending to send —
+    // Fails loudly in server logs rather than silently pretending to send -
     // TODO: set RESEND_API_KEY (and verify a sending domain in Resend)
     // before this route can actually deliver mail.
-    console.error("RESEND_API_KEY is not set — contact form email was not sent.");
+    console.error("RESEND_API_KEY is not set - contact form email was not sent.");
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
@@ -101,3 +101,5 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+

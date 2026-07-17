@@ -33,7 +33,7 @@ export default function QuoteWireframe() {
     container.appendChild(renderer.domElement);
 
     // Three.js can't consume a CSS var() reference directly (this is WebGL,
-    // not the DOM) — resolve --gold to its actual value at runtime instead
+    // not the DOM) - resolve --gold to its actual value at runtime instead
     // of duplicating a hardcoded hex that could drift out of sync with the
     // token later.
     const goldHex = getComputedStyle(document.documentElement).getPropertyValue("--gold").trim();
@@ -103,3 +103,5 @@ export default function QuoteWireframe() {
 
   return <div ref={containerRef} aria-hidden="true" className="pointer-events-none absolute inset-0" />;
 }
+
+

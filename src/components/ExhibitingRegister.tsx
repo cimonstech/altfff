@@ -83,7 +83,7 @@ export default function ExhibitingRegister() {
 
         {/* Deliberately NOT part of the .register-in scroll-triggered
             reveal above: a primary CTA should never be gated behind
-            scroll-animation reliability — if a ScrollTrigger ever fails
+            scroll-animation reliability - if a ScrollTrigger ever fails
             to fire for any reason, this must still be visible and
             clickable, not stuck at its pre-reveal hidden state. */}
         <button
@@ -97,3 +97,5 @@ export default function ExhibitingRegister() {
     </section>
   );
 }
+
+

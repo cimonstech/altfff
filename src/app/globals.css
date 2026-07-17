@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  /* Design tokens — Alt.FFF */
+  /* Design tokens - Alt.FFF */
   --paper: #f6f1e7; /* page background (calico) */
   --surface: #efe7d8; /* cards and nav fill (raw cotton) */
   --ink: #015347; /* primary text (indigo-black) -previously; 171c26 */
   --indigo: #c5810a; /* secondary text and dark surfaces */
-  /* Brand accents — sampled directly from pixel data in the official
+  /* Brand accents - sampled directly from pixel data in the official
      Exhibitors_Pack_ALT_FFF_June_2026.pdf, authoritative (not estimated). */
-  --gold: #da8e06; /* primary accent — fills and large type only */
+  --gold: #da8e06; /* primary accent - fills and large type only */
   /* Darkened ~32% in HSL lightness from --gold (43.9% → 30.0%) for small
      text-on-paper contrast. A straight 25-30% reduction (landing around
      L≈31-32%, contrast ~4.3-4.4:1) fell short of WCAG AA; extended to
-     L=30.0% to actually clear it — verified: #956104 on #F6F1E7 is a
+     L=30.0% to actually clear it - verified: #956104 on #F6F1E7 is a
      4.68:1 contrast ratio (AA requires 4.5:1 for small text). */
   --gold-deep: #956104;
   --madder: #ca902b; /* secondary accent */
@@ -101,7 +101,7 @@ h6,
    pointer events even when not a participant (muted fill, pointer-events:
    none by default). The in-place scale-from-centroid is done by hand in
    JS (AfricaMap.tsx) via an explicit translate/scale/translate matrix
-   using each country's known SVG-space centroid — deliberately no
+   using each country's known SVG-space centroid - deliberately no
    transform-box/transform-origin here: fill-box shifts the element's own
    transform coordinate frame to its bounding-box origin, which would
    silently reinterpret those hand-computed absolute coordinates in the
@@ -125,3 +125,5 @@ html.lenis body {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
+

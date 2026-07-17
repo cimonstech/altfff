@@ -74,7 +74,7 @@ export default function NewsGrid({ articles }: { articles: NewsArticle[] }) {
 
   const filtered = active === "All" ? articles : articles.filter((a) => a.category === active);
 
-  // Initial reveal, once, on first scroll into view — independent of the
+  // Initial reveal, once, on first scroll into view - independent of the
   // filter-change fade below.
   useGSAP(
     () => {
@@ -91,7 +91,7 @@ export default function NewsGrid({ articles }: { articles: NewsArticle[] }) {
     { scope: container },
   );
 
-  // Filter changes: a fast fade swap rather than a full FLIP reorder — the
+  // Filter changes: a fast fade swap rather than a full FLIP reorder - the
   // grid's contents change (different articles, not just repositioned
   // ones), so a from-scratch FLIP enter/leave setup would be solving a
   // harder problem than this needs.
@@ -151,3 +151,5 @@ export default function NewsGrid({ articles }: { articles: NewsArticle[] }) {
     </section>
   );
 }
+
+

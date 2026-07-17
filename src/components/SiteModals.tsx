@@ -14,7 +14,7 @@ const SiteModalsContext = createContext<{
 
 /**
  * Mounts the "Apply to exhibit" and "Register to visit" forms as shared
- * Modal instances ONCE, at the app root — any CTA anywhere on the site
+ * Modal instances ONCE, at the app root - any CTA anywhere on the site
  * (Nav, homepage, About, Exhibiting, Visit) can open either one via
  * useSiteModals(), regardless of which page it's rendered on.
  */
@@ -45,3 +45,5 @@ export function useSiteModals() {
   }
   return ctx;
 }
+
+

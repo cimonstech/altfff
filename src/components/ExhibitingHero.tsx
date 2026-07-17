@@ -87,7 +87,7 @@ export default function ExhibitingHero() {
         gsap.set(layers[inIndex], { y: -STAGE_OFFSET, autoAlpha: 0 });
 
         // Outgoing continues its downward motion while fading; incoming
-        // slides down from above at the same time — an overlapping
+        // slides down from above at the same time - an overlapping
         // crossfade-with-motion instead of a hard instant swap.
         gsap.to(layers[outIndex], {
           y: "+=50",
@@ -117,7 +117,7 @@ export default function ExhibitingHero() {
     { scope: container },
   );
 
-  // Cursor-follow tilt on the garment stage — shared with the Reasons
+  // Cursor-follow tilt on the garment stage - shared with the Reasons
   // cards' hover-tilt via src/lib/use-tilt.ts.
   useTilt(stageRef, tiltRef, { maxDeg: MAX_TILT_DEG });
 
@@ -161,7 +161,7 @@ export default function ExhibitingHero() {
         <div className="absolute inset-0 bg-ink/70" />
       </div>
 
-      {/* Massive, barely-visible background wordmark — light-on-dark this
+      {/* Massive, barely-visible background wordmark - light-on-dark this
           time, same technique as the light-mode version. */}
       <div
         aria-hidden="true"
@@ -275,3 +275,5 @@ export default function ExhibitingHero() {
     </section>
   );
 }
+
+

@@ -94,7 +94,7 @@ export default function PackageOptions() {
         </h2>
 
         {/* Mobile: one card per package, label/value pairs stacked. Desktop
-            (md+): the comparison table below, unchanged — a card layout at
+            (md+): the comparison table below, unchanged - a card layout at
             that width would lose the side-by-side compare that's the whole
             point of a pricing table. */}
         <div className="package-in flex flex-col gap-4 md:hidden">
@@ -210,3 +210,5 @@ export default function PackageOptions() {
     </section>
   );
 }
+
+

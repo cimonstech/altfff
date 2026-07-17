@@ -11,7 +11,7 @@ import { SITE } from "@/lib/constants";
 
 const TITLE = "Contact | Alt.FFF 2026";
 const DESCRIPTION =
-  "Get in touch with Alt.FFF — enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, September 17 to 19, 2026 in Accra.";
+  "Get in touch with Alt.FFF - enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, September 17 to 19, 2026 in Accra.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -44,7 +44,7 @@ export default function ContactPage() {
         <ContactStrip />
         <ContactFAQ />
 
-        {/* Closing band — no reusable one exists elsewhere on the site yet
+        {/* Closing band - no reusable one exists elsewhere on the site yet
             (Footer.tsx has its own inline newsletter block, not a
             standalone component), so this is a plain slim band matching
             the sponsorship page's closing-band pattern. */}
@@ -66,3 +66,5 @@ export default function ContactPage() {
     </>
   );
 }
+
+

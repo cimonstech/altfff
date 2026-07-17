@@ -141,7 +141,7 @@ export default function Footer() {
         </p>
       </div>
 
-      {/* Giant cropped wordmark — page bottom slices the letters */}
+      {/* Giant cropped wordmark - page bottom slices the letters */}
       <div
         className="overflow-hidden text-center"
         style={{ fontSize: "clamp(5rem, 18vw, 20rem)", height: "0.62em" }}
@@ -166,3 +166,5 @@ export default function Footer() {
     </footer>
   );
 }
+
+

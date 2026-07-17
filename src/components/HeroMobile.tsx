@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
+import { MATERIALS } from "@/lib/constants";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import Ticker from "@/components/Ticker";
 
-// Swap to "ACCRA 2026" to compare — the period in "ALT.FFF" leaves a small
+// Swap to "ACCRA 2026" to compare - the period in "ALT.FFF" leaves a small
 // visual gap once rotated into the vertical column; "ACCRA 2026" reads a
 // touch more evenly at this size but loses the wordmark. Default to the
 // wordmark since it doubles as brand reinforcement.
@@ -15,7 +16,7 @@ const VERTICAL_WORD = "ALT.FFF";
 
 /**
  * Mobile-only (below md) full-bleed editorial hero. Deliberately a separate
- * component from Hero.tsx, not a breakpoint variant of it — the two share
+ * component from Hero.tsx, not a breakpoint variant of it - the two share
  * only a background image source; the desktop rail/rotation/gooey-selector
  * system has no mobile equivalent here (static image instead, to keep the
  * low-end frame budget for scroll rather than a material carousel).
@@ -40,17 +41,42 @@ export default function HeroMobile() {
     },
     { scope: container },
   );
+  const [active, setActive] = useState(0);
+
+  // Build mobile-specific order: start with cotton, keep kente last
+  const mobileMaterials = (() => {
+    const m = MATERIALS.slice();
+    const cottonIdx = m.findIndex((x) => x.id === "cotton");
+    const kenteIdx = m.findIndex((x) => x.id === "kente");
+    const cotton = cottonIdx >= 0 ? m.splice(cottonIdx, 1)[0] : null;
+    const kente = kenteIdx >= 0 ? m.splice(m.findIndex((x) => x.id === "kente"), 1)[0] : null;
+    const ordered = [] as typeof MATERIALS;
+    if (cotton) ordered.push(cotton);
+    ordered.push(...m);
+    if (kente) ordered.push(kente);
+    return ordered;
+  })();
+
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    const t = setInterval(() => {
+      setActive((a) => (a + 1) % mobileMaterials.length);
+    }, 6000);
+    return () => clearInterval(t);
+  }, [mobileMaterials]);
+
+  const current = mobileMaterials[active];
 
   return (
     <section
       ref={container}
-      aria-label="Alt.FFF — before fashion, there are materials"
+      aria-label="Alt.FFF - before fashion, there are materials"
       className="relative h-[100dvh] w-full overflow-hidden bg-ink"
     >
       <div ref={imgRef} className="absolute inset-0">
         <Image
-          src="/materials/kente-bg.webp"
-          alt="Close-up of hand-woven kente cloth"
+          src={current.background}
+          alt={`${current.name} background`}
           fill
           priority
           sizes="100vw"
@@ -58,7 +84,7 @@ export default function HeroMobile() {
         />
       </div>
 
-      {/* Bottom-weighted scrim — keeps the text cluster legible without
+      {/* Bottom-weighted scrim - keeps the text cluster legible without
           flattening the photo everywhere else. */}
       <div
         aria-hidden="true"
@@ -69,7 +95,7 @@ export default function HeroMobile() {
         }}
       />
 
-      {/* Oversized vertical wordmark, right edge — intentionally overflows
+      {/* Oversized vertical wordmark, right edge - intentionally overflows
           top/bottom at this font-size. Duplicates the logo in Nav, so it's
           hidden from assistive tech. */}
       <span
@@ -97,6 +123,9 @@ export default function HeroMobile() {
         <p className="mt-3 text-sm text-paper/60">
           September 17 to 19, 2026 &middot; Accra
         </p>
+        <p className="mt-3 text-sm text-paper/70">
+          This exhibition spotlights the raw, processed, and semi-processed materials that power the industry.
+        </p>
         <Link
           href="/exhibiting"
           className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
@@ -111,3 +140,5 @@ export default function HeroMobile() {
     </section>
   );
 }
+
+

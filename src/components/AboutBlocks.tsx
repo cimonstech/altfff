@@ -97,7 +97,7 @@ export default function AboutBlocks() {
             key={b.heading}
             className="content-block overflow-hidden rounded-xl border border-hairline bg-surface"
           >
-            {/* Image top, ink bottom-scrim + white heading — same recipe as
+            {/* Image top, ink bottom-scrim + white heading - same recipe as
                 the Materials grid cards, reused here for visual consistency. */}
             <div className="relative aspect-[16/9] overflow-hidden">
               <Image
@@ -145,3 +145,5 @@ export default function AboutBlocks() {
     </section>
   );
 }
+
+

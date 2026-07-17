@@ -7,7 +7,7 @@ import { FloatingField, FloatingSelect } from "@/components/FormFields";
 const TOTAL_FIELDS = 9; // 8 text/tel/email inputs + 1 select
 
 /**
- * The exhibitor application form — rendered as the shared Modal's content
+ * The exhibitor application form - rendered as the shared Modal's content
  * when opened from any "Apply to exhibit" CTA site-wide. Same fields as
  * before this became a modal; still visual-only, no submission wiring yet
  * (needs a decision on Mailchimp vs. a custom backend integration).
@@ -39,7 +39,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         Do you produce in Africa? We want to hear from you!
       </h2>
 
-      {/* Live progress indicator — interface polish only, no validation
+      {/* Live progress indicator - interface polish only, no validation
           logic since the backend isn't built yet. */}
       <div className="mb-1 mt-4 flex items-center gap-3">
         <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-hairline">
@@ -52,7 +52,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
 
       {/* NOTE: no submission wiring yet. Needs a decision on Mailchimp vs.
           a custom backend integration before this can actually collect
-          and store submissions — flagging here rather than faking a
+          and store submissions - flagging here rather than faking a
           working form. */}
       <form className="flex flex-col gap-1" onSubmit={(e) => e.preventDefault()}>
         <FloatingField id="email" label="Email Address" required type="email" onFilledChange={handleFilledChange} />
@@ -68,12 +68,12 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
           label="We would like a space"
           onFilledChange={handleFilledChange}
           options={[
-            { value: "standard", text: "Standard Booth (3m x 3m) — GHS 8,400" },
-            { value: "medium", text: "Medium Booth (3m x 4m) — GHS 11,500" },
-            { value: "premium", text: "Premium Booth (3m x 6m) — GHS 16,500" },
+            { value: "standard", text: "Standard Booth (3m x 3m) - GHS 8,400" },
+            { value: "medium", text: "Medium Booth (3m x 4m) - GHS 11,500" },
+            { value: "premium", text: "Premium Booth (3m x 6m) - GHS 16,500" },
             {
               value: "innovation",
-              text: "Innovation Start-up Pod (shared pod) — GHS 3,000 per company",
+              text: "Innovation Start-up Pod (shared pod) - GHS 3,000 per company",
             },
           ]}
         />
@@ -88,7 +88,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         </button>
       </form>
 
-      {/* Condensed, plain-language terms summary — verbatim facts only.
+      {/* Condensed, plain-language terms summary - verbatim facts only.
           This is a page summary, not a Terms of Service page: that's a
           separate, still-pending task requiring proper legal review. */}
       <details className="mt-8 rounded-xl border border-hairline bg-paper p-5">
@@ -122,3 +122,5 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
     </div>
   );
 }
+
+

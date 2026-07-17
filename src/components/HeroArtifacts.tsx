@@ -31,7 +31,7 @@ type LayoutConfig = {
   cotton: CottonPlacement[];
 };
 
-// One config map, one file — placements are percent-based (top/left) so
+// One config map, one file - placements are percent-based (top/left) so
 // they hold their position across viewport widths, tuned per hero to
 // stay clear of headline/CTA text and (on /exhibiting) the garment stage.
 // Adjust freely; nothing here is referenced anywhere else.
@@ -65,7 +65,7 @@ const LAYOUTS: Record<HeroArtifactsLayout, LayoutConfig> = {
     ],
   },
   news: {
-    // Kept in the upper ~70% of the hero — the ticker strip runs across
+    // Kept in the upper ~70% of the hero - the ticker strip runs across
     // the bottom edge and would just paint over anything placed lower.
     cowrie: { top: "22%", left: "88%", size: 32, rotation: -10, floatAmplitude: 9, floatDuration: 7.5 },
     cotton: [
@@ -76,7 +76,7 @@ const LAYOUTS: Record<HeroArtifactsLayout, LayoutConfig> = {
 };
 
 const MAX_PARALLAX = 14; // px, cowrie's max mouse-parallax translation
-const COTTON_PARALLAX_FACTOR = 0.5; // depth separation — cotton drifts less than the cowrie
+const COTTON_PARALLAX_FACTOR = 0.5; // depth separation - cotton drifts less than the cowrie
 
 type Proxy = { floatY: number; rotDrift: number; parX: number; parY: number };
 
@@ -104,7 +104,7 @@ export default function HeroArtifacts({
     const cottonEls = cottonElRefs.current.filter((el): el is HTMLDivElement => el !== null);
 
     if (reduced) {
-      // Static at base positions — no loops, no parallax. Rotation is
+      // Static at base positions - no loops, no parallax. Rotation is
       // already applied via the inline style below, nothing else to do.
       return;
     }
@@ -193,7 +193,7 @@ export default function HeroArtifacts({
       container.addEventListener("pointerleave", onPointerLeave);
     }
 
-    // Pause the float/drift loops entirely while the hero is off-screen —
+    // Pause the float/drift loops entirely while the hero is off-screen -
     // no point burning frames animating something nobody can see.
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -262,3 +262,5 @@ export default function HeroArtifacts({
     </div>
   );
 }
+
+

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 
 /** Underline-style labelled input: label floats up + shrinks on focus or
- * once filled, underline draws left-to-right on focus — all via GSAP
+ * once filled, underline draws left-to-right on focus - all via GSAP
  * rather than CSS transitions, to match the site's motion language.
  * Reports its own filled/empty state up for a progress indicator, when the
  * caller has one. Shared between the exhibitor and visitor forms. */
@@ -232,3 +232,5 @@ export function FloatingSelect({
     </div>
   );
 }
+
+

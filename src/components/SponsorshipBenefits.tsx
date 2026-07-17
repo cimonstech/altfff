@@ -31,7 +31,7 @@ const BENEFITS = [
   },
 ];
 
-/** Ghost-numeral benefit block — same visual language as the Exhibiting
+/** Ghost-numeral benefit block - same visual language as the Exhibiting
  * page's Reasons cards (ExhibitingReasons.tsx), so the two pages read as
  * part of the same system. */
 function BenefitBlock({ index, heading, body }: { index: number; heading: string; body: string }) {
@@ -93,3 +93,5 @@ export default function SponsorshipBenefits() {
     </section>
   );
 }
+
+

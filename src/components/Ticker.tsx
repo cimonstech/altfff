@@ -41,7 +41,7 @@ function Row({ items, dense }: { items: string[]; dense?: boolean }) {
  * materials/event mix; pass a custom list to reuse the same ink/paper/gold
  * treatment elsewhere with different content (e.g. the Exhibiting page).
  * `dense` shrinks the strip (padding + type size) and slows the scroll a
- * touch — used on mobile, where the default thickness/speed reads heavy on
+ * touch - used on mobile, where the default thickness/speed reads heavy on
  * a small viewport pinned right against a hero image. */
 export default function Ticker({
   items = DEFAULT_ITEMS,
@@ -82,3 +82,5 @@ export default function Ticker({
     </div>
   );
 }
+
+

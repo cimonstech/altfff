@@ -20,7 +20,7 @@ const ALL_LINKS = [
 
 // `page: true` entries are real, standalone routes (rendered as next/link
 // for client-side navigation). The rest are sections that only exist on
-// the homepage — those get a "/#id" href (not bare "#id") specifically so
+// the homepage - those get a "/#id" href (not bare "#id") specifically so
 // they still work correctly when clicked from another page: a bare hash
 // only ever touches the current page's URL, so from e.g. /about it just
 // silently rewrote the address bar without navigating anywhere. "/#id"
@@ -86,7 +86,7 @@ export default function Nav() {
   // Lock body scroll while the overlay is open, force the nav bar visible
   // (the hide-on-scroll effect below checks menuOpenRef and no-ops while
   // open, but Lenis-driven scroll can still be mid-flight from just before
-  // the menu opened — this guarantees the bar isn't caught hidden behind
+  // the menu opened - this guarantees the bar isn't caught hidden behind
   // the trigger the user just tapped), and move focus into the overlay.
   useEffect(() => {
     if (!menuOpen) return;
@@ -130,11 +130,11 @@ export default function Nav() {
   };
 
   // Overlay entrance: panel fades/slides in, links stagger up. Plain
-  // opacity, not autoAlpha — the overlay is conditionally mounted (React
+  // opacity, not autoAlpha - the overlay is conditionally mounted (React
   // only renders it while menuOpen), so there's no visibility toggling to
   // do here, and autoAlpha's "from" state sets visibility: hidden for the
   // tween's first tick, which previously made an immediate .focus() call
-  // silently fail (see Modal.tsx). Skipped entirely under reduced motion —
+  // silently fail (see Modal.tsx). Skipped entirely under reduced motion -
   // the overlay just appears at its final state instantly.
   useEffect(() => {
     if (!menuOpen || prefersReducedMotion() || !overlayRef.current) return;
@@ -170,7 +170,7 @@ export default function Nav() {
   // scroll event: Lenis drives scrolling itself (via rAF-smoothed native
   // scrollTo calls), and the browser coalesces/suppresses most of the
   // native scroll events that would otherwise fire during that animated
-  // scroll — in practice as few as one native event for an entire
+  // scroll - in practice as few as one native event for an entire
   // multi-hundred-ms scroll gesture, which starves this debounce logic of
   // the continuous signal it needs to know scrolling is still happening.
   // Lenis's own event fires every animation frame instead (the same event
@@ -207,7 +207,7 @@ export default function Nav() {
     };
 
     // SmoothScroll.tsx creates the Lenis instance in an effect of its own,
-    // and effects fire child-first — this component's effect can run
+    // and effects fire child-first - this component's effect can run
     // before that one has, so the instance isn't guaranteed to exist yet.
     // Poll a frame at a time (bounded by `cancelled` on unmount) until it
     // does; SmoothScroll's effect will always have run by the next frame.
@@ -234,7 +234,7 @@ export default function Nav() {
   const path = dims ? barPath(dims.w, dims.h) : null;
 
   const linkClass =
-    "relative inline-flex items-center pb-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 hover:text-gold hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4";
+    "relative inline-flex items-center pb-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 hover:text-gold";
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
@@ -245,7 +245,7 @@ export default function Nav() {
           backgroundColor: "#FFFFFF",
           clipPath: path ? `path("${path}")` : undefined,
           // The bottom edge doubles as the 3px "lip" left on screen when
-          // the bar is hidden (see the scroll effect above) — a plain
+          // the bar is hidden (see the scroll effect above) - a plain
           // hairline for now, no color treatment yet.
           borderBottom: "1px solid var(--hairline)",
         }}
@@ -364,7 +364,7 @@ export default function Nav() {
           <nav aria-label="Mobile" className="mt-12 flex flex-1 flex-col justify-center gap-2">
             {ALL_LINKS.map((l) => {
               const isActive = isActiveLink(l.href, pathname);
-              const classes = `mobile-nav-link min-h-[44px] py-2 font-display text-3xl font-extrabold uppercase leading-tight transition-colors duration-200 hover:text-gold hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4 ${isActive ? "text-gold underline decoration-gold decoration-2 underline-offset-4" : "text-paper"}`;
+              const classes = `mobile-nav-link min-h-[44px] py-2 font-display text-3xl font-extrabold uppercase leading-tight transition-colors duration-200 hover:text-gold ${isActive ? "text-gold" : "text-paper"}`;
 
               return (
                 <Link key={l.label} href={l.href} onClick={closeMenu} className={classes}>
@@ -386,3 +386,5 @@ export default function Nav() {
     </div>
   );
 }
+
+

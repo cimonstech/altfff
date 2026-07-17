@@ -1,4 +1,4 @@
-// Small inline icons — no icon system exists elsewhere on the site (the
+// Small inline icons - no icon system exists elsewhere on the site (the
 // footer's "Follow" list is plain text links, no icons), so these are
 // purpose-built here: minimal, single-color, sized to sit inline with text.
 function MailIcon() {
@@ -95,7 +95,7 @@ export default function SponsorshipSidebar() {
         </h3>
         <ul className="mt-3 flex flex-col gap-2.5 text-sm text-ink">
           <Row icon={InstagramIcon} label="@Alt.FashionFabricFair" href="https://instagram.com/Alt.FashionFabricFair" />
-          {/* TODO: placeholder href — needs the real Fashion Forum Africa
+          {/* TODO: placeholder href - needs the real Fashion Forum Africa
               LinkedIn company page URL before launch. */}
           <Row icon={LinkedInIcon} label="Fashion Forum Africa" href="#" />
         </ul>
@@ -103,3 +103,5 @@ export default function SponsorshipSidebar() {
     </div>
   );
 }
+
+

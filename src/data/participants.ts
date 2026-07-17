@@ -9,3 +9,5 @@ export const participants: Participant[] = [
   { code: "GH", name: "Ghana" }, // host country, always present
   // TODO: populate from FFA's confirmed exhibitor list. Do not invent data.
 ];
+
+

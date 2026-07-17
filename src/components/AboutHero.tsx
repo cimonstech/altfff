@@ -12,7 +12,7 @@ import { useSiteModals } from "@/components/SiteModals";
 // Each line gets its own clamp rather than one shared size: at a shared
 // ~7rem cap the longest line ("SPEAK BEFORE") overflows its column and
 // gets clipped by the line's own overflow-hidden reveal mask, so longer
-// lines are capped lower — the size step doubles as some of the
+// lines are capped lower - the size step doubles as some of the
 // "staircase" visual rhythm itself.
 const HEADLINE_LINES: { text: string; accent?: string; indent: number; size: string }[] = [
   { text: "WHERE", indent: 0, size: "clamp(2.2rem,5.6vw,5.2rem)" },
@@ -21,7 +21,7 @@ const HEADLINE_LINES: { text: string; accent?: string; indent: number; size: str
   { text: "FASHION", accent: "+", indent: 3, size: "clamp(1.9rem,4.8vw,4.4rem)" },
 ];
 
-// Real people, not material crops — same treatment the reference composition
+// Real people, not material crops - same treatment the reference composition
 // uses for every circular avatar in the hero.
 const THUMB_ROW = [
   { src: "/people/person1.webp", alt: "" },
@@ -34,7 +34,7 @@ const GLASS_THUMBS = [
   { src: "/people/person4.webp", alt: "" },
 ];
 
-// Image band material switcher — the leather crop is the default/first
+// Image band material switcher - the leather crop is the default/first
 // option, per the brief ("the first one should be the leather already
 // there"), with a few more materials from the asset library to switch
 // between via the small circles overlaid top-right on the image. Caption
@@ -74,7 +74,7 @@ const MATERIAL_OPTIONS = [
 ];
 
 // Small rotating credit line between the CTA row's pills and the buyer
-// counter — a lightweight GSAP crossfade, not the hero headline's full
+// counter - a lightweight GSAP crossfade, not the hero headline's full
 // character-stagger treatment.
 const CREDITS = [
   "Organised by Fashion Forum Africa",
@@ -97,7 +97,7 @@ function TwoToneCircle() {
   );
 }
 
-/** Original, simple thread-spool line icon — not a reproduction of any icon set. */
+/** Original, simple thread-spool line icon - not a reproduction of any icon set. */
 function SpoolIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="shrink-0">
@@ -209,7 +209,7 @@ export default function AboutHero() {
     });
   };
 
-  // Auto-advance through the materials — resets on every change (manual
+  // Auto-advance through the materials - resets on every change (manual
   // click or auto-advance alike, since this depends on activeMaterial),
   // so a manual click gets a full fresh interval rather than being cut
   // short by whatever was already in flight.
@@ -243,7 +243,7 @@ export default function AboutHero() {
           delay: 0.1,
         });
 
-        // Gentle Ken Burns drift on the image band — very slow, subtle.
+        // Gentle Ken Burns drift on the image band - very slow, subtle.
         if (imageRef.current) {
           gsap.to(imageRef.current, {
             scale: 1.06,
@@ -285,7 +285,7 @@ export default function AboutHero() {
         <line x1="0" y1="12" x2="100" y2="66" stroke="var(--hairline)" strokeWidth="0.12" vectorEffect="non-scaling-stroke" />
       </svg>
 
-      {/* Bouncing cowrie shell — floats independently near the top of the
+      {/* Bouncing cowrie shell - floats independently near the top of the
           composition, just above/right of the avatar row. */}
       <div
         ref={cowrieRef}
@@ -303,7 +303,7 @@ export default function AboutHero() {
 
       {/*
         DOM order below is also the mobile visual order (the section is
-        only a grid at md: — "mt-*" gaps do the stacking work below that,
+        only a grid at md: - "mt-*" gaps do the stacking work below that,
         not flex/grid `order`, since `order` has no effect outside a
         flex/grid container). It's written to match the prescribed mobile
         sequence directly: countries label, headline, image band, glass
@@ -313,7 +313,7 @@ export default function AboutHero() {
         reordering the source doesn't touch the desktop layout.
       */}
       <div className="relative mx-auto max-w-7xl md:grid md:grid-cols-12 md:gap-x-6 md:gap-y-16">
-        {/* "+54 countries" metadata label — top row, right side on desktop */}
+        {/* "+54 countries" metadata label - top row, right side on desktop */}
         <div className="about-hero-in flex items-center gap-2 md:col-start-9 md:col-span-4 md:row-start-1 md:justify-end">
           <TwoToneCircle />
           <span className="text-sm font-semibold uppercase tracking-[0.22em] text-ink">
@@ -321,7 +321,7 @@ export default function AboutHero() {
           </span>
         </div>
 
-        {/* Small stacked metadata block — top row, left side on desktop */}
+        {/* Small stacked metadata block - top row, left side on desktop */}
         <div className="about-hero-in mt-10 flex flex-col gap-4 md:col-start-1 md:col-span-3 md:row-start-1 md:mt-0">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
@@ -339,12 +339,12 @@ export default function AboutHero() {
           </div>
         </div>
 
-        {/* Headline — dominant right-side element */}
+        {/* Headline - dominant right-side element */}
         <div className="mt-10 md:col-start-8 md:col-span-5 md:row-start-2 md:row-span-2 md:mt-0 md:self-start">
           <StaircaseHeadline />
         </div>
 
-        {/* Image band + floating cards — left/center element. Wide and
+        {/* Image band + floating cards - left/center element. Wide and
             short (~60% viewport width, roughly half the height a 4:3 crop
             at that width would be), matching the reference composition. */}
         <div className="about-hero-in relative mt-10 md:col-start-1 md:col-span-7 md:row-start-2 md:row-span-2 md:mt-0 md:self-end">
@@ -361,7 +361,7 @@ export default function AboutHero() {
               priority
             />
 
-            {/* Material switcher — small circles overlaid top-right (the
+            {/* Material switcher - small circles overlaid top-right (the
                 bottom-left corner is now the caption's, below); the active
                 one reads as a hollow ring, the rest as solid dots,
                 matching a standard carousel-selector idiom. */}
@@ -387,7 +387,7 @@ export default function AboutHero() {
               ))}
             </div>
 
-            {/* Caption — same ink-scrim + white-text treatment as the
+            {/* Caption - same ink-scrim + white-text treatment as the
                 Materials grid cards, updating with the active material. */}
             <div
               aria-hidden="true"
@@ -407,7 +407,7 @@ export default function AboutHero() {
             </div>
           </div>
 
-          {/* Floating glass card — overlaps top-left corner on desktop,
+          {/* Floating glass card - overlaps top-left corner on desktop,
               sits below the image in normal flow on mobile (no overlap). */}
           <div
             className="relative mt-6 w-full max-w-[15rem] rounded-2xl border border-hairline p-4 md:absolute md:-left-6 md:-top-8 md:mt-0"
@@ -442,7 +442,7 @@ export default function AboutHero() {
             </div>
           </div>
 
-          {/* Small sourcing card — overlaps bottom-right corner on desktop,
+          {/* Small sourcing card - overlaps bottom-right corner on desktop,
               sits below the glass card in flow on mobile (no overlap). */}
           <div className="relative mt-4 w-full max-w-[16rem] rounded-2xl border border-hairline bg-surface p-4 md:absolute md:-bottom-8 md:-right-6 md:mt-0 md:ml-auto">
             <SpoolIcon />
@@ -455,7 +455,7 @@ export default function AboutHero() {
           </div>
         </div>
 
-        {/* Three-circle thumbnail row — sits just above the image band on desktop */}
+        {/* Three-circle thumbnail row - sits just above the image band on desktop */}
         <div className="about-hero-in mt-10 flex items-center justify-center md:col-start-4 md:col-span-4 md:row-start-1 md:mt-0 md:items-end md:justify-center md:pb-1">
           <div className="flex -space-x-3">
             {THUMB_ROW.map((t, i) => (
@@ -471,14 +471,14 @@ export default function AboutHero() {
           </div>
         </div>
 
-        {/* Ticker — replaces the earlier adire swatch, same slot below the
+        {/* Ticker - replaces the earlier adire swatch, same slot below the
             image band. Reuses Ticker.tsx's own default content (materials
             + event info) rather than inventing new marketing copy. */}
         <div className="about-hero-in mt-10 overflow-hidden rounded-xl border border-hairline md:col-start-1 md:col-span-7 md:row-start-4 md:mt-10">
           <Ticker />
         </div>
 
-        {/* Intro paragraph — below/right of the image band */}
+        {/* Intro paragraph - below/right of the image band */}
         <p className="about-hero-in mt-6 max-w-[34ch] text-sm leading-relaxed text-ink md:col-start-8 md:col-span-5 md:row-start-4 md:mt-10">
           {INTRO_PARAGRAPH_1}
         </p>
@@ -515,3 +515,5 @@ export default function AboutHero() {
     </section>
   );
 }
+
+

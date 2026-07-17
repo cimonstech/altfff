@@ -3,11 +3,11 @@
 import { FloatingField } from "@/components/FormFields";
 
 /**
- * Visitor registration form — rendered as the shared Modal's content when
+ * Visitor registration form - rendered as the shared Modal's content when
  * opened from any "Register to visit" / "Register for event" CTA.
  *
  * Fields are placeholders pending real confirmation from Fashion Forum
- * Africa — do not treat as final. Visual-only, same as the exhibitor
+ * Africa - do not treat as final. Visual-only, same as the exhibitor
  * form: no real backend submission wired up yet.
  */
 export default function VisitorRegisterForm({ headingId }: { headingId?: string }) {
@@ -40,3 +40,5 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
     </div>
   );
 }
+
+

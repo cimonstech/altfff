@@ -33,7 +33,13 @@ export default function NewsHero({ latestTitles }: { latestTitles: string[] }) {
       ref={container}
       id="news-hero"
       aria-label="News and press"
-      className="relative overflow-hidden bg-indigo pb-0 pt-32 text-paper md:pt-40"
+      className="relative overflow-hidden pb-0 pt-32 text-paper md:pt-40"
+      style={{
+        backgroundImage:
+          "linear-gradient(0deg, rgba(202,144,43,0.7), rgba(202,144,43,0.7)), url('/materials/Raw-Materials/leather_hides.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
       <HeroArtifacts variant="dark" layout="news" density={2} />
 
@@ -53,3 +59,5 @@ export default function NewsHero({ latestTitles }: { latestTitles: string[] }) {
     </section>
   );
 }
+
+

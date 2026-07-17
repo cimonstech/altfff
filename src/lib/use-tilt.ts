@@ -12,7 +12,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
  * persistent cursor position to track there).
  *
  * Uses rotationX/rotationY (GSAP's legacy transform props), not
- * rotateX/rotateY — the latter collide with the browser's independent CSS
+ * rotateX/rotateY - the latter collide with the browser's independent CSS
  * `rotate` property (which can't express combined 3D rotation), causing
  * GSAP to silently drop the tween.
  */
@@ -53,3 +53,5 @@ export function useTilt(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [maxDeg, duration]);
 }
+
+

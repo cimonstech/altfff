@@ -58,7 +58,7 @@ export default function ContactForm() {
           Message sent.
         </p>
         <p className="mt-2 text-sm text-indigo">
-          Thank you for reaching out — our team will get back to you shortly.
+          Thank you for reaching out - our team will get back to you shortly.
         </p>
       </div>
     );
@@ -74,7 +74,7 @@ export default function ContactForm() {
       <FloatingField id="phone" label="Phone" type="tel" />
       <FloatingTextarea id="message" label="Message" required rows={5} />
 
-      {/* Honeypot — hidden from real users via CSS, never via
+      {/* Honeypot - hidden from real users via CSS, never via
           display:none/hidden (some bots skip those specifically). Left
           empty by anyone genuine; the API route treats a filled-in value
           as a bot and silently no-ops. */}
@@ -98,3 +98,5 @@ export default function ContactForm() {
     </form>
   );
 }
+
+

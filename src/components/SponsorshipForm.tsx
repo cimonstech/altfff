@@ -6,15 +6,15 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField } from "@/components/FormFields";
 
 // ---------------------------------------------------------------------------
-// Mailchimp scaffold — TODO before launch:
+// Mailchimp scaffold - TODO before launch:
 //
 // 1. Open the old altfff.com sponsorship page's Mailchimp embed code.
 // 2. Copy the <form action="..."> URL into MAILCHIMP_SPONSOR_URL below.
-// 3. Copy each <input name="..."> attribute into MAILCHIMP_FIELDS below —
+// 3. Copy each <input name="..."> attribute into MAILCHIMP_FIELDS below -
 //    EMAIL is always correct, everything else (FNAME/PHONE/MMERGEn) is
 //    specific to this Mailchimp audience and must come from the real embed.
 // 4. Copy the hidden honeypot field's name (looks like "b_<u>_<id>") into
-//    MAILCHIMP_HONEYPOT_NAME — Mailchimp uses it as an anti-bot trap, and
+//    MAILCHIMP_HONEYPOT_NAME - Mailchimp uses it as an anti-bot trap, and
 //    leaving it wrong/missing can get real submissions flagged as spam.
 //
 // Regular fetch() to a Mailchimp URL is blocked by CORS, so this uses the
@@ -26,7 +26,7 @@ import { FloatingField } from "@/components/FormFields";
 const MAILCHIMP_SPONSOR_URL = "REPLACE_WITH_MAILCHIMP_FORM_ACTION_URL";
 const MAILCHIMP_FIELDS = {
   email: "EMAIL",
-  fullName: "FNAME", // TODO: confirm — audience may split into FNAME + LNAME instead
+  fullName: "FNAME", // TODO: confirm - audience may split into FNAME + LNAME instead
   phone: "PHONE", // TODO: confirm this audience has a PHONE merge field with this tag
   hearAbout: "MMERGE5", // TODO: replace with the real merge tag
   linkedin: "MMERGE6", // TODO: replace with the real merge tag
@@ -37,7 +37,7 @@ const MAILCHIMP_FIELDS = {
 const MAILCHIMP_HONEYPOT_NAME = "b_REPLACE_REPLACE_REPLACE"; // TODO: real "b_<u>_<id>" name
 const MAILCHIMP_IFRAME_NAME = "sponsor-mailchimp-target";
 
-// Flip to "api" once /api/sponsor exists (a Resend-backed fallback route) —
+// Flip to "api" once /api/sponsor exists (a Resend-backed fallback route) -
 // everything below branches on this one constant, so swapping transport is
 // a one-line change, not a rewrite.
 const TRANSPORT: "mailchimp" | "api" = "mailchimp";
@@ -67,7 +67,7 @@ export default function SponsorshipForm() {
     { scope: container },
   );
 
-  // Fires once the hidden iframe's document changes — including the very
+  // Fires once the hidden iframe's document changes - including the very
   // first (harmless, about:blank) load on mount, which the ref guard below
   // ignores so we don't show "submitted" before anyone has submitted.
   const handleIframeLoad = () => {
@@ -143,7 +143,7 @@ export default function SponsorshipForm() {
           the Alt.FFF event.
         </label>
 
-        {/* Mailchimp anti-bot honeypot — must stay empty and off-screen,
+        {/* Mailchimp anti-bot honeypot - must stay empty and off-screen,
             never remove or let a real user fill it in. */}
         <div aria-hidden="true" style={{ position: "absolute", left: "-5000px" }}>
           <input type="text" name={MAILCHIMP_HONEYPOT_NAME} tabIndex={-1} defaultValue="" />
@@ -160,3 +160,5 @@ export default function SponsorshipForm() {
     </>
   );
 }
+
+

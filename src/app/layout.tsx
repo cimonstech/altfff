@@ -21,7 +21,7 @@ const body = Archivo({
 
 export const metadata: Metadata = {
   // Lets relative OG/Twitter image paths (e.g. SITE.ogImage) resolve to
-  // absolute URLs — without this Next.js falls back to localhost, which
+  // absolute URLs - without this Next.js falls back to localhost, which
   // breaks social-share previews in production.
   metadataBase: new URL(SITE.url),
   title: "Alt.FFF: A Fabric Spree of African Descent",
@@ -49,3 +49,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+

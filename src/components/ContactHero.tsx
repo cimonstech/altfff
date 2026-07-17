@@ -7,7 +7,7 @@ import HeroArtifacts from "@/components/HeroArtifacts";
 
 /**
  * Compact dark hero for the Contact page. `id="contact-hero"` and
- * `position: relative` are deliberate hooks — a separate, later piece of
+ * `position: relative` are deliberate hooks - a separate, later piece of
  * work adds an ambient artifacts layer here, and needs a stable
  * positioned parent to mount into (same pattern as SponsorshipHero).
  */
@@ -54,3 +54,5 @@ export default function ContactHero() {
     </section>
   );
 }
+
+

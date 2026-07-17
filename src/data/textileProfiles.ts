@@ -40,3 +40,5 @@ export const textileProfiles: TextileProfile[] = [
       "Kenya's Maasai beading tradition on leather dates back generations, alongside a modern garment-export industry. Kenya is the largest single beneficiary of AGOA's apparel provisions among African nations.",
   },
 ];
+
+

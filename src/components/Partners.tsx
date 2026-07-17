@@ -8,7 +8,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 type Supporter = { file: string; name: string };
 
 // Two-tier structure. Partners get more visual weight (larger logos,
-// its own row) — Black Star Experience's prominence is a consequence of
+// its own row) - Black Star Experience's prominence is a consequence of
 // it structurally being a Partner, not an arbitrary style bump.
 const PARTNERS: Supporter[] = [
   { file: "fashionForumAfrica.png", name: "Fashion Forum Africa" },
@@ -75,3 +75,5 @@ export default function Partners() {
     </section>
   );
 }
+
+

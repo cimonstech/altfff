@@ -98,7 +98,7 @@ function ConnectingLine() {
 
   // No `scope` here deliberately: every GSAP target below is an explicit
   // element ref, not a string selector, so scoping isn't functionally
-  // needed. Also deliberately NOT using the parent's `listRef` directly —
+  // needed. Also deliberately NOT using the parent's `listRef` directly -
   // React attaches a child's layout effects before its parent's own ref,
   // so `listRef.current` is still null whenever this component's effect
   // runs. That was producing GSAP's "Invalid scope" warning, and (worse)
@@ -183,3 +183,5 @@ export default function ExhibitingReasons() {
     </section>
   );
 }
+
+

@@ -5,18 +5,18 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 /**
- * Shared modal shell — dimmed backdrop, centered panel, GSAP fade+scale
+ * Shared modal shell - dimmed backdrop, centered panel, GSAP fade+scale
  * entrance/exit, close via the X button, a backdrop click, or Escape.
  * Extracted from the country textile-detail modal originally built for
  * AfricaMap.tsx; that component now uses this instead of its own bespoke
  * implementation.
  *
  * Stays mounted through its own exit animation (cleared once that tween
- * completes) rather than vanishing the instant `isOpen` goes false — the
+ * completes) rather than vanishing the instant `isOpen` goes false - the
  * caller should keep rendering whatever content it wants visible through
  * that fade rather than swapping `children` to something empty.
  *
- * No padding is imposed on the panel — `children` owns its own layout, so
+ * No padding is imposed on the panel - `children` owns its own layout, so
  * content that needs to sit flush against the panel's outer edge (e.g. a
  * full-bleed decorative border strip) isn't fighting a default inset it
  * didn't ask for.
@@ -39,7 +39,7 @@ export default function Modal({
   panelClassName?: string;
   /**
    * Element to return focus to once the close animation finishes. Defaults
-   * to whatever had focus when the modal opened (document.activeElement) —
+   * to whatever had focus when the modal opened (document.activeElement) -
    * pass this explicitly when the trigger isn't a real focusable HTML
    * control at interaction time (e.g. an SVG hit-rect), since relying on
    * document.activeElement alone isn't reliable cross-browser for those.
@@ -61,7 +61,7 @@ export default function Modal({
   }, [isOpen]);
 
   // Body scroll lock for as long as the modal is mounted (covers the exit
-  // animation too, not just `isOpen`) — otherwise the page behind a
+  // animation too, not just `isOpen`) - otherwise the page behind a
   // full-screen mobile panel keeps scrolling under the user's thumb.
   useEffect(() => {
     if (!mounted) return;
@@ -72,7 +72,7 @@ export default function Modal({
     };
   }, [mounted]);
 
-  // Escape closes regardless of where focus currently is — document-level
+  // Escape closes regardless of where focus currently is - document-level
   // rather than scoped to a wrapper, since this modal can be triggered
   // from anywhere on the page. Tab/Shift+Tab cycles focus within the panel
   // so it can't leak to the (visually hidden, but still in the DOM) page
@@ -112,7 +112,7 @@ export default function Modal({
 
       // Plain opacity, not autoAlpha: the modal is conditionally mounted by
       // React (`mounted`) rather than kept in the DOM and hidden via
-      // visibility, so there's no visibility toggling to do here — and
+      // visibility, so there's no visibility toggling to do here - and
       // critically, autoAlpha's "from" state sets visibility: hidden
       // synchronously the instant the tween is created, which would make
       // the immediate closeButtonRef.current?.focus() below silently fail
@@ -185,7 +185,7 @@ export default function Modal({
             </svg>
           </button>
           {/* Scrolls internally if content exceeds the panel's max-height
-              (e.g. a long form on a short viewport) — the close button
+              (e.g. a long form on a short viewport) - the close button
               above sits outside this scroll area so it stays put. */}
           <div className="overflow-y-auto">{children}</div>
         </div>
@@ -193,3 +193,5 @@ export default function Modal({
     </div>
   );
 }
+
+

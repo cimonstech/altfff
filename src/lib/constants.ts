@@ -7,12 +7,12 @@ export const EVENT = {
   city: "Accra, Ghana",
 } as const;
 
-// Site-wide sharing metadata. No dedicated OG image has been supplied yet —
+// Site-wide sharing metadata. No dedicated OG image has been supplied yet -
 // reusing the site icon is a reasonable placeholder until a proper 1200x630
 // social-share image exists.
 export const SITE = {
   ogImage: "/Afff_icon.png",
-  // TODO: confirm this is the real production domain — also used as
+  // TODO: confirm this is the real production domain - also used as
   // metadataBase in the root layout. Kept as one source of truth so
   // anything building absolute URLs (e.g. news article share links)
   // stays consistent with it.
@@ -34,7 +34,7 @@ export type Material = {
    * Left-side scrim peak opacity (0–1) for this material's hero background,
    * behind the white headline text. Photos vary a lot in how light/busy
    * their left-hand crop is, so one flat value doesn't hold up across all
-   * of them — tuned per material by eye. Falls back to
+   * of them - tuned per material by eye. Falls back to
    * DEFAULT_SCRIM_OPACITY in Hero.tsx if omitted.
    */
   scrimOpacity?: number;
@@ -64,7 +64,7 @@ export const MATERIALS: Material[] = [
     background: "/materials/adire-bg.webp",
     thumbnail: "/materials/adire-thumb.webp",
     heroWord: "NIGERIA'S ADIRE",
-    // Deep indigo blue left crop — decent baseline contrast, modest lift.
+    // Deep indigo blue left crop - decent baseline contrast, modest lift.
     scrimOpacity: 0.14,
   },
   {
@@ -76,7 +76,7 @@ export const MATERIALS: Material[] = [
     background: "/materials/leather-bg.webp",
     thumbnail: "/materials/leather-thumb.webp",
     heroWord: "ETHIOPIA'S LEATHER",
-    // Uniformly dark brown throughout — best-contrast material, lightest
+    // Uniformly dark brown throughout - best-contrast material, lightest
     // scrim of the six (kept non-zero for a touch of consistent depth).
     scrimOpacity: 0.1,
   },
@@ -104,7 +104,7 @@ export const MATERIALS: Material[] = [
     thumbnail: "/materials/dyes-thumb.webp",
     heroWord: "MALI'S DYES",
     // Left crop is a deep matte maroon (the bright yellow/black batik
-    // sits further right, past where the scrim fades out) — decent
+    // sits further right, past where the scrim fades out) - decent
     // contrast, modest lift.
     scrimOpacity: 0.15,
   },
@@ -118,8 +118,10 @@ export const MATERIALS: Material[] = [
     thumbnail: "/materials/cowrie-thumb.webp",
     heroWord: "SENEGAL'S COWRIE",
     // Left crop is mostly dark leather backing with scattered cream
-    // shells (the dense bright shell pile is further right) — good
+    // shells (the dense bright shell pile is further right) - good
     // contrast, light scrim.
     scrimOpacity: 0.11,
   },
 ];
+
+

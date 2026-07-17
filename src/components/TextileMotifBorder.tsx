@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 /**
- * Decorative geometric accent strip for the textile detail panel — an
+ * Decorative geometric accent strip for the textile detail panel - an
  * original, abstract triangle/chevron band in the kente palette (gold,
  * madder, forest). Deliberately NOT a reproduction of any named adinkra or
  * other cultural symbol, since no verified source assets were provided for
@@ -10,7 +10,7 @@ import { useId } from "react";
  *
  * Isolated in its own component specifically so a real, sourced symbol or
  * pattern asset can replace the pattern below later without touching
- * whatever panel renders it — swap the <pattern> contents (or this whole
+ * whatever panel renders it - swap the <pattern> contents (or this whole
  * component) and nothing else needs to change.
  */
 export default function TextileMotifBorder({ className = "" }: { className?: string }) {
@@ -34,3 +34,5 @@ export default function TextileMotifBorder({ className = "" }: { className?: str
     </svg>
   );
 }
+
+
