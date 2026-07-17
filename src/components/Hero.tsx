@@ -203,9 +203,15 @@ export default function Hero() {
   }, []);
 
   // Auto-rotation: advance every 6s, pause on hover, reset on manual pick
-  // (manual setActive re-runs this effect, restarting the timer).
+  // (manual setActive re-runs this effect, restarting the timer). Skipped
+  // below md — HeroMobile renders there instead, but this component stays
+  // mounted (display:none) so its breakpoint can flip with a plain media
+  // query with no hydration flash; without this guard its timers and GSAP
+  // loops would keep running invisibly and burn the low-end frame budget
+  // HeroMobile exists to protect.
   useEffect(() => {
     if (paused) return;
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) return;
     const t = setTimeout(
       () => setActive((a) => (a + 1) % MATERIALS.length),
       ROTATE_MS,
@@ -218,8 +224,10 @@ export default function Hero() {
   useGSAP(
     () => {
       const reduced = prefersReducedMotion();
+      const isMobile =
+        typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
 
-      if (!reduced) {
+      if (!reduced && !isMobile) {
         gsap.from(".hchar", {
           yPercent: 110,
           skewY: 8,

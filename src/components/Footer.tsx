@@ -104,7 +104,7 @@ export default function Footer() {
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
           <NewsletterBand />
 
-          <div className="grid grid-cols-2 gap-8 md:justify-items-end">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:justify-items-end">
             <div>
               <h3 className="text-[11px] uppercase tracking-[0.24em] text-gold-deep">
                 Contact

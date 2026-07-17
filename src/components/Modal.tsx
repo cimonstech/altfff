@@ -60,13 +60,44 @@ export default function Modal({
     }
   }, [isOpen]);
 
+  // Body scroll lock for as long as the modal is mounted (covers the exit
+  // animation too, not just `isOpen`) — otherwise the page behind a
+  // full-screen mobile panel keeps scrolling under the user's thumb.
+  useEffect(() => {
+    if (!mounted) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mounted]);
+
   // Escape closes regardless of where focus currently is — document-level
   // rather than scoped to a wrapper, since this modal can be triggered
-  // from anywhere on the page.
+  // from anywhere on the page. Tab/Shift+Tab cycles focus within the panel
+  // so it can't leak to the (visually hidden, but still in the DOM) page
+  // behind the backdrop.
   useEffect(() => {
     if (!mounted) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab" || !modalRef.current) return;
+      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
@@ -132,14 +163,14 @@ export default function Modal({
         className="absolute inset-0 bg-ink"
         style={{ opacity: 0 }}
       />
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-y-auto p-6">
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-y-auto md:p-6">
         <div
           ref={modalRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
           onClick={(e) => e.stopPropagation()}
-          className={`pointer-events-auto relative my-auto flex max-h-[85vh] w-full flex-col overflow-hidden rounded-lg bg-surface shadow-[0_30px_70px_rgba(23,28,38,0.35)] ${panelClassName}`}
+          className={`pointer-events-auto relative flex h-full max-h-full w-full flex-col overflow-hidden bg-surface shadow-[0_30px_70px_rgba(23,28,38,0.35)] md:my-auto md:h-auto md:max-h-[85vh] md:rounded-lg ${panelClassName}`}
           style={{ opacity: 0 }}
         >
           <button
@@ -147,7 +178,7 @@ export default function Modal({
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+            className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
           >
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
               <path d="M1 1 L15 15 M15 1 L1 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

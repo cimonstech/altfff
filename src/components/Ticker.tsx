@@ -13,15 +13,24 @@ const DEFAULT_ITEMS = [
   "One floor",
 ];
 
-function Row({ items }: { items: string[] }) {
+function Row({ items, dense }: { items: string[]; dense?: boolean }) {
   return (
     <div className="flex shrink-0 items-center">
       {items.map((item, i) => (
         <span key={i} className="flex items-center">
-          <span className="px-6 font-display text-lg font-semibold uppercase tracking-wide text-paper md:text-xl">
+          <span
+            className={
+              dense
+                ? "px-4 font-display text-sm font-semibold uppercase tracking-wide text-paper"
+                : "px-6 font-display text-lg font-semibold uppercase tracking-wide text-paper md:text-xl"
+            }
+          >
             {item}
           </span>
-          <span aria-hidden className="inline-block h-2 w-2 rotate-45 bg-gold" />
+          <span
+            aria-hidden
+            className={`inline-block rotate-45 bg-gold ${dense ? "h-1.5 w-1.5" : "h-2 w-2"}`}
+          />
         </span>
       ))}
     </div>
@@ -30,13 +39,18 @@ function Row({ items }: { items: string[] }) {
 
 /** Infinite one-direction marquee. `items` defaults to the homepage's own
  * materials/event mix; pass a custom list to reuse the same ink/paper/gold
- * treatment elsewhere with different content (e.g. the Exhibiting page). */
+ * treatment elsewhere with different content (e.g. the Exhibiting page).
+ * `dense` shrinks the strip (padding + type size) and slows the scroll a
+ * touch — used on mobile, where the default thickness/speed reads heavy on
+ * a small viewport pinned right against a hero image. */
 export default function Ticker({
   items = DEFAULT_ITEMS,
   className = "",
+  dense = false,
 }: {
   items?: string[];
   className?: string;
+  dense?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -44,9 +58,10 @@ export default function Ticker({
   useGSAP(
     () => {
       if (prefersReducedMotion() || !trackRef.current) return;
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
       gsap.to(trackRef.current, {
         xPercent: -50,
-        duration: 32,
+        duration: isMobile ? 42 : 32,
         ease: "none",
         repeat: -1,
       });
@@ -58,11 +73,11 @@ export default function Ticker({
     <div
       ref={container}
       aria-hidden
-      className={`overflow-hidden bg-ink py-4 ${className}`}
+      className={`overflow-hidden bg-ink ${dense ? "py-2" : "py-4"} ${className}`}
     >
       <div ref={trackRef} className="flex w-max">
-        <Row items={items} />
-        <Row items={items} />
+        <Row items={items} dense={dense} />
+        <Row items={items} dense={dense} />
       </div>
     </div>
   );

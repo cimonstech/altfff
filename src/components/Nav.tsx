@@ -6,6 +6,15 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { getLenis } from "@/lib/scroll";
 
+const ALL_LINKS = [
+  { label: "Home", href: "/", page: true },
+  { label: "About", href: "/about", page: true },
+  { label: "Exhibiting", href: "/exhibiting", page: true },
+  { label: "Visit", href: "/visit", page: true },
+  { label: "Sponsorship", href: "/sponsorship", page: true },
+  { label: "Contact", href: "/contact", page: true },
+];
+
 // `page: true` entries are real, standalone routes (rendered as next/link
 // for client-side navigation). The rest are sections that only exist on
 // the homepage — those get a "/#id" href (not bare "#id") specifically so
@@ -54,6 +63,82 @@ function barPath(w: number, h: number, c = CHAMFER, r = CORNER) {
 export default function Nav() {
   const barRef = useRef<HTMLElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuOpenRef = useRef(false);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const menuCloseRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    menuOpenRef.current = menuOpen;
+  }, [menuOpen]);
+
+  // Lock body scroll while the overlay is open, force the nav bar visible
+  // (the hide-on-scroll effect below checks menuOpenRef and no-ops while
+  // open, but Lenis-driven scroll can still be mid-flight from just before
+  // the menu opened — this guarantees the bar isn't caught hidden behind
+  // the trigger the user just tapped), and move focus into the overlay.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const bar = barRef.current;
+    if (bar) gsap.set(bar, { y: 0 });
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    menuCloseRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusable = overlayRef.current?.querySelectorAll<HTMLElement>(
+        "a[href], button:not([disabled])",
+      );
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    menuTriggerRef.current?.focus();
+  };
+
+  // Overlay entrance: panel fades/slides in, links stagger up. Plain
+  // opacity, not autoAlpha — the overlay is conditionally mounted (React
+  // only renders it while menuOpen), so there's no visibility toggling to
+  // do here, and autoAlpha's "from" state sets visibility: hidden for the
+  // tween's first tick, which previously made an immediate .focus() call
+  // silently fail (see Modal.tsx). Skipped entirely under reduced motion —
+  // the overlay just appears at its final state instantly.
+  useEffect(() => {
+    if (!menuOpen || prefersReducedMotion() || !overlayRef.current) return;
+    gsap.fromTo(
+      overlayRef.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.25, ease: "power2.out" },
+    );
+    gsap.fromTo(
+      overlayRef.current.querySelectorAll(".mobile-nav-link"),
+      { y: 16, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, ease: "power3.out", stagger: 0.05, delay: 0.05 },
+    );
+  }, [menuOpen]);
 
   // Measure the bar so the clip-path / border SVG track its real size.
   useEffect(() => {
@@ -94,6 +179,7 @@ export default function Nav() {
     let cancelled = false;
 
     const onScroll = (lenis: { animatedScroll: number }) => {
+      if (menuOpenRef.current) return;
       if (lenis.animatedScroll > 80 && !hidden) {
         hidden = true;
         gsap.to(bar, {
@@ -160,9 +246,13 @@ export default function Nav() {
         >
           <div className="flex items-center gap-6">
             <button
+              ref={menuTriggerRef}
               type="button"
               aria-label="Open menu"
-              className="flex h-8 w-8 flex-col items-center justify-center gap-[5px] md:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav-overlay"
+              onClick={() => setMenuOpen(true)}
+              className="flex h-11 w-11 flex-col items-center justify-center gap-[5px] md:hidden"
             >
               <span className="h-[2px] w-5 bg-ink" />
               <span className="h-[2px] w-5 bg-ink" />
@@ -217,6 +307,56 @@ export default function Nav() {
           </svg>
         )}
       </header>
+
+      {menuOpen && (
+        <div
+          ref={overlayRef}
+          id="mobile-nav-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site menu"
+          className="pointer-events-auto fixed inset-0 z-[60] flex flex-col bg-ink px-8 pb-10 pt-6 md:hidden"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-display text-xl font-extrabold tracking-tight text-paper">
+              Alt.FFF
+            </span>
+            <button
+              ref={menuCloseRef}
+              type="button"
+              aria-label="Close menu"
+              onClick={closeMenu}
+              className="flex h-11 w-11 items-center justify-center"
+            >
+              <span className="relative block h-5 w-5">
+                <span className="absolute left-0 top-1/2 h-[2px] w-5 -translate-y-1/2 rotate-45 bg-paper" />
+                <span className="absolute left-0 top-1/2 h-[2px] w-5 -translate-y-1/2 -rotate-45 bg-paper" />
+              </span>
+            </button>
+          </div>
+
+          <nav aria-label="Mobile" className="mt-12 flex flex-1 flex-col justify-center gap-2">
+            {ALL_LINKS.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                onClick={closeMenu}
+                className="mobile-nav-link min-h-[44px] py-2 font-display text-3xl font-extrabold uppercase leading-tight text-paper transition-opacity hover:opacity-70"
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+
+          <Link
+            href="/exhibiting"
+            onClick={closeMenu}
+            className="mobile-nav-link mt-8 inline-flex min-h-[44px] items-center justify-center rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
+          >
+            Exhibit With Us
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

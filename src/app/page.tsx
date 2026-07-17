@@ -1,5 +1,6 @@
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
+import HeroMobile from "@/components/HeroMobile";
 import Ticker from "@/components/Ticker";
 import Stats from "@/components/Stats";
 import Manifesto from "@/components/Manifesto";
@@ -13,8 +14,13 @@ export default function Home() {
     <>
       <Nav />
       <main>
-        <Hero />
-        <Ticker />
+        <div className="hidden md:block">
+          <Hero />
+        </div>
+        <div className="md:hidden">
+          <HeroMobile />
+        </div>
+        <Ticker className="hidden md:block" />
         <Stats />
         <Manifesto />
         <EventDetails />

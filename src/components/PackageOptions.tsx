@@ -93,7 +93,47 @@ export default function PackageOptions() {
           Package Options
         </h2>
 
-        <div className="package-in overflow-x-auto rounded-xl border border-hairline">
+        {/* Mobile: one card per package, label/value pairs stacked. Desktop
+            (md+): the comparison table below, unchanged — a card layout at
+            that width would lose the side-by-side compare that's the whole
+            point of a pricing table. */}
+        <div className="package-in flex flex-col gap-4 md:hidden">
+          {PACKAGES.map((p) => (
+            <div
+              key={p.name}
+              className={`rounded-xl border p-5 ${
+                p.highlight ? "border-gold bg-gold/10" : "border-hairline"
+              }`}
+            >
+              {p.highlight && (
+                <span className="mb-2 inline-block rounded-full bg-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ink">
+                  Recommended
+                </span>
+              )}
+              <h3
+                className={`font-display text-lg font-extrabold uppercase tracking-tight ${
+                  p.highlight ? "text-gold-deep" : "text-ink"
+                }`}
+              >
+                {p.name}
+              </h3>
+              <dl className="mt-3 flex flex-col gap-2">
+                {ROWS.map((row) => (
+                  <div key={row.label} className="flex items-baseline justify-between gap-4 text-sm">
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+                      {row.label}
+                    </dt>
+                    <dd className={`text-right text-ink ${row.key === "cost" ? "font-semibold" : ""}`}>
+                      {p[row.key]}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+
+        <div className="package-in hidden overflow-x-auto rounded-xl border border-hairline md:block">
           <table className="w-full min-w-[720px] border-collapse text-left text-sm">
             <thead>
               <tr className="bg-surface">

@@ -72,7 +72,7 @@ export function FloatingField({
           setFilled(isFilled);
           onFilledChange?.(id, isFilled);
         }}
-        className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-sm text-ink outline-none"
+        className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-base text-ink outline-none md:text-sm"
       />
       <span
         ref={underlineRef}
@@ -214,7 +214,7 @@ export function FloatingSelect({
           setFilled(isFilled);
           onFilledChange?.(id, isFilled);
         }}
-        className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-sm text-ink outline-none"
+        className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-base text-ink outline-none md:text-sm"
       >
         <option value="" disabled hidden />
         {options.map((o) => (

@@ -365,7 +365,7 @@ export default function AboutHero() {
                 bottom-left corner is now the caption's, below); the active
                 one reads as a hollow ring, the rest as solid dots,
                 matching a standard carousel-selector idiom. */}
-            <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+            <div className="absolute right-1 top-1 z-10 flex items-center">
               {MATERIAL_OPTIONS.map((m, i) => (
                 <button
                   key={m.src}
@@ -373,12 +373,17 @@ export default function AboutHero() {
                   aria-label={`Show ${m.label}`}
                   aria-pressed={i === activeMaterial}
                   onClick={() => handleSelectMaterial(i)}
-                  className={`h-4 w-4 rounded-full shadow-[0_1px_4px_rgba(23,28,38,0.35)] transition-all ${
-                    i === activeMaterial
-                      ? "border-2 border-gold bg-transparent"
-                      : "border-2 border-paper/80 bg-paper/70 hover:bg-paper"
-                  }`}
-                />
+                  className="flex h-11 w-11 items-center justify-center"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`block h-4 w-4 rounded-full shadow-[0_1px_4px_rgba(23,28,38,0.35)] transition-all ${
+                      i === activeMaterial
+                        ? "border-2 border-gold bg-transparent"
+                        : "border-2 border-paper/80 bg-paper/70 hover:bg-paper"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
 
