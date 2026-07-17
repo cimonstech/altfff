@@ -1,9 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
+
+// Three.js is only needed for the ambient wireframe moment on the
+// Exhibiting page's quote; dynamic + ssr:false keeps it out of every other
+// page's bundle and off the server render entirely.
+const QuoteWireframe = dynamic(() => import("@/components/QuoteWireframe"), { ssr: false });
 
 const DEFAULT_QUOTE =
   "Placeholder pull quote about what it means to source directly from the continent's makers. A real voice from the fair goes here.";
@@ -17,11 +23,16 @@ export default function Quote({
   attribution = DEFAULT_ATTRIBUTION,
   dark = false,
   image,
+  ambient3d = false,
 }: {
   quote?: string;
   attribution?: string;
   dark?: boolean;
   image?: { src: string; alt: string };
+  /** Ambient, ultra-subtle rotating Three.js wireframe behind the quote
+   * text — a deliberate one-off mood element, not a general prop for
+   * every use of this component. */
+  ambient3d?: boolean;
 }) {
   const container = useRef<HTMLElement>(null);
 
@@ -55,6 +66,7 @@ export default function Quote({
         }`}
       >
         <figure className={`relative ${image ? "md:col-span-7" : "max-w-3xl"}`}>
+          {ambient3d && <QuoteWireframe />}
           <span
             aria-hidden
             className="pointer-events-none absolute -left-4 -top-16 font-display text-[10rem] font-extrabold leading-none text-madder md:-left-16"
@@ -69,7 +81,7 @@ export default function Quote({
             {quote}
           </blockquote>
           <figcaption
-            className={`mt-6 text-sm uppercase tracking-[0.18em] ${
+            className={`relative mt-6 text-sm uppercase tracking-[0.18em] ${
               dark ? "text-gold-deep" : "text-indigo"
             }`}
           >

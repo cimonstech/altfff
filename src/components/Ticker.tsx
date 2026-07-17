@@ -21,11 +21,7 @@ function Row({ items }: { items: string[] }) {
           <span className="px-6 font-display text-lg font-semibold uppercase tracking-wide text-paper md:text-xl">
             {item}
           </span>
-          <span
-            aria-hidden
-            className="inline-block h-2 w-2 rotate-45"
-            style={{ backgroundColor: "#F4821F" }}
-          />
+          <span aria-hidden className="inline-block h-2 w-2 rotate-45 bg-gold" />
         </span>
       ))}
     </div>

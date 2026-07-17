@@ -7,6 +7,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 import Ticker from "@/components/Ticker";
+import { useSiteModals } from "@/components/SiteModals";
 
 // Each line gets its own clamp rather than one shared size: at a shared
 // ~7rem cap the longest line ("SPEAK BEFORE") overflows its column and
@@ -186,6 +187,7 @@ export default function AboutHero() {
   const imageRef = useRef<HTMLDivElement>(null);
   const cowrieRef = useRef<HTMLDivElement>(null);
   const [activeMaterial, setActiveMaterial] = useState(0);
+  const { openExhibitModal } = useSiteModals();
 
   // Crossfade the image band's photo on selection instead of an abrupt
   // swap: fade out, swap the src (via the state update), fade back in.
@@ -485,12 +487,13 @@ export default function AboutHero() {
           >
             Learn more
           </button>
-          <Link
-            href="/exhibiting"
+          <button
+            type="button"
+            onClick={openExhibitModal}
             className="inline-flex items-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
           >
             Apply to exhibit
-          </Link>
+          </button>
 
           <RotatingCredits />
 

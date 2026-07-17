@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
+import { useSiteModals } from "@/components/SiteModals";
 
 const DAYS = [
   { day: "Day 1", date: "Wed, September 17", hours: "10:00 – 18:00 (placeholder)" },
@@ -13,6 +15,7 @@ const DAYS = [
 
 export default function EventDetails() {
   const container = useRef<HTMLElement>(null);
+  const { openExhibitModal } = useSiteModals();
 
   useGSAP(
     () => {
@@ -63,18 +66,22 @@ export default function EventDetails() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-4">
-          <a
-            href="#contact"
+          {/* Information-seeking CTA — takes the visitor to the full Visit
+              page (details + the Register to visit modal trigger) rather
+              than popping a form immediately. */}
+          <Link
+            href="/visit"
             className="inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
           >
             Plan your visit
-          </a>
-          <a
-            href="#contact"
+          </Link>
+          <button
+            type="button"
+            onClick={openExhibitModal}
             className="inline-flex items-center gap-2 rounded-full border border-paper px-7 py-3.5 text-sm font-semibold text-paper transition-colors hover:bg-paper hover:text-indigo"
           >
             Exhibit with us
-          </a>
+          </button>
         </div>
       </div>
     </section>

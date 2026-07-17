@@ -7,6 +7,13 @@ export const EVENT = {
   city: "Accra, Ghana",
 } as const;
 
+// Site-wide sharing metadata. No dedicated OG image has been supplied yet —
+// reusing the site icon is a reasonable placeholder until a proper 1200x630
+// social-share image exists.
+export const SITE = {
+  ogImage: "/Afff_icon.png",
+} as const;
+
 export type Material = {
   id: string;
   name: string;

@@ -21,8 +21,8 @@ const LEFT_LINKS = [
 ];
 
 const RIGHT_LINKS = [
-  { label: "Visit", href: "/#visit", page: false },
-  { label: "Sponsorship", href: "/#sponsorship", page: false },
+  { label: "Visit", href: "/visit", page: true },
+  { label: "Sponsorship", href: "/sponsorship", page: true },
   { label: "Contact", href: "/contact", page: true },
 ];
 

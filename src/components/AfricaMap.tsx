@@ -17,8 +17,25 @@ import {
 } from "@/data/participants";
 import { textileProfiles, type TextileProfile } from "@/data/textileProfiles";
 import TextileMotifBorder from "@/components/TextileMotifBorder";
+import Modal from "@/components/Modal";
 
 type Country = { code: string; name: string; d: string };
+
+/** Resolves a CSS custom property to its actual value at call time — GSAP's
+ * color parser doesn't understand var() references passed directly as a
+ * tween value, so entrance-tween colors below resolve the token first. */
+function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+/** hex (e.g. "#da8e06") -> "rgba(r, g, b, alpha)" */
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /**
  * The 50 mainland/Madagascar country paths from the source SVG,
@@ -197,13 +214,12 @@ export default function AfricaMap({
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
   // The element that opened the modal, so closing it (Escape, backdrop,
   // the close button) can return focus there instead of dropping it. The
   // trigger is always the SVG hit-rect, hence SVGElement rather than
-  // HTMLElement.
+  // HTMLElement — passed to the shared Modal as restoreFocusRef, since
+  // relying on document.activeElement alone isn't reliable cross-browser
+  // for a non-native-control trigger like this.
   const lastTriggerRef = useRef<SVGElement | null>(null);
   // Persisted per-country scale (1 = rest, 1.2 = zoomed), so the reverse
   // tween starts from the actual current value rather than snapping.
@@ -219,16 +235,13 @@ export default function AfricaMap({
   // (`textileOpen`) is what actually opens the detail modal.
   const [textileHover, setTextileHover] = useState<string | null>(null);
   const [textileOpen, setTextileOpen] = useState<string | null>(null);
-  // Modal stays mounted through its own exit animation (cleared once that
-  // tween completes) so it doesn't just vanish, and keeps showing the
-  // last-open country's content through that fade so it doesn't blank
-  // mid-exit.
-  const [modalMounted, setModalMounted] = useState(false);
+  // Keeps showing the last-open country's content through the shared
+  // Modal's own exit fade (textileOpen already went null by then), so it
+  // doesn't blank mid-exit.
   const [modalCode, setModalCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (textileOpen) {
-      setModalMounted(true);
       setModalCode(textileOpen);
     }
   }, [textileOpen]);
@@ -395,8 +408,8 @@ export default function AfricaMap({
         .to(
           "path.africa-participating",
           {
-            fill: "rgba(224, 161, 34, 0.32)",
-            stroke: "#9A6E0F",
+            fill: hexToRgba(cssVar("--gold"), 0.32),
+            stroke: cssVar("--gold-deep"),
             strokeWidth: 1,
             duration: 0.5,
             stagger: 0.08,
@@ -502,61 +515,6 @@ export default function AfricaMap({
       );
     },
     { scope: wrapRef, dependencies: [textileHover, textileOpen] },
-  );
-
-  // Textile detail modal — click/Enter/Space (any input) opens it as a
-  // centered overlay above the map, dimmed backdrop behind it. Kept
-  // mounted through its own exit tween (see modalMounted) so it doesn't
-  // just vanish; reduced motion swaps both tweens for instant show/hide.
-  useGSAP(
-    () => {
-      const modal = modalRef.current;
-      const backdrop = backdropRef.current;
-      if (!modal || !backdrop) return;
-      const reduced = prefersReducedMotion();
-
-      // Plain opacity, not autoAlpha: the modal is conditionally mounted
-      // by React (modalMounted) rather than kept in the DOM and hidden via
-      // visibility, so there's no visibility toggling to do here — and
-      // critically, autoAlpha's "from" state sets visibility: hidden
-      // synchronously the instant the tween is created, which would make
-      // the immediate closeButtonRef.current?.focus() below silently fail
-      // (browsers refuse to focus a hidden element). It'd also cap the
-      // backdrop at opacity 1 on its "visible" end, when the spec wants it
-      // dimmed to 0.4, not opaque.
-      if (textileOpen) {
-        if (reduced) {
-          gsap.set(backdrop, { opacity: 0.4 });
-          gsap.set(modal, { opacity: 1, scale: 1 });
-        } else {
-          gsap.fromTo(backdrop, { opacity: 0 }, { opacity: 0.4, duration: 0.3, ease: "power2.out" });
-          gsap.fromTo(
-            modal,
-            { opacity: 0, scale: 0.94 },
-            { opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" },
-          );
-        }
-        closeButtonRef.current?.focus();
-      } else if (modalMounted) {
-        const finishClose = () => {
-          setModalMounted(false);
-          lastTriggerRef.current?.focus();
-        };
-        if (reduced) {
-          finishClose();
-        } else {
-          gsap.to(backdrop, { opacity: 0, duration: 0.25, ease: "power2.in" });
-          gsap.to(modal, {
-            opacity: 0,
-            scale: 0.94,
-            duration: 0.25,
-            ease: "power2.in",
-            onComplete: finishClose,
-          });
-        }
-      }
-    },
-    { scope: wrapRef, dependencies: [textileOpen, modalMounted] },
   );
 
   return (
@@ -693,7 +651,7 @@ export default function AfricaMap({
             cy={ACCRA_POSITION.y}
             r="4.5"
             fill="var(--gold)"
-            stroke="#9A6E0F"
+            stroke="var(--gold-deep)"
             strokeWidth="1"
           />
           <text
@@ -777,54 +735,20 @@ export default function AfricaMap({
       )}
 
       {/* Textile detail modal — click/Enter/Space/tap opens this as a
-          centered overlay floating above the map, with a dimmed backdrop
-          behind it (closing on Escape, a backdrop click, or the close
-          button). Kept mounted through its own exit tween via
-          modalMounted; content keeps showing the last-open country
-          through that fade via modalCode so it doesn't blank mid-exit. */}
-      {modalMounted && (
-        <div className="fixed inset-0 z-[100]">
-          <div
-            ref={backdropRef}
-            aria-hidden="true"
-            onClick={() => setTextileOpen(null)}
-            className="absolute inset-0 bg-ink"
-            style={{ opacity: 0 }}
-          />
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-            <div
-              ref={modalRef}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="textile-modal-heading"
-              onClick={(e) => e.stopPropagation()}
-              className="pointer-events-auto relative w-full max-w-md overflow-hidden rounded-lg bg-surface shadow-[0_30px_70px_rgba(23,28,38,0.35)]"
-              style={{ opacity: 0 }}
-            >
-              <button
-                ref={closeButtonRef}
-                type="button"
-                aria-label="Close"
-                onClick={() => setTextileOpen(null)}
-                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
-              >
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-                  <path
-                    d="M1 1 L15 15 M15 1 L1 15"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-              <div className="p-6">
-                {modalTextile && <TextileInfo t={modalTextile} headingId="textile-modal-heading" />}
-              </div>
-              <TextileMotifBorder />
-            </div>
-          </div>
+          centered overlay floating above the map. Content keeps showing
+          the last-open country through the shared Modal's own exit fade
+          via modalCode, so it doesn't blank mid-exit. */}
+      <Modal
+        isOpen={textileOpen !== null}
+        onClose={() => setTextileOpen(null)}
+        titleId="textile-modal-heading"
+        restoreFocusRef={lastTriggerRef}
+      >
+        <div className="p-6">
+          {modalTextile && <TextileInfo t={modalTextile} headingId="textile-modal-heading" />}
         </div>
-      )}
+        <TextileMotifBorder />
+      </Modal>
     </div>
   );
 }

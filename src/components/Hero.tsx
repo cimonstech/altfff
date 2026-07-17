@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 import { MATERIALS } from "@/lib/constants";
+import { useSiteModals } from "@/components/SiteModals";
 
 const ROTATE_MS = 6000;
 const THUMB = 44; // thumbnail diameter
@@ -30,13 +31,28 @@ const HEADLINE = "A FABRIC SPREE OF AFRICAN DESCENT.";
 // size, left-aligned; long words scale down below it just enough to span
 // the full content width without wrapping or clipping.
 const MAX_WORD_FONT_CLAMP = "clamp(3rem, 12vw, 11rem)";
-const WORD_HEIGHT_FACTOR = 1.08; // line-box multiplier that fully contains descenders
+// Line-box multiplier for the wrapper that holds the giant word. The word
+// itself now anchors to the wrapper's bottom edge directly (see the button
+// below), so this factor only controls headroom above the glyph — how much
+// the wrapper's own overflow:hidden top boundary can clip into a tall
+// word — not the bottom anchor point, which no longer depends on this
+// value at all. Kept generous as safety margin against font-rendering
+// variance across sizes/browsers.
+const WORD_HEIGHT_FACTOR = 1.25;
 
 /**
  * Measures each material word's natural width at the max font-size cap and
  * returns a per-word font-size: the cap itself if the word already fits the
  * available content width, otherwise a scaled-down size that makes the word
  * span exactly that width. Recomputes on font load and on resize.
+ *
+ * Width is the only dimension that needs solving for here: both this probe
+ * and the live button share `whiteSpace: nowrap` (see the button below), so
+ * a word can never wrap to a second line — scaled sizes only ever shrink
+ * from the cap, so the tallest any word's single line box can be is bounded
+ * by the cap's own height, which the wrapper is already sized to contain
+ * (WORD_HEIGHT_FACTOR). A separate height pass would be solving for a
+ * height that's already guaranteed by construction.
  */
 function useMaterialWordSizes(words: string[]) {
   const [sizes, setSizes] = useState<number[] | null>(null);
@@ -158,6 +174,7 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [gooEnabled, setGooEnabled] = useState<boolean | null>(null);
+  const { openVisitorModal } = useSiteModals();
   const { sizes: wordFontSizes } = useMaterialWordSizes(
     MATERIALS.map((m) => m.heroWord),
   );
@@ -494,18 +511,25 @@ export default function Hero() {
           <h1 className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
             <HeadlineChars />
           </h1>
-          <p className="mt-6 max-w-[46ch] text-base text-paper md:text-lg">
-            Three days of fibres, dyes, weaves and the people behind them.
-            Accra, September 17 to 19, 2026.
-          </p>
-          <div className="mt-8">
-            <a
-              href="#about"
-              className="inline-flex items-center gap-2 rounded-full border border-[#F4821F] bg-[#F4821F] px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-[#C36819] hover:bg-[#C36819]"
+          {/* Side by side from md up so the CTA doesn't stack a whole
+              extra row of vertical space onto the left column — this is
+              what buys the giant material word room to breathe at the
+              bottom without the two colliding. Stacks back to
+              paragraph-then-button below md, where there isn't enough
+              width for both to sit comfortably in one row. */}
+          <div className="mt-6 flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
+            <p className="max-w-[46ch] text-base text-paper md:text-lg">
+              Three days of fibres, dyes, weaves and the people behind them.
+              Accra, September 17 to 19, 2026.
+            </p>
+            <button
+              type="button"
+              onClick={openVisitorModal}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
             >
               Register for event
               <span aria-hidden>&gt;</span>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -534,8 +558,7 @@ export default function Hero() {
           </p>
           <a
             href="#visit"
-            className="mt-2 inline-block text-sm font-semibold"
-            style={{ color: "#F4821F" }}
+            className="mt-2 inline-block text-sm font-semibold text-gold"
           >
             Learn more
           </a>
@@ -629,7 +652,7 @@ export default function Hero() {
                   cue regardless of animation timing. */}
               <span
                 className={`block h-full w-full overflow-hidden rounded-full ring-2 ${
-                  i === active ? "ring-[#F4821F]" : "ring-hairline"
+                  i === active ? "ring-gold" : "ring-hairline"
                 }`}
               >
                 <Image
@@ -648,8 +671,20 @@ export default function Hero() {
         {/* Giant material word. Font-size is per-word: short words render
             at the max cap and left-align under the headline's margin;
             long words scale down just enough to span edge-to-edge of the
-            same content width, without wrapping or clipping (incl.
-            descenders — wrapper height fully contains the glyph). */}
+            same content width, without wrapping or clipping.
+            Each button anchors via `bottom: 0` (not `top: 0`) inside this
+            fixed-position wrapper, so its own line box — whatever the
+            browser actually computes for that word's specific font-size —
+            sits flush against the wrapper's bottom edge directly. That's
+            deliberately more robust than positioning from the top and
+            trusting a height formula (WORD_HEIGHT_FACTOR) to contain the
+            glyph correctly: different font-sizes don't share one exact
+            line-height-to-ink ratio, so a top-anchored box sized for the
+            largest word could still let a differently-sized word's ink
+            print past the wrapper's own bottom edge. Bottom-anchoring
+            means every word's baseline sits at the same fixed distance
+            from the wrapper's bottom regardless of its font-size, name
+            length, or (were it ever to happen) line count. */}
         <div
           className="absolute inset-x-0 z-20 overflow-hidden text-left"
           style={{
@@ -666,7 +701,7 @@ export default function Hero() {
               type="button"
               onClick={() => scrollToSection("#materials")}
               aria-label={`${m.heroWord}, view in materials section`}
-              className="absolute left-6 top-0 whitespace-nowrap text-left font-display font-extrabold uppercase leading-none tracking-tight text-paper md:left-16 [font-size:clamp(3rem,12vw,11rem)]"
+              className="absolute bottom-0 left-6 whitespace-nowrap text-left font-display font-extrabold uppercase leading-none tracking-tight text-paper md:left-16 [font-size:clamp(3rem,12vw,11rem)]"
               style={{
                 visibility: i === 0 ? "visible" : "hidden",
                 fontSize: wordFontSizes ? wordFontSizes[i] : undefined,

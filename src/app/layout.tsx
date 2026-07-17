@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Archivo } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
+import { SiteModalsProvider } from "@/components/SiteModals";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -18,6 +19,11 @@ const body = Archivo({
 });
 
 export const metadata: Metadata = {
+  // Lets relative OG/Twitter image paths (e.g. SITE.ogImage) resolve to
+  // absolute URLs — without this Next.js falls back to localhost, which
+  // breaks social-share previews in production. TODO: swap for the real
+  // production domain if it differs.
+  metadataBase: new URL("https://www.altfff.com"),
   title: "Alt.FFF: A Fabric Spree of African Descent",
   description:
     "Ghana's first alternative fashion fabric fair. Three days of fibres, dyes, weaves and the people behind them. Palm Convention Centre, La Palm Royal Beach Hotel, Accra, September 17 to 19, 2026.",
@@ -36,7 +42,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable} antialiased`}>
       <body className="bg-paper font-body text-ink" suppressHydrationWarning>
-        <SmoothScroll>{children}</SmoothScroll>
+        <SmoothScroll>
+          <SiteModalsProvider>{children}</SiteModalsProvider>
+        </SmoothScroll>
       </body>
     </html>
   );

@@ -1,15 +1,20 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
 const SOCIALS = ["Instagram", "X / Twitter", "LinkedIn", "TikTok"];
+const WORDMARK = "ALT.FFF";
+const PROXIMITY_RADIUS = 140; // px, cursor influence falls off to 0 past this
+const MAX_LIFT = 10; // px
+const MAX_SCALE = 0.08; // +8% at the cursor's exact position
 
 export default function Footer() {
   const container = useRef<HTMLElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
+  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
   useGSAP(
     () => {
@@ -32,6 +37,60 @@ export default function Footer() {
     },
     { scope: container },
   );
+
+  // Cursor-proximity "magnetic" distortion on the giant wordmark: letters
+  // nearest the cursor lift and scale up very slightly. Skipped under
+  // reduced motion and on touch devices (no persistent cursor position).
+  useEffect(() => {
+    const footer = container.current;
+    if (!footer) return;
+    if (prefersReducedMotion()) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const letters = letterRefs.current.filter((el): el is HTMLSpanElement => el !== null);
+    // Driving quickTo off a plain proxy object (not the DOM element) and
+    // composing the transform string by hand in onUpdate, rather than
+    // quickTo-ing "y"/"scale" on the element directly: combining a
+    // translate-family and a scale-family quickTo on the same element
+    // trips GSAP's independent-CSS-transform-property detection (it
+    // collides with Tailwind's preflight, which sets those properties to
+    // "none" on every element) and silently drops one of the two tweens.
+    const setters = letters.map((el) => {
+      const proxy = { y: 0, scale: 1 };
+      const apply = () => {
+        el.style.transform = `translate(0, ${proxy.y.toFixed(2)}px) scale(${proxy.scale.toFixed(3)})`;
+      };
+      return {
+        y: gsap.quickTo(proxy, "y", { duration: 0.4, ease: "power3", onUpdate: apply }),
+        scale: gsap.quickTo(proxy, "scale", { duration: 0.4, ease: "power3", onUpdate: apply }),
+      };
+    });
+
+    const onMove = (e: PointerEvent) => {
+      letters.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+        const influence = Math.max(0, 1 - dist / PROXIMITY_RADIUS);
+        setters[i].y(-MAX_LIFT * influence);
+        setters[i].scale(1 + MAX_SCALE * influence);
+      });
+    };
+    const onLeave = () => {
+      setters.forEach((s) => {
+        s.y(0);
+        s.scale(1);
+      });
+    };
+
+    footer.addEventListener("pointermove", onMove);
+    footer.addEventListener("pointerleave", onLeave);
+    return () => {
+      footer.removeEventListener("pointermove", onMove);
+      footer.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
 
   return (
     <footer
@@ -118,7 +177,17 @@ export default function Footer() {
           ref={wordRef}
           className="whitespace-nowrap font-display font-extrabold uppercase leading-none tracking-tight text-ink"
         >
-          ALT.FFF
+          {WORDMARK.split("").map((ch, i) => (
+            <span
+              key={i}
+              ref={(el) => {
+                letterRefs.current[i] = el;
+              }}
+              className="inline-block"
+            >
+              {ch}
+            </span>
+          ))}
         </div>
       </div>
     </footer>

@@ -21,7 +21,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 const COWRIE_SRC = "/materials/cowrie.png";
 const RAFFIA_SRC = "/materials/raffia.png";
-const KENTE_COLORS = ["#E0A122", "#2F5D3A", "#C8402F", "#171C26"];
+const KENTE_COLORS = ["var(--gold)", "var(--forest)", "var(--madder)", "var(--ink)"];
 // Rendered width range, px. Raffia reads ~20% larger than cowrie at both ends.
 const COWRIE_SIZE: [number, number] = [20, 36];
 const RAFFIA_SIZE: [number, number] = [24, 43.2];

@@ -34,5 +34,18 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // ScrollTrigger caches each trigger's pixel position at creation time.
+  // Web fonts swapping in (font-display: swap) after that initial
+  // calculation can reflow text and shift everything below it, leaving a
+  // trigger stale. A single refresh once fonts have actually loaded
+  // corrects that — deliberately one-shot rather than a continuous
+  // ResizeObserver: refreshing while a stagger reveal is mid-flight can
+  // reset its progress and strand later-staggered elements never
+  // finishing, which is worse than the staleness it'd be fixing.
+  useEffect(() => {
+    if (prefersReducedMotion()) return;
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
+  }, []);
+
   return <>{children}</>;
 }

@@ -2,7 +2,6 @@ import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Ticker from "@/components/Ticker";
 import Stats from "@/components/Stats";
-import Materials from "@/components/Materials";
 import Manifesto from "@/components/Manifesto";
 import Quote from "@/components/Quote";
 import EventDetails from "@/components/EventDetails";
@@ -17,10 +16,9 @@ export default function Home() {
         <Hero />
         <Ticker />
         <Stats />
-        <Materials />
         <Manifesto />
-        <Quote />
         <EventDetails />
+        <Quote />
         <Partners />
       </main>
       <Footer />

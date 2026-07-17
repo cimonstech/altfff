@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
+import { useTilt } from "@/lib/use-tilt";
 
 const INTRO_PARAGRAPH =
   "Exhibiting at Alt.FFF is an opportunity to place your brand at the centre of one of the most exciting conversations in fashion, manufacturing, and African creative enterprise. It's where innovation meets opportunity, and where businesses gain visibility, connections, and real commercial potential.";
@@ -115,47 +116,9 @@ export default function ExhibitingHero() {
     { scope: container },
   );
 
-  // Cursor-follow tilt on the garment stage — perspective on the parent,
-  // rotateX/Y smoothed via quickTo on the child so it doesn't jitter.
-  // Skipped under reduced motion and on coarse/touch pointers (no
-  // persistent cursor position to track there).
-  useEffect(() => {
-    const stage = stageRef.current;
-    const tilt = tiltRef.current;
-    if (!stage || !tilt) return;
-    if (prefersReducedMotion()) return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-
-    // GSAP's legacy transform-tween properties are named rotationX/rotationY.
-    // "rotateX"/"rotateY" collide with the browser's independent CSS `rotate`
-    // property (which can't express combined 3D rotation), so GSAP silently
-    // fails to apply the tween when those names are used instead.
-    gsap.set(tilt, { rotationX: 0, rotationY: 0, transformPerspective: 1000 });
-
-    const setRotateX = gsap.quickTo(tilt, "rotationX", { duration: 0.6, ease: "power3" });
-    const setRotateY = gsap.quickTo(tilt, "rotationY", { duration: 0.6, ease: "power3" });
-
-    const onMove = (e: PointerEvent) => {
-      const rect = stage.getBoundingClientRect();
-      const px = (e.clientX - rect.left) / rect.width;
-      const py = (e.clientY - rect.top) / rect.height;
-      const ry = (px - 0.5) * 2 * MAX_TILT_DEG;
-      const rx = (0.5 - py) * 2 * MAX_TILT_DEG;
-      setRotateY(ry);
-      setRotateX(rx);
-    };
-    const onLeave = () => {
-      setRotateX(0);
-      setRotateY(0);
-    };
-
-    stage.addEventListener("pointermove", onMove);
-    stage.addEventListener("pointerleave", onLeave);
-    return () => {
-      stage.removeEventListener("pointermove", onMove);
-      stage.removeEventListener("pointerleave", onLeave);
-    };
-  }, []);
+  // Cursor-follow tilt on the garment stage — shared with the Reasons
+  // cards' hover-tilt via src/lib/use-tilt.ts.
+  useTilt(stageRef, tiltRef, { maxDeg: MAX_TILT_DEG });
 
   useGSAP(
     () => {
@@ -183,6 +146,19 @@ export default function ExhibitingHero() {
       }}
       className="relative overflow-hidden bg-ink px-6 pb-20 pt-32 md:px-16 md:pb-28 md:pt-40"
     >
+      {/* Background photo with a faint dark overlay for text legibility. */}
+      <div aria-hidden="true" className="absolute inset-0">
+        <Image
+          src="/materials/exhibition-bg.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-ink/70" />
+      </div>
+
       {/* Massive, barely-visible background wordmark — light-on-dark this
           time, same technique as the light-mode version. */}
       <div
@@ -279,10 +255,11 @@ export default function ExhibitingHero() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/70">
                 Exhibitor Information Pack
               </p>
-              {/* TODO: placeholder href — needs a real deck PDF supplied
-                  and linked here before launch. */}
               <a
-                href="#"
+                href="/documents/Exhibitors_Pack_ALT_FFF_June_2026.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
                 className="mt-3 inline-flex items-center rounded-full bg-ink px-4 py-2.5 text-xs font-semibold text-paper transition-opacity hover:opacity-85"
               >
                 Download Deck Here

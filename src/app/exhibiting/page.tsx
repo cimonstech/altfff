@@ -3,8 +3,10 @@ import Nav from "@/components/Nav";
 import ExhibitingHero from "@/components/ExhibitingHero";
 import Ticker from "@/components/Ticker";
 import ExhibitingReasons from "@/components/ExhibitingReasons";
+import PackageOptions from "@/components/PackageOptions";
 import ExhibitingRegister from "@/components/ExhibitingRegister";
 import Quote from "@/components/Quote";
+import Partners from "@/components/Partners";
 import Footer from "@/components/Footer";
 
 const TICKER_ITEMS = ["Exhibition", "Trade", "Commercial Design", "Africa", "Exhibit"];
@@ -23,9 +25,11 @@ export default function ExhibitingPage() {
         <ExhibitingHero />
         <Ticker items={TICKER_ITEMS} />
         <ExhibitingReasons />
+        <PackageOptions />
         <ExhibitingRegister />
         <Quote
           dark
+          ambient3d
           quote="Africa has the talent, the resources, the craftsmanship."
           attribution="Visiting David Whiteheads Textiles"
           image={{
@@ -33,6 +37,7 @@ export default function ExhibitingPage() {
             alt: "Finished leather jacket, embossed pattern detail",
           }}
         />
+        <Partners />
       </main>
       <Footer />
     </>
