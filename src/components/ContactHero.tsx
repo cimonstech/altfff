@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
+import HeroArtifacts from "@/components/HeroArtifacts";
 
 /**
  * Compact dark hero for the Contact page. `id="contact-hero"` and
@@ -34,6 +35,8 @@ export default function ContactHero() {
       aria-label="Get in touch"
       className="relative overflow-hidden bg-indigo px-6 pb-16 pt-32 text-paper md:px-16 md:pb-20 md:pt-40"
     >
+      <HeroArtifacts variant="dark" layout="contact" density={2} />
+
       <div className="relative mx-auto max-w-3xl">
         <h1 className="contact-hero-in font-display text-[clamp(2.2rem,6vw,4rem)] font-extrabold uppercase leading-[1.02] tracking-tight">
           Get in Touch

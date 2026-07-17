@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { useTilt } from "@/lib/use-tilt";
+import HeroArtifacts from "@/components/HeroArtifacts";
 
 const INTRO_PARAGRAPH =
   "Exhibiting at Alt.FFF is an opportunity to place your brand at the centre of one of the most exciting conversations in fashion, manufacturing, and African creative enterprise. It's where innovation meets opportunity, and where businesses gain visibility, connections, and real commercial potential.";
@@ -137,6 +138,7 @@ export default function ExhibitingHero() {
   return (
     <section
       ref={container}
+      id="exhibiting-hero"
       aria-label="Why exhibit at Alt.FFF"
       onMouseEnter={() => {
         pausedRef.current = true;
@@ -172,6 +174,8 @@ export default function ExhibitingHero() {
           EXHIBIT
         </span>
       </div>
+
+      <HeroArtifacts variant="dark" layout="exhibiting" density={2} />
 
       <div className="relative mx-auto max-w-7xl">
         {/* Small metadata pill, top-right */}

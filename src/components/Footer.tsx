@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
+import NewsletterBand from "@/components/NewsletterBand";
 
 const SOCIALS = ["Instagram", "X / Twitter", "LinkedIn", "TikTok"];
 const WORDMARK = "ALT.FFF";
@@ -101,35 +102,7 @@ export default function Footer() {
     >
       <div className="px-6 pb-8 pt-20 md:px-16">
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
-          {/* Newsletter — visual only for now */}
-          <div>
-            <h2 className="font-display text-2xl font-extrabold uppercase text-ink">
-              Stay in the weave
-            </h2>
-            <p className="mt-2 max-w-[42ch] text-sm text-indigo">
-              News on exhibitors, programming and tickets for {EVENT.dates}.
-            </p>
-            <form
-              className="mt-6 flex max-w-md gap-2"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <label htmlFor="newsletter-email" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="newsletter-email"
-                type="email"
-                placeholder="you@studio.com"
-                className="w-full rounded-full border border-hairline bg-surface px-5 py-3 text-sm text-ink placeholder:text-ink/40"
-              />
-              <button
-                type="submit"
-                className="shrink-0 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
-              >
-                Sign up
-              </button>
-            </form>
-          </div>
+          <NewsletterBand />
 
           <div className="grid grid-cols-2 gap-8 md:justify-items-end">
             <div>

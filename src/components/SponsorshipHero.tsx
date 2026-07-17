@@ -5,6 +5,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 import { EVENT } from "@/lib/constants";
+import HeroArtifacts from "@/components/HeroArtifacts";
 
 /**
  * Dark hero for the Sponsorship page. `id="sponsorship-hero"` and
@@ -36,6 +37,8 @@ export default function SponsorshipHero() {
       aria-label="Sponsorship"
       className="relative overflow-hidden bg-indigo px-6 pb-20 pt-32 text-paper md:px-16 md:pb-28 md:pt-40"
     >
+      <HeroArtifacts variant="dark" layout="sponsorship" density={2} />
+
       <div className="relative mx-auto max-w-4xl">
         <h1 className="sponsor-hero-in font-display text-[clamp(2.4rem,6.5vw,5rem)] font-extrabold uppercase leading-[1.02] tracking-tight">
           Back the Future of African Materials

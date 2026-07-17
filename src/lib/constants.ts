@@ -12,6 +12,11 @@ export const EVENT = {
 // social-share image exists.
 export const SITE = {
   ogImage: "/Afff_icon.png",
+  // TODO: confirm this is the real production domain — also used as
+  // metadataBase in the root layout. Kept as one source of truth so
+  // anything building absolute URLs (e.g. news article share links)
+  // stays consistent with it.
+  url: "https://www.altfff.com",
 } as const;
 
 export type Material = {
