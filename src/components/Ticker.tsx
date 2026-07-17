@@ -5,7 +5,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT, MATERIALS } from "@/lib/constants";
 
-const ITEMS = [
+const DEFAULT_ITEMS = [
   ...MATERIALS.map((m) => m.name),
   "Accra · Sept 17–19, 2026",
   EVENT.venue,
@@ -13,10 +13,10 @@ const ITEMS = [
   "One floor",
 ];
 
-function Row() {
+function Row({ items }: { items: string[] }) {
   return (
     <div className="flex shrink-0 items-center">
-      {ITEMS.map((item, i) => (
+      {items.map((item, i) => (
         <span key={i} className="flex items-center">
           <span className="px-6 font-display text-lg font-semibold uppercase tracking-wide text-paper md:text-xl">
             {item}
@@ -32,7 +32,16 @@ function Row() {
   );
 }
 
-export default function Ticker() {
+/** Infinite one-direction marquee. `items` defaults to the homepage's own
+ * materials/event mix; pass a custom list to reuse the same ink/paper/gold
+ * treatment elsewhere with different content (e.g. the Exhibiting page). */
+export default function Ticker({
+  items = DEFAULT_ITEMS,
+  className = "",
+}: {
+  items?: string[];
+  className?: string;
+}) {
   const container = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -53,11 +62,11 @@ export default function Ticker() {
     <div
       ref={container}
       aria-hidden
-      className="overflow-hidden bg-ink py-4"
+      className={`overflow-hidden bg-ink py-4 ${className}`}
     >
       <div ref={trackRef} className="flex w-max">
-        <Row />
-        <Row />
+        <Row items={items} />
+        <Row items={items} />
       </div>
     </div>
   );

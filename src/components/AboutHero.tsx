@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
+import Ticker from "@/components/Ticker";
 
 // Each line gets its own clamp rather than one shared size: at a shared
 // ~7rem cap the longest line ("SPEAK BEFORE") overflows its column and
@@ -463,34 +464,11 @@ export default function AboutHero() {
           </div>
         </div>
 
-        {/* Adire fabric swatch — sits beside the intro paragraph, below the
-            image band. Caption reuses the confirmed origin already
-            established for this material elsewhere on the site
-            (constants.ts's MATERIALS entry), not a new claim. */}
-        <div className="about-hero-in relative mt-10 h-28 overflow-hidden rounded-xl border border-hairline md:col-start-1 md:col-span-7 md:row-start-4 md:mt-10 md:h-32">
-          <Image
-            src="/materials/adire-bg.webp"
-            alt="Indigo-dyed adire cloth"
-            fill
-            sizes="(min-width: 768px) 60vw, 100vw"
-            className="object-cover"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[75%]"
-            style={{
-              background:
-                "linear-gradient(to top, color-mix(in srgb, var(--ink) 85%, transparent), transparent)",
-            }}
-          />
-          <div className="absolute inset-x-0 bottom-0 p-4">
-            <p className="font-display text-base font-extrabold uppercase leading-none tracking-tight text-paper md:text-lg">
-              Indigo &amp; Adire · Nigeria
-            </p>
-            <p className="mt-1 max-w-[42ch] text-xs text-paper/75">
-              Resist-dyed indigo cloth from Abeokuta, where cassava paste and raffia draw the pattern.
-            </p>
-          </div>
+        {/* Ticker — replaces the earlier adire swatch, same slot below the
+            image band. Reuses Ticker.tsx's own default content (materials
+            + event info) rather than inventing new marketing copy. */}
+        <div className="about-hero-in mt-10 overflow-hidden rounded-xl border border-hairline md:col-start-1 md:col-span-7 md:row-start-4 md:mt-10">
+          <Ticker />
         </div>
 
         {/* Intro paragraph — below/right of the image band */}

@@ -15,8 +15,8 @@ import { getLenis } from "@/lib/scroll";
 // navigates home first, then the browser (or Lenis, via SmoothScroll's
 // `anchors: true`) scrolls to the section on arrival.
 const LEFT_LINKS = [
+  { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
-  { label: "Materials", href: "/#materials", page: false },
   { label: "Exhibiting", href: "/exhibiting", page: true },
 ];
 

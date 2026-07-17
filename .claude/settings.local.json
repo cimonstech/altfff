@@ -4,7 +4,8 @@
       "Bash(npx tsc *)",
       "Bash(node verify-panel-contain.mjs)",
       "Bash(grep -v \"^-\\\\|^+\\\\|^  \\\\|^It can\\\\|^$\\\\|hydrat\\\\|SSR-ed\\\\|Date form\\\\|External\\\\|Invalid HTML\\\\|browser extension\\\\|%s%s\")",
-      "Bash(node verify-nav.mjs)"
+      "Bash(node verify-nav.mjs)",
+      "Bash(node -e ' *)"
     ]
   }
 }
