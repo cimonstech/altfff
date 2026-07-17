@@ -8,9 +8,9 @@ import { EVENT } from "@/lib/constants";
 import { useSiteModals } from "@/components/SiteModals";
 
 const DAYS = [
-  { day: "Day 1", date: "Wed, September 17", hours: "10:00 – 18:00 (placeholder)" },
-  { day: "Day 2", date: "Thu, September 18", hours: "10:00 – 18:00 (placeholder)" },
-  { day: "Day 3", date: "Fri, September 19", hours: "10:00 – 16:00 (placeholder)" },
+  { day: "Day 1", date: "Wed, September 17", hours: "10:00 – 18:00 " },
+  { day: "Day 2", date: "Thu, September 18", hours: "10:00 – 18:00 " },
+  { day: "Day 3", date: "Fri, September 19", hours: "10:00 – 16:00 " },
 ];
 
 export default function EventDetails() {
@@ -41,7 +41,12 @@ export default function EventDetails() {
       ref={container}
       id="visit"
       aria-label="Event details"
-      className="bg-indigo px-6 py-24 text-paper md:px-16 md:py-32"
+      className="relative overflow-hidden bg-ink px-6 py-24 text-paper md:px-16 md:py-32"
+      style={{
+        backgroundImage: "linear-gradient(0deg, rgba(1, 83, 71, 0.78), rgba(1, 83, 71, 0.78)), url('/materials/exhibition-bg.webp')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
     >
       <div className="mx-auto max-w-6xl">
         <h2 className="mb-12 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight">

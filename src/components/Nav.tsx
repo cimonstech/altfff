@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
@@ -10,6 +12,7 @@ const ALL_LINKS = [
   { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
   { label: "Exhibiting", href: "/exhibiting", page: true },
+  { label: "News", href: "/news", page: true },
   { label: "Visit", href: "/visit", page: true },
   { label: "Sponsorship", href: "/sponsorship", page: true },
   { label: "Contact", href: "/contact", page: true },
@@ -27,6 +30,7 @@ const LEFT_LINKS = [
   { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
   { label: "Exhibiting", href: "/exhibiting", page: true },
+  { label: "News", href: "/news", page: true },
 ];
 
 const RIGHT_LINKS = [
@@ -37,6 +41,11 @@ const RIGHT_LINKS = [
 
 const CHAMFER = 22;
 const CORNER = 9;
+
+function isActiveLink(href: string, pathname: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 /**
  * Bar shape: straight top, bottom-left/right corners chamfered at 45° with
@@ -62,6 +71,7 @@ function barPath(w: number, h: number, c = CHAMFER, r = CORNER) {
 
 export default function Nav() {
   const barRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuOpenRef = useRef(false);
@@ -224,7 +234,7 @@ export default function Nav() {
   const path = dims ? barPath(dims.w, dims.h) : null;
 
   const linkClass =
-    "text-[11px] font-medium uppercase tracking-[0.18em] text-ink transition-opacity hover:opacity-60";
+    "relative inline-flex items-center pb-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 hover:text-gold hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4";
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
@@ -258,39 +268,49 @@ export default function Nav() {
               <span className="h-[2px] w-5 bg-ink" />
             </button>
             <div className="hidden items-center gap-6 md:flex">
-              {LEFT_LINKS.map((l) =>
-                l.page ? (
-                  <Link key={l.label} href={l.href} className={linkClass}>
+              {LEFT_LINKS.map((l) => {
+                const isActive = isActiveLink(l.href, pathname);
+                const classes = `${linkClass} ${isActive ? "text-gold underline decoration-gold decoration-2 underline-offset-4" : "text-ink"}`;
+
+                return l.page ? (
+                  <Link key={l.label} href={l.href} className={classes}>
                     {l.label}
                   </Link>
                 ) : (
-                  <a key={l.label} href={l.href} className={linkClass}>
+                  <a key={l.label} href={l.href} className={classes}>
                     {l.label}
                   </a>
-                ),
-              )}
+                );
+              })}
             </div>
           </div>
 
-          <Link
-            href="/"
-            className="font-display text-xl font-extrabold tracking-tight text-ink"
-          >
-            Alt.FFF
+          <Link href="/" className="flex items-center justify-center" aria-label="Alt.FFF home">
+            <Image
+              src="/alt-fff-logo.png"
+              alt="Alt.FFF logo"
+              width={140}
+              height={54}
+              className="h-8 w-auto md:h-9"
+              priority
+            />
           </Link>
 
           <div className="hidden items-center justify-end gap-6 md:flex">
-            {RIGHT_LINKS.map((l) =>
-              l.page ? (
-                <Link key={l.label} href={l.href} className={linkClass}>
+            {RIGHT_LINKS.map((l) => {
+              const isActive = isActiveLink(l.href, pathname);
+              const classes = `${linkClass} ${isActive ? "text-gold underline decoration-gold decoration-2 underline-offset-4" : "text-ink"}`;
+
+              return l.page ? (
+                <Link key={l.label} href={l.href} className={classes}>
                   {l.label}
                 </Link>
               ) : (
-                <a key={l.label} href={l.href} className={linkClass}>
+                <a key={l.label} href={l.href} className={classes}>
                   {l.label}
                 </a>
-              ),
-            )}
+              );
+            })}
           </div>
         </nav>
 
@@ -318,9 +338,15 @@ export default function Nav() {
           className="pointer-events-auto fixed inset-0 z-[60] flex flex-col bg-ink px-8 pb-10 pt-6 md:hidden"
         >
           <div className="flex items-center justify-between">
-            <span className="font-display text-xl font-extrabold tracking-tight text-paper">
-              Alt.FFF
-            </span>
+            <Link href="/" onClick={closeMenu} className="flex items-center" aria-label="Alt.FFF home">
+              <Image
+                src="/alt-fff-logo.png"
+                alt="Alt.FFF logo"
+                width={120}
+                height={48}
+                className="h-8 w-auto"
+              />
+            </Link>
             <button
               ref={menuCloseRef}
               type="button"
@@ -336,16 +362,16 @@ export default function Nav() {
           </div>
 
           <nav aria-label="Mobile" className="mt-12 flex flex-1 flex-col justify-center gap-2">
-            {ALL_LINKS.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                onClick={closeMenu}
-                className="mobile-nav-link min-h-[44px] py-2 font-display text-3xl font-extrabold uppercase leading-tight text-paper transition-opacity hover:opacity-70"
-              >
-                {l.label}
-              </Link>
-            ))}
+            {ALL_LINKS.map((l) => {
+              const isActive = isActiveLink(l.href, pathname);
+              const classes = `mobile-nav-link min-h-[44px] py-2 font-display text-3xl font-extrabold uppercase leading-tight transition-colors duration-200 hover:text-gold hover:underline hover:decoration-gold hover:decoration-2 hover:underline-offset-4 ${isActive ? "text-gold underline decoration-gold decoration-2 underline-offset-4" : "text-paper"}`;
+
+              return (
+                <Link key={l.label} href={l.href} onClick={closeMenu} className={classes}>
+                  {l.label}
+                </Link>
+              );
+            })}
           </nav>
 
           <Link
