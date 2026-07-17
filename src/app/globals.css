@@ -4,8 +4,8 @@
   /* Design tokens — Alt.FFF */
   --paper: #f6f1e7; /* page background (calico) */
   --surface: #efe7d8; /* cards and nav fill (raw cotton) */
-  --ink: #171c26; /* primary text (indigo-black) */
-  --indigo: #1e2a4a; /* secondary text and dark surfaces */
+  --ink: #015347; /* primary text (indigo-black) -previously; 171c26 */
+  --indigo: #c5810a; /* secondary text and dark surfaces */
   /* Brand accents — sampled directly from pixel data in the official
      Exhibitors_Pack_ALT_FFF_June_2026.pdf, authoritative (not estimated). */
   --gold: #da8e06; /* primary accent — fills and large type only */
@@ -15,7 +15,7 @@
      L=30.0% to actually clear it — verified: #956104 on #F6F1E7 is a
      4.68:1 contrast ratio (AA requires 4.5:1 for small text). */
   --gold-deep: #956104;
-  --madder: #c00000; /* secondary accent */
+  --madder: #ca902b; /* secondary accent */
   --forest: #007563; /* sparing third accent */
   --hairline: rgba(23, 28, 38, 0.14); /* borders and dividers */
 
