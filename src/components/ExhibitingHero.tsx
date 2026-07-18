@@ -19,6 +19,10 @@ const GARMENTS = [
     src: "/materials/hero-garments/raffia-dress.png",
     alt: "Raffia fibre dress with a fringed trim",
   },
+  {
+    src: "/materials/hero-garments/pineapple_finished.png",
+    alt: "Garment made from finished pineapple-leather material",
+  },
 ];
 
 const ROTATE_MS = 5500;
@@ -29,9 +33,12 @@ export default function ExhibitingHero() {
   const stageRef = useRef<HTMLDivElement>(null); // perspective parent
   const tiltRef = useRef<HTMLDivElement>(null); // the element actually rotated
   const garmentRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const spoolRef = useRef<HTMLDivElement>(null);
   const activeIndexRef = useRef(0);
   const pausedRef = useRef(false);
-  const idleTweensRef = useRef<(gsap.core.Tween | null)[]>([null, null]);
+  const idleTweensRef = useRef<(gsap.core.Tween | null)[]>(
+    GARMENTS.map(() => null),
+  );
 
   // Garment rotation: slide-down entrance, slide-down-and-fade exit,
   // gentle idle float once resting. Reduced motion: first garment shown
@@ -40,13 +47,15 @@ export default function ExhibitingHero() {
     () => {
       const reduced = prefersReducedMotion();
       const layers = garmentRefs.current;
-      if (!layers[0] || !layers[1]) return;
+      if (layers.slice(0, GARMENTS.length).some((l) => !l)) return;
 
       const STAGE_OFFSET = 260; // px the incoming garment starts above rest
 
       if (reduced) {
         gsap.set(layers[0], { y: 0, autoAlpha: 1 });
-        gsap.set(layers[1], { y: -STAGE_OFFSET, autoAlpha: 0 });
+        for (let i = 1; i < GARMENTS.length; i++) {
+          gsap.set(layers[i], { y: -STAGE_OFFSET, autoAlpha: 0 });
+        }
         return;
       }
 
@@ -61,9 +70,11 @@ export default function ExhibitingHero() {
         });
       };
 
-      // Mount-once entrance for the first garment; the second stays
-      // hidden above the frame, ready for the first rotation.
-      gsap.set(layers[1], { y: -STAGE_OFFSET, autoAlpha: 0 });
+      // Mount-once entrance for the first garment; the rest stay hidden
+      // above the frame, ready for their turn in the rotation.
+      for (let i = 1; i < GARMENTS.length; i++) {
+        gsap.set(layers[i], { y: -STAGE_OFFSET, autoAlpha: 0 });
+      }
       gsap.fromTo(
         layers[0],
         { y: -STAGE_OFFSET, autoAlpha: 0 },
@@ -131,6 +142,19 @@ export default function ExhibitingHero() {
         ease: "power3.out",
         stagger: 0.1,
       });
+
+      // Kente spool floats gently in the gap between the headline and the
+      // garment stage.
+      if (spoolRef.current) {
+        gsap.to(spoolRef.current, {
+          y: -14,
+          rotation: -8,
+          duration: 1.9,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      }
     },
     { scope: container },
   );
@@ -185,7 +209,23 @@ export default function ExhibitingHero() {
           </span>
         </div>
 
-        <div className="mt-10 md:grid md:grid-cols-12 md:items-end md:gap-x-8">
+        <div className="relative mt-10 md:grid md:grid-cols-12 md:items-end md:gap-x-8">
+          {/* Kente spool - floats in the gap between the headline and the
+              garment stage, roughly mid-height of the composition. */}
+          <div
+            ref={spoolRef}
+            aria-hidden="true"
+            className="pointer-events-none absolute left-[56%] top-1/2 hidden h-14 w-14 -translate-y-1/2 md:block"
+          >
+            <Image
+              src="/materials/kente-spool.png"
+              alt=""
+              fill
+              sizes="56px"
+              className="object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.35)]"
+            />
+          </div>
+
           {/* Left: headline, intro paragraph */}
           <div className="md:col-span-7">
             <h1 className="exhibit-hero-in font-display text-[clamp(2.2rem,6vw,4.5rem)] font-extrabold uppercase leading-[1.03] tracking-tight text-paper">
@@ -260,11 +300,11 @@ export default function ExhibitingHero() {
                 Exhibitor Information Pack
               </p>
               <a
-                href="/documents/Exhibitors_Pack_ALT_FFF_June_2026.pdf"
+                href="/Exhibitors+Pack+ALT.FFF_June+2026.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="mt-3 inline-flex items-center rounded-full bg-ink px-4 py-2.5 text-xs font-semibold text-paper transition-opacity hover:opacity-85"
+                className="mt-3 inline-flex items-center rounded-full bg-madder px-4 py-2.5 text-xs font-semibold text-paper transition-opacity hover:opacity-85"
               >
                 Download Deck Here
               </a>

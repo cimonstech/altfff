@@ -7,7 +7,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
-const SOCIALS = ["Instagram", "X / Twitter", "LinkedIn", "TikTok"];
+const SOCIALS = ["Instagram", "LinkedIn", "Facebook"];
 const WORDMARK = "ALT.FFF";
 const PROXIMITY_RADIUS = 140; // px, cursor influence falls off to 0 past this
 const MAX_LIFT = 10; // px

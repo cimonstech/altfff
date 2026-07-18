@@ -340,9 +340,9 @@ export default function Nav() {
           <div className="flex items-center justify-between">
             <Link href="/" onClick={closeMenu} className="flex items-center" aria-label="Alt.FFF home">
               <Image
-                src="/alt-fff-logo.png"
+                src="/alt-fff-logo-white.png"
                 alt="Alt.FFF logo"
-                width={927}
+                width={715}
                 height={565}
                 className="h-10 w-auto"
               />

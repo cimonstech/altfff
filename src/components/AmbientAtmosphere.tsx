@@ -21,10 +21,13 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 const COWRIE_SRC = "/materials/cowrie.png";
 const RAFFIA_SRC = "/materials/raffia.png";
+const KENTE_SPOOL_SRC = "/materials/kente-spool.png";
 const KENTE_COLORS = ["var(--gold)", "var(--forest)", "var(--madder)", "var(--ink)"];
-// Rendered width range, px. Raffia reads ~20% larger than cowrie at both ends.
+// Rendered width range, px. Raffia reads ~20% larger than cowrie at both
+// ends; the kente spool reads larger again, clearly bigger than the cowrie.
 const COWRIE_SIZE: [number, number] = [20, 36];
 const RAFFIA_SIZE: [number, number] = [24, 43.2];
+const KENTE_SPOOL_SIZE: [number, number] = [30, 52];
 const COTTON_COLOR = "#FFFFFF"; // deliberately off the --paper page background, not matching it
 
 const MAX_ARTIFACTS = 10;
@@ -200,8 +203,9 @@ export default function AmbientAtmosphere({
 
     function maybeSpawnArtifact(x: number, y: number) {
       const roll = Math.random();
-      if (roll < 0.35) spawnImageArtifact(COWRIE_SRC, x, y, COWRIE_SIZE);
-      else if (roll < 0.7) spawnImageArtifact(RAFFIA_SRC, x, y, RAFFIA_SIZE);
+      if (roll < 0.25) spawnImageArtifact(COWRIE_SRC, x, y, COWRIE_SIZE);
+      else if (roll < 0.5) spawnImageArtifact(RAFFIA_SRC, x, y, RAFFIA_SIZE);
+      else if (roll < 0.75) spawnImageArtifact(KENTE_SPOOL_SRC, x, y, KENTE_SPOOL_SIZE);
       else spawnCottonCluster(x, y);
     }
 

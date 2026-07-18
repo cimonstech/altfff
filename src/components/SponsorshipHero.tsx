@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
@@ -15,6 +16,7 @@ import HeroArtifacts from "@/components/HeroArtifacts";
  */
 export default function SponsorshipHero() {
   const container = useRef<HTMLElement>(null);
+  const spoolRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -26,6 +28,17 @@ export default function SponsorshipHero() {
         ease: "power3.out",
         stagger: 0.1,
       });
+
+      if (spoolRef.current) {
+        gsap.to(spoolRef.current, {
+          y: -14,
+          rotation: 7,
+          duration: 2.2,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      }
     },
     { scope: container },
   );
@@ -38,6 +51,42 @@ export default function SponsorshipHero() {
       className="relative overflow-hidden bg-indigo px-6 pb-20 pt-32 text-paper md:px-16 md:pb-28 md:pt-40"
     >
       <HeroArtifacts variant="dark" layout="sponsorship" density={2} />
+
+      {/* Kente spool, left side, bigger than the cowrie HeroArtifacts
+          already places on the right. */}
+      <div
+        ref={spoolRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[5%] top-[18%] hidden h-14 w-14 md:block"
+      >
+        <Image
+          src="/materials/kente-spool.png"
+          alt=""
+          fill
+          sizes="56px"
+          className="object-contain drop-shadow-[0_8px_12px_rgba(23,28,38,0.28)]"
+        />
+      </div>
+
+      {/* Fabric swatch strip, flush along the hero's bottom edge - a single
+          next/image `fill` layer (not a CSS background-image, so there's no
+          background-repeat involved), clipped by this div's own
+          overflow-hidden so it crops to a band rather than distorting to
+          fit. z-index is left at auto on every layer in this hero, so DOM
+          order alone determines stacking - this div comes before the
+          content wrapper below, so the headline/CTA always paint on top. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[120px] overflow-hidden md:h-[160px]"
+      >
+        <Image
+          src="/materials/fabrics.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-top"
+        />
+      </div>
 
       <div className="relative mx-auto max-w-4xl">
         <h1 className="sponsor-hero-in font-display text-[clamp(2.4rem,6.5vw,5rem)] font-extrabold uppercase leading-[1.02] tracking-tight">

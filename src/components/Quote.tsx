@@ -82,7 +82,7 @@ export default function Quote({
           </blockquote>
           <figcaption
             className={`relative mt-6 text-sm uppercase tracking-[0.18em] ${
-              dark ? "text-gold-deep" : "text-indigo"
+              dark ? "text-madder" : "text-indigo"
             }`}
           >
             {attribution}

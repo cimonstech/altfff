@@ -33,8 +33,8 @@ export default function ExhibitingPage() {
           quote="Africa has the talent, the resources, the craftsmanship."
           attribution="Visiting David Whiteheads Textiles"
           image={{
-            src: "/materials/Finished-Materials/croc-jacket.jpg",
-            alt: "Finished leather jacket, embossed pattern detail",
+            src: "/materials/kente-craft.jpg",
+            alt: "Kente cloth craftsmanship detail",
           }}
         />
         <Partners />

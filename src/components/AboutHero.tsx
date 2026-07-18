@@ -186,6 +186,7 @@ export default function AboutHero() {
   const container = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const cowrieRef = useRef<HTMLDivElement>(null);
+  const spoolRef = useRef<HTMLDivElement>(null);
   const [activeMaterial, setActiveMaterial] = useState(0);
   const { openExhibitModal } = useSiteModals();
 
@@ -264,6 +265,20 @@ export default function AboutHero() {
             repeat: -1,
           });
         }
+
+        // Kente spool floats on the opposite side, slower/larger than the
+        // cowrie so the two read as separate depth layers rather than a
+        // matched pair.
+        if (spoolRef.current) {
+          gsap.to(spoolRef.current, {
+            y: -16,
+            rotation: 6,
+            duration: 2.1,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+          });
+        }
       }
     },
     { scope: container },
@@ -297,6 +312,23 @@ export default function AboutHero() {
           alt=""
           fill
           sizes="36px"
+          className="object-contain drop-shadow-[0_8px_12px_rgba(23,28,38,0.28)]"
+        />
+      </div>
+
+      {/* Kente spool - larger than the cowrie, floats near the opposite
+          (upper-left) side of the composition, clear of the headline
+          column and the image band below it. */}
+      <div
+        ref={spoolRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[4%] top-24 hidden h-14 w-14 md:block"
+      >
+        <Image
+          src="/materials/kente-spool.png"
+          alt=""
+          fill
+          sizes="56px"
           className="object-contain drop-shadow-[0_8px_12px_rgba(23,28,38,0.28)]"
         />
       </div>
@@ -421,7 +453,7 @@ export default function AboutHero() {
             </p>
             <Link
               href="/exhibiting"
-              className="mt-3 inline-flex items-center rounded-full bg-ink px-4 py-2 text-xs font-semibold text-paper transition-opacity hover:opacity-85"
+              className="mt-3 inline-flex items-center rounded-full bg-gold px-4 py-2 text-xs font-semibold text-ink transition-opacity hover:opacity-85"
             >
               Exhibit
             </Link>
@@ -474,8 +506,8 @@ export default function AboutHero() {
         {/* Ticker - replaces the earlier adire swatch, same slot below the
             image band. Reuses Ticker.tsx's own default content (materials
             + event info) rather than inventing new marketing copy. */}
-        <div className="about-hero-in mt-10 overflow-hidden rounded-xl border border-hairline md:col-start-1 md:col-span-7 md:row-start-4 md:mt-10">
-          <Ticker />
+        <div className="about-hero-in mt-10 overflow-hidden rounded-xl border border-hairline md:col-start-1 md:col-span-7 md:row-start-4 md:mt-10 md:flex md:items-center">
+          <Ticker className="w-full" variant="gold" />
         </div>
 
         {/* Intro paragraph - below/right of the image band */}
@@ -495,7 +527,7 @@ export default function AboutHero() {
           <button
             type="button"
             onClick={openExhibitModal}
-            className="inline-flex items-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
+            className="inline-flex items-center rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
           >
             Apply to exhibit
           </button>

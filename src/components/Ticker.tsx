@@ -13,7 +13,17 @@ const DEFAULT_ITEMS = [
   "One floor",
 ];
 
-function Row({ items, dense }: { items: string[]; dense?: boolean }) {
+function Row({
+  items,
+  dense,
+  variant,
+}: {
+  items: string[];
+  dense?: boolean;
+  variant: "ink" | "gold";
+}) {
+  const textColor = variant === "gold" ? "text-ink" : "text-paper";
+  const diamondColor = variant === "gold" ? "bg-paper" : "bg-gold";
   return (
     <div className="flex shrink-0 items-center">
       {items.map((item, i) => (
@@ -21,15 +31,15 @@ function Row({ items, dense }: { items: string[]; dense?: boolean }) {
           <span
             className={
               dense
-                ? "px-4 font-display text-sm font-semibold uppercase tracking-wide text-paper"
-                : "px-6 font-display text-lg font-semibold uppercase tracking-wide text-paper md:text-xl"
+                ? `px-4 font-display text-sm font-semibold uppercase tracking-wide ${textColor}`
+                : `px-6 font-display text-lg font-semibold uppercase tracking-wide md:text-xl ${textColor}`
             }
           >
             {item}
           </span>
           <span
             aria-hidden
-            className={`inline-block rotate-45 bg-gold ${dense ? "h-1.5 w-1.5" : "h-2 w-2"}`}
+            className={`inline-block rotate-45 ${diamondColor} ${dense ? "h-1.5 w-1.5" : "h-2 w-2"}`}
           />
         </span>
       ))}
@@ -47,10 +57,15 @@ export default function Ticker({
   items = DEFAULT_ITEMS,
   className = "",
   dense = false,
+  variant = "ink",
 }: {
   items?: string[];
   className?: string;
   dense?: boolean;
+  /** "gold" swaps the ink background for a gold one with paper (white)
+   * diamonds instead of gold ones - used where the ticker sits on its own
+   * as a decorative accent rather than the default dark marquee strip. */
+  variant?: "ink" | "gold";
 }) {
   const container = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -73,11 +88,11 @@ export default function Ticker({
     <div
       ref={container}
       aria-hidden
-      className={`overflow-hidden bg-ink ${dense ? "py-2" : "py-4"} ${className}`}
+      className={`overflow-hidden ${variant === "gold" ? "bg-gold" : "bg-ink"} ${dense ? "py-2" : "py-4"} ${className}`}
     >
       <div ref={trackRef} className="flex w-max">
-        <Row items={items} dense={dense} />
-        <Row items={items} dense={dense} />
+        <Row items={items} dense={dense} variant={variant} />
+        <Row items={items} dense={dense} variant={variant} />
       </div>
     </div>
   );
