@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
@@ -41,14 +42,42 @@ export default function EventDetails() {
       ref={container}
       id="visit"
       aria-label="Event details"
-      className="relative overflow-hidden bg-ink px-6 py-24 text-paper md:px-16 md:py-32"
+      className="relative overflow-x-hidden bg-ink px-6 py-24 text-paper md:px-16 md:py-32"
       style={{
         backgroundImage: "linear-gradient(0deg, rgba(1, 83, 71, 0.78), rgba(1, 83, 71, 0.78)), url('/materials/exhibition-bg.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
-      <div className="mx-auto max-w-6xl">
+      {/* Fabric strip, straddling the seam where the section above
+          transitions into this one: top-0 places its top edge at the
+          section's own top edge (the seam), then -translate-y-1/2 shifts
+          it up by half its own height so that edge becomes its vertical
+          CENTER instead - half the strip bleeds up into whatever precedes
+          this section, half hangs down into this one. Requires the
+          section itself to only clip horizontally (overflow-x-hidden,
+          not overflow-hidden) so this element isn't clipped at the
+          section's top edge before it can bleed upward. Single next/image
+          `fill` layer (no CSS background-repeat involved), clipped to a
+          clean crop by this div's own overflow-hidden. Inserted as the
+          section's first child so it paints above the section's own CSS
+          background but below the heading/day-cards content that follows
+          in DOM order; pointer events are disabled so it can never
+          intercept clicks/taps meant for the content beneath it. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[100px] -translate-y-1/2 overflow-hidden md:h-[140px]"
+      >
+        <Image
+          src="/materials/fabrics2.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-top"
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl">
         <h2 className="mb-12 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight">
           Three Days in Accra
         </h2>
