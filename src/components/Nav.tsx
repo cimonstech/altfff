@@ -289,9 +289,9 @@ export default function Nav() {
             <Image
               src="/alt-fff-logo.png"
               alt="Alt.FFF logo"
-              width={140}
-              height={54}
-              className="h-8 w-auto md:h-9"
+              width={927}
+              height={565}
+              className="h-10 w-auto md:h-12"
               priority
             />
           </Link>
@@ -342,9 +342,9 @@ export default function Nav() {
               <Image
                 src="/alt-fff-logo.png"
                 alt="Alt.FFF logo"
-                width={120}
-                height={48}
-                className="h-8 w-auto"
+                width={927}
+                height={565}
+                className="h-10 w-auto"
               />
             </Link>
             <button
