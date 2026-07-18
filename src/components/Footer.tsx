@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
-import NewsletterBand from "@/components/NewsletterBand";
 
 const SOCIALS = ["Instagram", "X / Twitter", "LinkedIn", "TikTok"];
 const WORDMARK = "ALT.FFF";
@@ -102,7 +103,15 @@ export default function Footer() {
     >
       <div className="px-6 pb-8 pt-20 md:px-16">
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-2">
-          <NewsletterBand />
+          <div className="flex items-center">
+            <Image
+              src="/alt-fff-logo.png"
+              alt="Alt.FFF logo"
+              width={927}
+              height={565}
+              className="h-16 w-auto md:h-20"
+            />
+          </div>
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:justify-items-end">
             <div>
@@ -111,8 +120,8 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 flex flex-col gap-2 text-sm text-ink">
                 <li>
-                  <a href="mailto:hello@altfff.com" className="hover:opacity-60">
-                    hello@altfff.com
+                  <a href="mailto:enquiries@altfff.com" className="hover:opacity-60">
+                    enquiries@altfff.com
                   </a>
                 </li>
                 <li>{EVENT.venue}</li>
@@ -136,9 +145,23 @@ export default function Footer() {
           </div>
         </div>
 
-        <p className="mx-auto mt-16 max-w-6xl text-xs text-ink/50">
-          © 2026 {EVENT.name}. All rights reserved.
-        </p>
+        <div className="mx-auto mt-16 flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink/50">
+          <p>© 2026 {EVENT.name}. All rights reserved.</p>
+          <Link href="/terms" className="hover:text-ink hover:opacity-80">
+            Terms &amp; Conditions
+          </Link>
+          <Link href="/privacy" className="hover:text-ink hover:opacity-80">
+            Privacy Policy
+          </Link>
+          <a
+            href="https://fashionforumafrica.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-ink hover:opacity-80"
+          >
+            An initiative by Fashion Forum Africa (FFF)
+          </a>
+        </div>
       </div>
 
       {/* Giant cropped wordmark - page bottom slices the letters */}

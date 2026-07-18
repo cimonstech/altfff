@@ -12,8 +12,8 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 const QuoteWireframe = dynamic(() => import("@/components/QuoteWireframe"), { ssr: false });
 
 const DEFAULT_QUOTE =
-  "Placeholder pull quote about what it means to source directly from the continent's makers. A real voice from the fair goes here.";
-const DEFAULT_ATTRIBUTION = "Name Placeholder, Title, Organisation";
+  "Fashion Forum Africa rightly seeks to bring to the wider African consciousness the achievements of designers in Ghana, to re-invigorate and spur creativity, and to preserve our culture and heritage through fashion.";
+const DEFAULT_ATTRIBUTION = "Akwasi Awua-Ababio, Former Director, Diaspora Affairs Office";
 
 /** Full-width pull quote, giant madder quotation mark, fade-up reveal.
  * `dark` swaps the homepage's paper/ink treatment for ink/paper (used by

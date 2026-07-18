@@ -19,4 +19,14 @@ export function scrollToSection(selector: string) {
   document.querySelector(selector)?.scrollIntoView({ behavior: "smooth" });
 }
 
+/** Smooth-scroll to the very top of the page via Lenis, falling back to
+ * native scroll. */
+export function scrollToTop() {
+  if (lenis) {
+    lenis.scrollTo(0);
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 

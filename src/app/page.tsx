@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import HeroMobile from "@/components/HeroMobile";
@@ -8,6 +9,10 @@ import Quote from "@/components/Quote";
 import EventDetails from "@/components/EventDetails";
 import Partners from "@/components/Partners";
 import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "Before Fashion, There are Materials",
+};
 
 export default function Home() {
   return (

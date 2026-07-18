@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Archivo } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { SiteModalsProvider } from "@/components/SiteModals";
+import BackToTop from "@/components/BackToTop";
 import { SITE } from "@/lib/constants";
 
 const display = Bricolage_Grotesque({
@@ -45,6 +46,7 @@ export default function RootLayout({
         <SmoothScroll>
           <SiteModalsProvider>{children}</SiteModalsProvider>
         </SmoothScroll>
+        <BackToTop />
       </body>
     </html>
   );

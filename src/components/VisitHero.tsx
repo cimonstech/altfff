@@ -1,12 +1,10 @@
 "use client";
 
-import { useSiteModals } from "@/components/SiteModals";
 import { EVENT } from "@/lib/constants";
+import { scrollToSection } from "@/lib/scroll";
 import HeroArtifacts from "@/components/HeroArtifacts";
 
 export default function VisitHero() {
-  const { openVisitorModal } = useSiteModals();
-
   return (
     <section
       id="visit-hero"
@@ -25,7 +23,7 @@ export default function VisitHero() {
         </p>
         <button
           type="button"
-          onClick={openVisitorModal}
+          onClick={() => scrollToSection("#visit-register")}
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
         >
           Register to visit
