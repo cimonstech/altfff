@@ -551,9 +551,14 @@ export default function Hero() {
 
         {/* Left column - stable across material changes */}
         <div className="relative z-10 flex min-h-svh max-w-[720px] flex-col justify-center px-6 pt-32 max-md:pb-[30rem] md:px-16 md:pb-40 md:pt-24">
-          <h1 className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
+          {/* Not an <h1> - HeroMobile.tsx's headline is this page's real
+              <h1>. Both Hero and HeroMobile stay mounted simultaneously
+              (CSS-toggled by breakpoint, not conditionally rendered, to
+              avoid a hydration flash) so the DOM would otherwise contain
+              two <h1>s at once regardless of which is visually hidden. */}
+          <p className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
             <HeadlineChars />
-          </h1>
+          </p>
           {/* Side by side from md up so the CTA doesn't stack a whole
               extra row of vertical space onto the left column - this is
               what buys the giant material word room to breathe at the

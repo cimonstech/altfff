@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { SiteModalsProvider } from "@/components/SiteModals";
 import BackToTop from "@/components/BackToTop";
+import { GlobalStructuredData } from "@/components/structured-data";
 import { SITE } from "@/lib/constants";
 
 const display = Bricolage_Grotesque({
@@ -43,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable} antialiased`}>
       <body className="bg-paper font-body text-ink" suppressHydrationWarning>
+        <GlobalStructuredData />
         <SmoothScroll>
           <SiteModalsProvider>{children}</SiteModalsProvider>
         </SmoothScroll>

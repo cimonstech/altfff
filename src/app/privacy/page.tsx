@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Privacy Policy | Alt.FFF",
-};
+  description:
+    "Privacy policy for Alt.FFF. A full policy is being finalised and will be published here ahead of the event.",
+  path: "/privacy",
+});
 
 /**
  * Placeholder page - the footer links here needed a real route rather than

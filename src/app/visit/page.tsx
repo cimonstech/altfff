@@ -7,12 +7,15 @@ import VisitHero from "@/components/VisitHero";
 import VisitBenefits from "@/components/VisitBenefits";
 import VisitExperience from "@/components/VisitExperience";
 import VisitRegisterForm from "@/components/VisitRegisterForm";
+import { EventStructuredData } from "@/components/structured-data";
+import { buildMetadata } from "@/lib/metadata";
 import { EVENT } from "@/lib/constants";
 
-export const metadata: Metadata = {
-  title: "Visit | Alt.FFF",
+export const metadata: Metadata = buildMetadata({
+  title: "Visit Alt.FFF 2026 - Plan Your Visit",
   description: `Plan your visit to ${EVENT.name}, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
-};
+  path: "/visit",
+});
 
 const VALUE_PROPS = [
   "Reliability You Can Count On",
@@ -25,6 +28,7 @@ const VALUE_PROPS = [
 export default function VisitPage() {
   return (
     <>
+      <EventStructuredData />
       <Nav />
       <main>
         <VisitHero />

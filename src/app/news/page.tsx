@@ -6,21 +6,14 @@ import NewsFeatured from "@/components/NewsFeatured";
 import NewsGrid from "@/components/NewsGrid";
 import NewsletterBand from "@/components/NewsletterBand";
 import { getAllArticles, getFeaturedArticle, getLatestArticles } from "@/data/news";
-import { SITE } from "@/lib/constants";
+import { buildMetadata } from "@/lib/metadata";
 
-const TITLE = "News & Press | Alt.FFF 2026";
-const DESCRIPTION =
-  "Announcements, stories, and press coverage from Alt.FFF, Ghana's first alternative fashion fabric fair.";
-
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [SITE.ogImage],
-  },
-};
+export const metadata: Metadata = buildMetadata({
+  title: "News & Press | Alt.FFF 2026",
+  description:
+    "Announcements, stories, and press coverage from Alt.FFF, Ghana's first alternative fashion fabric fair.",
+  path: "/news",
+});
 
 export default async function NewsPage() {
   const [allArticles, featured, latest] = await Promise.all([

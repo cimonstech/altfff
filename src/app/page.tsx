@@ -9,14 +9,22 @@ import Quote from "@/components/Quote";
 import EventDetails from "@/components/EventDetails";
 import Partners from "@/components/Partners";
 import Footer from "@/components/Footer";
+import { EventStructuredData } from "@/components/structured-data";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+// Title kept exactly as previously specified - not overwritten by this
+// metadata pass, per instruction.
+export const metadata: Metadata = buildMetadata({
   title: "Before Fashion, There are Materials",
-};
+  description:
+    "Where materials speak before fashion. Three days of fibres, dyes, weaves and the people behind them - Accra, September 17-19, 2026.",
+  path: "/",
+});
 
 export default function Home() {
   return (
     <>
+      <EventStructuredData />
       <Nav />
       <main>
         <div className="hidden md:block">

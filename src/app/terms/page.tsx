@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import TermsSections from "@/components/TermsSections";
+import { buildMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Terms & Conditions | Alt.FFF",
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Exhibitor Terms & Conditions - Alt.FFF 2026",
+  description:
+    "Payment terms, cancellation policy, and the exhibitor agreement for Alt.FFF 2026.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

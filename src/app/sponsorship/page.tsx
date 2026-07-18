@@ -7,21 +7,14 @@ import SponsorshipWhyItMatters from "@/components/SponsorshipWhyItMatters";
 import SponsorshipBenefits from "@/components/SponsorshipBenefits";
 import SponsorshipForm from "@/components/SponsorshipForm";
 import SponsorshipSidebar from "@/components/SponsorshipSidebar";
-import { SITE } from "@/lib/constants";
+import { buildMetadata } from "@/lib/metadata";
 
-const TITLE = "Sponsorship | Alt.FFF 2026";
-const DESCRIPTION =
-  "Back Africa's first alternative fashion fabric fair. Partner with Alt.FFF to support African creatives, drive industry conversations, and align your brand with the future of fashion and manufacturing across the continent.";
-
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [SITE.ogImage],
-  },
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Sponsor Alt.FFF 2026 - Back the Future of African Materials",
+  description:
+    "Back Africa's first alternative fashion fabric fair. Partner with Alt.FFF to support African creatives, drive industry conversations, and align your brand with the future of fashion and manufacturing across the continent.",
+  path: "/sponsorship",
+});
 
 export default function SponsorshipPage() {
   return (

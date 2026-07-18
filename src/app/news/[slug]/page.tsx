@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import ShareRow from "@/components/ShareRow";
 import { getAllArticles, getArticleBySlug } from "@/data/news";
 import { formatDate } from "@/lib/date";
+import { buildMetadata } from "@/lib/metadata";
 
 export async function generateStaticParams() {
   const articles = await getAllArticles();
@@ -22,16 +23,12 @@ export async function generateMetadata({
   const article = await getArticleBySlug(slug);
   if (!article) return {};
 
-  const title = `${article.title} | Alt.FFF News`;
-  return {
-    title,
+  return buildMetadata({
+    title: `${article.title} | Alt.FFF News`,
     description: article.excerpt,
-    openGraph: {
-      title,
-      description: article.excerpt,
-      images: [article.image],
-    },
-  };
+    path: `/news/${slug}`,
+    image: article.image,
+  });
 }
 
 export default async function NewsArticlePage({

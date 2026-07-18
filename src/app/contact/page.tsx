@@ -7,21 +7,14 @@ import ContactForm from "@/components/ContactForm";
 import ContactPhotoCard from "@/components/ContactPhotoCard";
 import ContactStrip from "@/components/ContactStrip";
 import ContactFAQ from "@/components/ContactFAQ";
-import { SITE } from "@/lib/constants";
+import { buildMetadata } from "@/lib/metadata";
 
-const TITLE = "Contact | Alt.FFF 2026";
-const DESCRIPTION =
-  "Get in touch with Alt.FFF - enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, September 17 to 19, 2026 in Accra.";
-
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    images: [SITE.ogImage],
-  },
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Contact Alt.FFF - Get in Touch",
+  description:
+    "Get in touch with Alt.FFF - enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, September 17 to 19, 2026 in Accra.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (
