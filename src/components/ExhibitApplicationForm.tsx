@@ -5,10 +5,11 @@ import { gsap } from "@/lib/gsap";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
+import { SuccessBanner } from "@/components/SuccessBanner";
 
 const TOTAL_FIELDS = 10; // 8 text/tel/email inputs + 2 selects
 
-type Status = "idle" | "submitting" | "success" | "error";
+type Status = "idle" | "submitting" | "error";
 
 /**
  * The exhibitor application form - rendered as the shared Modal's content
@@ -22,6 +23,11 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
   const [filledCount, setFilledCount] = useState(0);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showBanner, setShowBanner] = useState(false);
+  // Bumped on every successful submit to force the <form> below to fully
+  // remount - the simplest reliable way to reset both native uncontrolled
+  // inputs AND PhoneInput/FloatingField's own internal state back to empty.
+  const [formKey, setFormKey] = useState(0);
 
   const handleFilledChange = useCallback((id: string, filled: boolean) => {
     const set = filledSetRef.current;
@@ -57,31 +63,33 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         setStatus("error");
         return;
       }
-      setStatus("success");
+      setStatus("idle");
+      setShowBanner(true);
+      // Reset the progress indicator alongside the fields it tracks -
+      // remounting the fields (via formKey below) doesn't itself fire the
+      // onFilledChange callbacks that built this state up, so it has to be
+      // cleared explicitly.
+      filledSetRef.current.clear();
+      setFilledCount(0);
+      setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
       setStatus("error");
     }
   };
 
-  if (status === "success") {
-    return (
-      <div className="p-6 text-center md:p-8">
-        <p className="font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-          Application received.
-        </p>
-        <p className="mt-2 text-sm text-indigo">
-          Thank you for applying to exhibit - our team will review your application and be in touch.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 md:p-8">
       <h2 id={headingId} className="pr-8 font-display text-lg font-extrabold uppercase tracking-tight text-ink">
         Do you produce in Africa? We want to hear from you!
       </h2>
+
+      {showBanner && (
+        <SuccessBanner
+          message="Application received. Thank you for applying to exhibit - our team will review your application and be in touch."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
 
       {/* Live progress indicator - interface polish only, no validation
           logic tied to it. */}
@@ -94,7 +102,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         </span>
       </div>
 
-      <form className="flex flex-col gap-1" onSubmit={handleSubmit}>
+      <form key={formKey} className="flex flex-col gap-1" onSubmit={handleSubmit}>
         <FloatingField id="email" label="Email Address" required type="email" onFilledChange={handleFilledChange} />
         <FloatingField id="name" label="Full Name" onFilledChange={handleFilledChange} />
         <PhoneInput id="phone" label="Phone Number" onFilledChange={handleFilledChange} />

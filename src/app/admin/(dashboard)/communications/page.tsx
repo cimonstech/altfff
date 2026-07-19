@@ -24,16 +24,24 @@ function formatDateTime(value: unknown): string {
 }
 
 export default function AdminCommunicationsPage() {
+  // ComposeForm and History are siblings with no shared state, so a
+  // successful send doesn't otherwise tell History to refetch - without
+  // this, a just-sent communication only shows up after a manual page
+  // reload, which can look identical to "nothing is showing" if an admin
+  // doesn't think to refresh. Bumped by ComposeForm on every successful
+  // send; History refetches whenever it changes.
+  const [historyRefreshToken, setHistoryRefreshToken] = useState(0);
+
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Communications</h1>
-      <ComposeForm />
-      <History />
+      <ComposeForm onSent={() => setHistoryRefreshToken((t) => t + 1)} />
+      <History refreshToken={historyRefreshToken} />
     </div>
   );
 }
 
-function ComposeForm() {
+function ComposeForm({ onSent }: { onSent: () => void }) {
   const supabase = useMemo(() => createClient(), []);
   const [audience, setAudience] = useState<ComposeAudience>("exhibitor");
   const [status, setStatus] = useState("all");
@@ -169,6 +177,7 @@ function ComposeForm() {
         setSubject("");
         setBody("");
         if (isCustom) clearCustomSelection();
+        onSent();
       }
     } catch (err) {
       setResult({ ok: false, message: err instanceof Error ? err.message : "Send failed." });
@@ -409,15 +418,23 @@ type RecipientRow = {
   error_message: string | null;
 };
 
-function History() {
+function History({ refreshToken }: { refreshToken: number }) {
   const supabase = useMemo(() => createClient(), []);
   const [rows, setRows] = useState<CommunicationLogRow[]>([]);
   const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  // Distinct from "genuinely zero rows" - a failed query used to fall
+  // through to the exact same "No communications sent yet" empty state
+  // (console.error only, invisible to anyone not watching devtools), so a
+  // real failure and a real empty history were indistinguishable, same
+  // class of bug as the News page's empty-state issue. Tracked separately
+  // here so the two render differently.
+  const [loadError, setLoadError] = useState("");
   const [selected, setSelected] = useState<CommunicationLogRow | null>(null);
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     const { data, error } = await supabase
       .from("communication_log")
       .select("id, created_at, channel, audience_type, recipient_count, status, sent_by")
@@ -426,6 +443,7 @@ function History() {
     if (error) {
       console.error("Failed to load communication history:", error);
       setRows([]);
+      setLoadError("Failed to load communication history. Please try again.");
       setLoading(false);
       return;
     }
@@ -445,11 +463,17 @@ function History() {
 
   useEffect(() => {
     fetchHistory();
-  }, [fetchHistory]);
+  }, [fetchHistory, refreshToken]);
 
   return (
     <div className="mt-8">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/60">History</h2>
+
+      {loadError && (
+        <p className="mt-2 text-sm text-madder" role="alert">
+          {loadError}
+        </p>
+      )}
 
       <div className="mt-3 overflow-x-auto rounded-md border border-hairline">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
@@ -463,7 +487,9 @@ function History() {
             </tr>
           </thead>
           <tbody>
-            {!loading && rows.length === 0 && (
+            {/* Only a genuinely empty result shows this - a failed query
+                shows the loadError message above instead, never this. */}
+            {!loading && !loadError && rows.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-3 text-ink/60">
                   No communications sent yet.

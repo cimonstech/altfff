@@ -71,7 +71,19 @@
       "Bash(node debug-visual-check-temp.mjs)",
       "Bash(node --env-file=.env.local final-verify-temp.mjs)",
       "Bash(grep -i \"resend accepted\\\\|resend error\" /tmp/altfff-debug-server3.log | tail -10)",
-      "Bash(node --env-file=.env.local verify-custom-audience-temp.mjs)"
+      "Bash(node --env-file=.env.local verify-custom-audience-temp.mjs)",
+      "Bash(node --env-file=.env.local debug-contact-console-temp.mjs)",
+      "Bash(node debug-contact-nav-temp.mjs)",
+      "Bash(node --env-file=.env.local verify-contact-fix-temp.mjs)",
+      "Bash(node --env-file=.env.local verify-sponsor-visit-fix-temp.mjs)",
+      "Bash(node --env-file=.env.local verify-success-banners-temp.mjs)",
+      "Bash(node --env-file=.env.local debug-contact-banner-temp.mjs)",
+      "Bash(tail -40 /tmp/altfff-banner-verify.log)",
+      "Bash(node --env-file=.env.local verify-qstash-fix-temp.mjs)",
+      "Bash(node --env-file=.env.local debug-history-view-temp.mjs)",
+      "Bash(node --env-file=.env.local verify-history-final-temp.mjs)",
+      "Bash(node --env-file=.env.local debug-history-error-temp.mjs)",
+      "Bash(node --env-file=.env.local debug-alert-source-temp.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\AppData\\Local\\Temp\\claude\\c--AltFFF\\9847eea9-9eda-4d2b-b1b3-50716bf5086b\\scratchpad"

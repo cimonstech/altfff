@@ -215,15 +215,80 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, communicationId: log.id, status: finalLog?.status ?? "unknown" });
   }
 
-  await Promise.all(
-    jobs.map((job) =>
-      publishToQueue("/api/admin/communications/process-recipient", {
-        communicationId: log.id,
-        recipientId: job.recipientId,
-        mergeFields: job.mergeFields,
-      }),
-    ),
-  );
+  // Promise.allSettled, not Promise.all - a single rejected publish (QStash
+  // unreachable, a transient failure, a bad payload) must not abort
+  // tracking of every other recipient in the batch. Each settled result is
+  // handled individually below: a failed publish never even reached the
+  // queue, so its row is marked 'failed' with the real reason immediately
+  // rather than left stuck at 'pending' forever with the worker never
+  // going to run for it. The whole step is also wrapped in try/catch as an
+  // outer safety net - whatever happens here, this route always returns a
+  // clean JSON response, never an uncaught crash.
+  let queuedCount = 0;
+  let failedCount = 0;
+  try {
+    const results = await Promise.allSettled(
+      jobs.map((job) =>
+        publishToQueue("/api/admin/communications/process-recipient", {
+          communicationId: log.id,
+          recipientId: job.recipientId,
+          mergeFields: job.mergeFields,
+        }),
+      ),
+    );
 
-  return NextResponse.json({ ok: true, communicationId: log.id, status: "queued", recipientCount: jobs.length });
+    const failedJobs = jobs
+      .map((job, i) => ({ job, result: results[i] }))
+      .filter(({ result }) => result.status === "rejected");
+
+    queuedCount = jobs.length - failedJobs.length;
+    failedCount = failedJobs.length;
+
+    if (failedJobs.length > 0) {
+      await Promise.all(
+        failedJobs.map(({ job, result }) => {
+          const reason = result.status === "rejected" ? result.reason : undefined;
+          const errorMessage = reason instanceof Error ? reason.message : String(reason ?? "Failed to queue.");
+          return supabase
+            .from("communication_recipients")
+            .update({ status: "failed", sent_at: new Date().toISOString(), error_message: errorMessage })
+            .eq("id", job.recipientId);
+        }),
+      );
+    }
+  } catch (err) {
+    // Something unexpected beyond the individual publishes themselves -
+    // still no idea which, if any, actually queued, so treat the whole
+    // batch as failed-to-queue rather than guessing.
+    console.error("Unexpected error while queuing communication:", err);
+    failedCount = jobs.length;
+    queuedCount = 0;
+    await supabase
+      .from("communication_recipients")
+      .update({
+        status: "failed",
+        sent_at: new Date().toISOString(),
+        error_message: err instanceof Error ? err.message : "Failed to queue.",
+      })
+      .eq("communication_id", log.id)
+      .eq("status", "pending");
+  }
+
+  const finalStatus = queuedCount === 0 ? "failed" : failedCount === 0 ? "sending" : "partially_failed";
+  const { error: statusUpdateError } = await supabase
+    .from("communication_log")
+    .update({ status: finalStatus })
+    .eq("id", log.id);
+  if (statusUpdateError) {
+    console.error("Failed to update communication_log status after queuing:", statusUpdateError);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    communicationId: log.id,
+    status: finalStatus,
+    recipientCount: jobs.length,
+    queuedCount,
+    failedCount,
+  });
 }

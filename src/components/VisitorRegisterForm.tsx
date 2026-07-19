@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { FloatingField } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
+import { SuccessBanner } from "@/components/SuccessBanner";
 
-type Status = "idle" | "submitting" | "success" | "error";
+type Status = "idle" | "submitting" | "error";
 
 /**
  * Visitor registration form - rendered as the shared Modal's content when
@@ -16,6 +17,11 @@ type Status = "idle" | "submitting" | "success" | "error";
 export default function VisitorRegisterForm({ headingId }: { headingId?: string }) {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [showBanner, setShowBanner] = useState(false);
+  // Bumped on every successful submit to force the <form> below to fully
+  // remount - the simplest reliable way to reset both native uncontrolled
+  // inputs AND PhoneInput/FloatingField's own internal state back to empty.
+  const [formKey, setFormKey] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,25 +41,14 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         setStatus("error");
         return;
       }
-      setStatus("success");
+      setStatus("idle");
+      setShowBanner(true);
+      setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
       setStatus("error");
     }
   };
-
-  if (status === "success") {
-    return (
-      <div className="p-6 text-center md:p-8">
-        <p className="font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-          You&apos;re registered.
-        </p>
-        <p className="mt-2 text-sm text-indigo">
-          Thanks for registering to visit Alt.FFF - we look forward to seeing you there.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 md:p-8">
@@ -62,7 +57,14 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       </h2>
       <p className="mt-2 text-sm text-indigo">Join us September 17–19, 2026 in Accra.</p>
 
-      <form className="mt-2 flex flex-col gap-1" onSubmit={handleSubmit}>
+      {showBanner && (
+        <SuccessBanner
+          message="You're registered. Thanks for registering to visit Alt.FFF - we look forward to seeing you there."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
+
+      <form key={formKey} className="mt-2 flex flex-col gap-1" onSubmit={handleSubmit}>
         <FloatingField id="visitor-name" name="full_name" label="Full Name" />
         <FloatingField id="visitor-email" name="email" label="Email Address" required type="email" />
         <PhoneInput id="visitor-phone" name="phone" label="Phone Number" />
