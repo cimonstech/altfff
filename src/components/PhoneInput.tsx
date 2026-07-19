@@ -74,7 +74,6 @@ export function PhoneInput({
       <RPNInput
         id={id}
         className="alt-phone-input"
-        international
         defaultCountry={defaultCountry}
         value={value}
         onChange={(v) => {

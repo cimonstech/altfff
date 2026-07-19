@@ -77,3 +77,95 @@ export function getRecipientDisplayName(audience: AudienceType, row: Record<stri
 export function interpolateMergeFields(template: string, values: Record<string, string>): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) => (key in values ? values[key] : match));
 }
+
+// =====================================================================
+// Custom audience - typed/pasted recipients (Compose UI), or a specific
+// set of people handed off from a data table's row selection. Not a
+// "table" audience like the four above: there's no query, the recipient
+// list itself is the input.
+// =====================================================================
+
+export type CustomRecipient = {
+  email: string | null;
+  phone: string | null;
+  /** Only ever populated when recipients are handed off from a data
+   * table's row selection (real records with real names) - never for
+   * raw typed/pasted addresses, which carry no name data at all. */
+  name: string | null;
+};
+
+export function isValidEmailFormat(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+/** Loose check, not a real phone-number parse (that's PhoneInput's job
+ * elsewhere): a leading +/digit/paren, digits/spaces/hyphens/parens only,
+ * and at least 7 digits total - enough to catch "that's not a phone
+ * number" pastes without rejecting legitimate international formats. */
+export function isValidPhoneFormat(value: string): boolean {
+  const digitCount = (value.match(/\d/g) ?? []).length;
+  return digitCount >= 7 && /^[+()\d][\d\s\-()]*$/.test(value);
+}
+
+/** A recipient is valid if it has at least one usable contact method. */
+export function isValidCustomRecipient(recipient: CustomRecipient): boolean {
+  const hasEmail = !!recipient.email && isValidEmailFormat(recipient.email);
+  const hasPhone = !!recipient.phone && isValidPhoneFormat(recipient.phone);
+  return hasEmail || hasPhone;
+}
+
+/**
+ * Parses the Custom-audience textarea: one address per line, or comma-
+ * separated (both work - neither emails nor phone numbers ever contain a
+ * comma, so splitting on both delimiters at once is unambiguous). Blank
+ * entries are ignored. Each token is classified as an email or a phone
+ * number by the loose checks above; anything matching neither is returned
+ * separately as invalid rather than silently dropped, so the UI (and the
+ * server, re-validating independently) can flag it.
+ */
+export function parseCustomRecipients(raw: string): { valid: CustomRecipient[]; invalid: string[] } {
+  const tokens = raw
+    .split(/[\n,]/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+
+  const valid: CustomRecipient[] = [];
+  const invalid: string[] = [];
+  for (const token of tokens) {
+    if (isValidEmailFormat(token)) {
+      valid.push({ email: token, phone: null, name: null });
+    } else if (isValidPhoneFormat(token)) {
+      valid.push({ email: null, phone: token, name: null });
+    } else {
+      invalid.push(token);
+    }
+  }
+  return { valid, invalid };
+}
+
+const PRELOAD_STORAGE_KEY = "altfff-communications-preload";
+
+/** Hands a specific set of recipients (e.g. selected rows from an admin
+ * data table) off to the Communications page via sessionStorage - simple,
+ * same-tab, survives the navigation, and doesn't need a shared React
+ * context wrapping two otherwise-unrelated route trees. */
+export function storePreloadedRecipients(recipients: CustomRecipient[]): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(PRELOAD_STORAGE_KEY, JSON.stringify(recipients));
+}
+
+/** Reads and clears the pending hand-off, if any - consumed once, on the
+ * Communications page's mount, so navigating away and back doesn't
+ * re-trigger it with stale data. */
+export function consumePreloadedRecipients(): CustomRecipient[] | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(PRELOAD_STORAGE_KEY);
+  if (!raw) return null;
+  window.sessionStorage.removeItem(PRELOAD_STORAGE_KEY);
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CustomRecipient[]) : null;
+  } catch {
+    return null;
+  }
+}

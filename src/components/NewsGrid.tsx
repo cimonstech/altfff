@@ -60,18 +60,21 @@ export default function NewsGrid({ articles, r2PublicUrl }: { articles: NewsPost
     { scope: container },
   );
 
+  // "No additional articles beyond the featured one" isn't the same
+  // situation as "no articles at all" - the latter's empty state is shown
+  // once at the page level (see news/page.tsx), driven by the total post
+  // count, not this component's own (featured-excluded) subset. Render
+  // nothing here rather than a second, misleading empty-state message.
+  if (articles.length === 0) return null;
+
   return (
     <section ref={container} aria-label="All news and press" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
       <div className="mx-auto max-w-6xl">
-        {articles.length === 0 ? (
-          <p className="text-sm text-indigo">No news yet, check back soon.</p>
-        ) : (
-          <div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {articles.map((article) => (
-              <NewsCard key={article.slug} article={article} r2PublicUrl={r2PublicUrl} />
-            ))}
-          </div>
-        )}
+        <div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {articles.map((article) => (
+            <NewsCard key={article.slug} article={article} r2PublicUrl={r2PublicUrl} />
+          ))}
+        </div>
       </div>
     </section>
   );

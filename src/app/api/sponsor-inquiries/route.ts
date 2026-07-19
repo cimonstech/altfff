@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { EVENT } from "@/lib/constants";
+import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 
 export const runtime = "nodejs";
 
@@ -91,6 +92,13 @@ export async function POST(request: Request) {
 
   try {
     const resend = new Resend(apiKey);
+    const textBody = [
+      `Thanks for your interest in sponsoring Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
+      "",
+      "Your inquiry has been received - our team will follow up with you.",
+      "",
+      "Questions in the meantime? Reach us at enquiries@altfff.com.",
+    ].join("\n");
     const { data: sendData, error: sendError } = await resend.emails.send({
       // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address
       // on a borrowed Resend account (AgroTalentHub's), not altfff.com -
@@ -100,13 +108,8 @@ export async function POST(request: Request) {
       to: email,
       replyTo: "enquiries@altfff.com",
       subject: "We've received your Alt.FFF sponsorship inquiry",
-      text: [
-        `Thanks for your interest in sponsoring Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
-        "",
-        "Your inquiry has been received - our team will follow up with you.",
-        "",
-        "Questions in the meantime? Reach us at enquiries@altfff.com.",
-      ].join("\n"),
+      text: textBody,
+      html: buildEmailHtml({ heading: "Sponsorship Inquiry Received", bodyHtml: textToHtml(textBody) }),
     });
     if (sendError) {
       console.error("Resend error (sponsor inquiry):", sendError);

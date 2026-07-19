@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSms } from "@/lib/sms";
 import { interpolateMergeFields, type Channel } from "@/lib/communications";
+import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 
 /**
  * SERVER-ONLY. Delivers one communication to one recipient and updates its
@@ -60,6 +61,10 @@ export async function processRecipient(
             to: email,
             subject: interpolatedSubject || "Alt.FFF",
             text: interpolatedBody,
+            html: buildEmailHtml({
+              heading: interpolatedSubject || "Alt.FFF",
+              bodyHtml: textToHtml(interpolatedBody),
+            }),
           });
           if (sendError) errors.push(`Email: ${sendError.message}`);
           else {

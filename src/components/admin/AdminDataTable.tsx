@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Modal from "@/components/Modal";
+import { storePreloadedRecipients, type CustomRecipient } from "@/lib/communications";
 
 export type AdminColumn = {
   label: string;
@@ -101,6 +103,7 @@ export default function AdminDataTable({
   getTitle?: (row: Record<string, unknown>) => React.ReactNode;
 }) {
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -108,6 +111,10 @@ export default function AdminDataTable({
   const [statusFilter, setStatusFilter] = useState("all");
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<CurrentAdmin | null>(null);
+  // Keyed by row id, not just a Set of ids - keeps each selected row's own
+  // data available for the "Message Selected" hand-off even if a search or
+  // status-filter change makes it drop out of the currently-loaded `rows`.
+  const [selectedRows, setSelectedRows] = useState<Map<string, Record<string, unknown>>>(new Map());
 
   useEffect(() => {
     (async () => {
@@ -191,6 +198,49 @@ export default function AdminDataTable({
     }
   };
 
+  const toggleRowSelected = (row: Record<string, unknown>) => {
+    const id = row.id as string;
+    setSelectedRows((prev) => {
+      const next = new Map(prev);
+      if (next.has(id)) next.delete(id);
+      else next.set(id, row);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = rows.length > 0 && rows.every((r) => selectedRows.has(r.id as string));
+  const toggleSelectAllVisible = () => {
+    setSelectedRows((prev) => {
+      const next = new Map(prev);
+      if (allVisibleSelected) {
+        rows.forEach((r) => next.delete(r.id as string));
+      } else {
+        rows.forEach((r) => next.set(r.id as string, r));
+      }
+      return next;
+    });
+  };
+
+  /** Every one of the four tables AdminDataTable is used for has real
+   * `email`/`phone` columns; `titleField`/`getTitle` (already required by
+   * every caller, for the row-detail modal's heading) doubles as the name
+   * source here rather than adding a new prop just for this. */
+  const extractRecipient = (row: Record<string, unknown>): CustomRecipient => {
+    const rawName = getTitle ? getTitle(row) : toDisplayValue(row, titleField);
+    const name = typeof rawName === "string" && rawName && rawName !== "—" ? rawName : null;
+    return {
+      email: typeof row.email === "string" && row.email ? row.email : null,
+      phone: typeof row.phone === "string" && row.phone ? row.phone : null,
+      name,
+    };
+  };
+
+  const handleMessageSelected = () => {
+    const recipients = Array.from(selectedRows.values()).map(extractRecipient);
+    storePreloadedRecipients(recipients);
+    router.push("/admin/communications");
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center gap-3">
@@ -213,6 +263,15 @@ export default function AdminDataTable({
             </option>
           ))}
         </select>
+        {selectedRows.size > 0 && (
+          <button
+            type="button"
+            onClick={handleMessageSelected}
+            className="rounded-full bg-gold px-4 py-2 text-sm font-medium text-ink hover:opacity-85"
+          >
+            Message Selected ({selectedRows.size})
+          </button>
+        )}
         <button
           type="button"
           onClick={handleExport}
@@ -238,6 +297,15 @@ export default function AdminDataTable({
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-surface">
+              <th scope="col" className="w-10 p-3">
+                <input
+                  type="checkbox"
+                  aria-label="Select all visible rows"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAllVisible}
+                  className="h-4 w-4 rounded border-hairline"
+                />
+              </th>
               {columns.map((c) => (
                 <th key={c.field} scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
                   {c.label}
@@ -248,7 +316,7 @@ export default function AdminDataTable({
           <tbody>
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan={columns.length} className="p-3 text-ink/60">
+                <td colSpan={columns.length + 1} className="p-3 text-ink/60">
                   No {entityLabel.toLowerCase()} records found.
                 </td>
               </tr>
@@ -259,6 +327,15 @@ export default function AdminDataTable({
                 onClick={() => setSelected(row)}
                 className="cursor-pointer border-t border-hairline hover:bg-surface"
               >
+                <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    aria-label={`Select row`}
+                    checked={selectedRows.has(row.id as string)}
+                    onChange={() => toggleRowSelected(row)}
+                    className="h-4 w-4 rounded border-hairline"
+                  />
+                </td>
                 {columns.map((c) => (
                   <td key={c.field} className="p-3 text-ink">
                     {c.format ? c.format(row) : toDisplayValue(row, c.field)}

@@ -60,7 +60,18 @@
       "Bash(mkdir -p \"C:/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/scratchpad\")",
       "Bash(mv c:/AltFFF/verify-exhibitor-form.png c:/AltFFF/verify-sponsorship-form.png \"C:/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/scratchpad/\")",
       "Bash(cp .env.local .env.local.bak-temp)",
-      "Bash(sed -i 's/^QSTASH_CURRENT_SIGNING_KEY=/QSTASH_CURRENT_SIGNING_KEY_DISABLED_FOR_TEST=/' .env.local)"
+      "Bash(sed -i 's/^QSTASH_CURRENT_SIGNING_KEY=/QSTASH_CURRENT_SIGNING_KEY_DISABLED_FOR_TEST=/' .env.local)",
+      "Bash(node --env-file=.env.local email-template-verify-temp.mjs)",
+      "Bash(rm -f email-template-verify-temp.mjs email-render-preview-temp.html)",
+      "Bash(mv c:/AltFFF/email-render-preview-temp.png \"C:/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/scratchpad/\")",
+      "Bash(node --env-file=.env.local debug-submissions-temp.mjs)",
+      "Bash(node --env-file=.env.local -e ' *)",
+      "Bash(node debug-untouched-phone-temp.mjs)",
+      "Bash(node debug-country-switch-temp.mjs)",
+      "Bash(node debug-visual-check-temp.mjs)",
+      "Bash(node --env-file=.env.local final-verify-temp.mjs)",
+      "Bash(grep -i \"resend accepted\\\\|resend error\" /tmp/altfff-debug-server3.log | tail -10)",
+      "Bash(node --env-file=.env.local verify-custom-audience-temp.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\AppData\\Local\\Temp\\claude\\c--AltFFF\\9847eea9-9eda-4d2b-b1b3-50716bf5086b\\scratchpad"

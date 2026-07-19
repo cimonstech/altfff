@@ -41,7 +41,15 @@ export default async function NewsPage() {
       <main>
         <NewsHero latestTitles={posts.slice(0, 3).map((a) => a.title)} />
         {featured && <NewsFeatured article={featured} r2PublicUrl={r2PublicUrl} />}
-        <NewsGrid articles={rest} r2PublicUrl={r2PublicUrl} />
+        {posts.length === 0 ? (
+          <section aria-label="All news and press" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
+            <div className="mx-auto max-w-6xl">
+              <p className="text-sm text-indigo">No news yet, check back soon.</p>
+            </div>
+          </section>
+        ) : (
+          <NewsGrid articles={rest} r2PublicUrl={r2PublicUrl} />
+        )}
 
         {/* Press kit band */}
         <section aria-label="Press enquiries" className="bg-madder px-6 py-16 text-paper md:px-16">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { EVENT } from "@/lib/constants";
+import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 
 export const runtime = "nodejs";
 
@@ -114,6 +115,13 @@ export async function POST(request: Request) {
     const resend = new Resend(apiKey);
     // No ticket/confirmation number - no ticketing system exists yet, so no
     // promise of one is made here.
+    const textBody = [
+      `Thanks for registering to visit Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
+      "",
+      "We look forward to seeing you there.",
+      "",
+      "Questions in the meantime? Reach us at enquiries@altfff.com.",
+    ].join("\n");
     // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address on
     // a borrowed Resend account (AgroTalentHub's), not altfff.com - the
     // client's own domain isn't verified in Resend yet. Once it is, change
@@ -123,13 +131,8 @@ export async function POST(request: Request) {
       to: email,
       replyTo: "enquiries@altfff.com",
       subject: "You're registered to visit Alt.FFF",
-      text: [
-        `Thanks for registering to visit Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
-        "",
-        "We look forward to seeing you there.",
-        "",
-        "Questions in the meantime? Reach us at enquiries@altfff.com.",
-      ].join("\n"),
+      text: textBody,
+      html: buildEmailHtml({ heading: "You're Registered", bodyHtml: textToHtml(textBody) }),
     });
     if (sendError) {
       console.error("Resend error (visitor registration):", sendError);
