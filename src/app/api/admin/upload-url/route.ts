@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createClient } from "@/lib/supabase/server";
-import { r2Client, R2_BUCKET_NAME } from "@/lib/r2";
+import { getR2Client, R2_BUCKET_NAME } from "@/lib/r2";
 
 export const runtime = "nodejs";
 
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     Key: key,
     ContentType: contentType,
   });
-  const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: PRESIGNED_URL_TTL_SECONDS });
+  const uploadUrl = await getSignedUrl(getR2Client(), command, { expiresIn: PRESIGNED_URL_TTL_SECONDS });
   const publicUrl = `${process.env.R2_PUBLIC_URL}/${key}`;
 
   return NextResponse.json({ ok: true, uploadUrl, publicUrl, key });
@@ -120,7 +120,7 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    await r2Client.send(new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
+    await getR2Client().send(new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
   } catch (err) {
     console.error("Failed to delete R2 object:", key, err);
     return NextResponse.json({ ok: false, error: "Failed to delete image." }, { status: 500 });

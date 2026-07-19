@@ -8,8 +8,21 @@ import { Client } from "@upstash/qstash";
  * real, publicly reachable deployment - it cannot reach http://localhost:3000.
  * In local dev this means queued (bulk, >1 recipient) sends cannot actually
  * be exercised end-to-end; a real deployed preview URL is needed for that.
+ *
+ * Built lazily (not as a top-level const) - constructing SDK clients at
+ * module load time means a missing env var can throw during Next's
+ * build-time page-data collection and crash the entire deployment, not just
+ * this feature. Deferring construction until publishToQueue() actually runs
+ * means a missing QSTASH_TOKEN only breaks the one feature that needs it.
  */
-const qstashClient = new Client({ token: process.env.QSTASH_TOKEN! });
+let cachedClient: Client | null = null;
+
+function getQstashClient(): Client {
+  if (!cachedClient) {
+    cachedClient = new Client({ token: process.env.QSTASH_TOKEN! });
+  }
+  return cachedClient;
+}
 
 function getSiteUrl(): string {
   return process.env.SITE_URL ?? "http://localhost:3000";
@@ -18,6 +31,6 @@ function getSiteUrl(): string {
 /** Publishes a JSON payload to an absolute path on this deployment via QStash. */
 export async function publishToQueue(path: string, body: unknown): Promise<{ messageId: string }> {
   const url = `${getSiteUrl()}${path}`;
-  const result = await qstashClient.publishJSON({ url, body });
+  const result = await getQstashClient().publishJSON({ url, body });
   return { messageId: result.messageId };
 }

@@ -32,6 +32,7 @@ export default function AdminExhibitorsPage() {
             { label: "Job Title", field: "job_title" },
             { label: "Nature of Business", field: "nature_of_business" },
             { label: "Business Location", field: "business_location" },
+            { label: "Country", field: "country" },
             { label: "Package", field: "package_type" },
             { label: "Heard About Us Via", field: "heard_about_us" },
           ]}

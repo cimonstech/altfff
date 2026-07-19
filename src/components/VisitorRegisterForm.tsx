@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FloatingField } from "@/components/FormFields";
+import { PhoneInput } from "@/components/PhoneInput";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -64,7 +65,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       <form className="mt-2 flex flex-col gap-1" onSubmit={handleSubmit}>
         <FloatingField id="visitor-name" name="full_name" label="Full Name" />
         <FloatingField id="visitor-email" name="email" label="Email Address" required type="email" />
-        <FloatingField id="visitor-phone" name="phone" label="Phone Number" type="tel" />
+        <PhoneInput id="visitor-phone" name="phone" label="Phone Number" />
         <FloatingField id="visitor-attending" name="number_attending" label="Number Attending" />
         <FloatingField id="visitor-hear" name="heard_about_us" label="How did you hear about Alt.FFF?" />
 

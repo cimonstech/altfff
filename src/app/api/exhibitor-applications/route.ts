@@ -26,6 +26,7 @@ type Payload = {
   title?: unknown;
   nature?: unknown;
   based?: unknown;
+  country?: unknown;
   space?: unknown;
   hear?: unknown;
   // Honeypot - see ExhibitApplicationForm.tsx.
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const nature = typeof body.nature === "string" ? body.nature.trim() : "";
   const based = typeof body.based === "string" ? body.based.trim() : "";
+  const country = typeof body.country === "string" ? body.country.trim() : "";
   const space = typeof body.space === "string" ? body.space.trim() : "";
   const hear = typeof body.hear === "string" ? body.hear.trim() : "";
 
@@ -73,6 +75,7 @@ export async function POST(request: Request) {
     job_title: title || null,
     nature_of_business: nature || null,
     business_location: based || null,
+    country: country || null,
     package_type: PACKAGE_MAP[space] ?? null,
     heard_about_us: hear || null,
   });

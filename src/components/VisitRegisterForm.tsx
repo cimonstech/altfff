@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import { PhoneInput } from "@/components/PhoneInput";
 
 const INTEREST_OPTIONS = [
   { value: "materials", text: "Discovering New Materials & Innovation" },
@@ -86,7 +87,7 @@ export default function VisitRegisterForm() {
     >
       <FloatingField id="visit-email" name="email" label="Email Address" required type="email" />
       <FloatingField id="visit-fullName" name="full_name" label="Full Name" required />
-      <FloatingField id="visit-phone" name="phone" label="Phone Number" type="tel" />
+      <PhoneInput id="visit-phone" name="phone" label="Phone Number" />
       <FloatingField id="visit-company" name="company_name" label="Company Name" />
       <FloatingField id="visit-jobTitle" name="job_title" label="Job Title" />
       <FloatingField id="visit-country" name="country" label="Country" />

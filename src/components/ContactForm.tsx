@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingTextarea } from "@/components/FormFields";
+import { PhoneInput } from "@/components/PhoneInput";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -71,7 +72,7 @@ export default function ContactForm() {
         <FloatingField id="lastName" label="Last Name" required />
       </div>
       <FloatingField id="email" label="Email" required type="email" />
-      <FloatingField id="phone" label="Phone" type="tel" />
+      <PhoneInput id="phone" label="Phone" />
       <FloatingTextarea id="message" label="Message" required rows={5} />
 
       {/* Honeypot - hidden from real users via CSS, never via

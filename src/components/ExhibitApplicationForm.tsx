@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import { PhoneInput } from "@/components/PhoneInput";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
 
-const TOTAL_FIELDS = 9; // 8 text/tel/email inputs + 1 select
+const TOTAL_FIELDS = 10; // 8 text/tel/email inputs + 2 selects
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -95,11 +97,17 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
       <form className="flex flex-col gap-1" onSubmit={handleSubmit}>
         <FloatingField id="email" label="Email Address" required type="email" onFilledChange={handleFilledChange} />
         <FloatingField id="name" label="Full Name" onFilledChange={handleFilledChange} />
-        <FloatingField id="phone" label="Phone Number" type="tel" onFilledChange={handleFilledChange} />
+        <PhoneInput id="phone" label="Phone Number" onFilledChange={handleFilledChange} />
         <FloatingField id="company" label="Company Name" onFilledChange={handleFilledChange} />
         <FloatingField id="title" label="Job Title" onFilledChange={handleFilledChange} />
         <FloatingField id="nature" label="What is the nature of your business" onFilledChange={handleFilledChange} />
         <FloatingField id="based" label="Where is your business based" onFilledChange={handleFilledChange} />
+
+        {/* Structured country field, distinct from "based" above - that
+            field is free text (city/region detail varies a lot, e.g.
+            "Kumasi, Ghana" or "West Africa region") while this is a clean,
+            filterable value for the country column added in migration 0004. */}
+        <FloatingSelect id="country" label="Country" onFilledChange={handleFilledChange} options={COUNTRY_OPTIONS} />
 
         <FloatingSelect
           id="space"

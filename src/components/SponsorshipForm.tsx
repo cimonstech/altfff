@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField } from "@/components/FormFields";
+import { PhoneInput } from "@/components/PhoneInput";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -76,7 +77,7 @@ export default function SponsorshipForm() {
     >
       <FloatingField id="email" label="Email Address" required type="email" />
       <FloatingField id="fullName" label="Full Name" required />
-      <FloatingField id="phone" label="Phone Number" required type="tel" />
+      <PhoneInput id="phone" label="Phone Number" required />
       <FloatingField id="hearAbout" label="Where did you hear about Alt.FFF?" required />
       <FloatingField id="linkedin" label="Share your LinkedIn handle" required />
       <FloatingField id="company" label="Company Name" required />

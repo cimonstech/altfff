@@ -44,7 +44,23 @@
       "Bash(curl -s -X POST http://127.0.0.1:3996/api/admin/upload-url -H 'Content-Type: application/json' -d '{\"filename\":\"test.exe\",\"contentType\":\"application/x-msdownload\",\"fileSize\":1000}' -w '\\\\nHTTP status: %{http_code}\\\\n')",
       "Read(//tmp/**)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3997/)",
-      "Bash(node --env-file=.env.local comms-e2e-temp.mjs)"
+      "Bash(node --env-file=.env.local comms-e2e-temp.mjs)",
+      "Bash(npm install *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(netstat -ano)",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(npx playwright *)",
+      "Bash(npx --yes playwright@1.61.1 install chromium)",
+      "Bash(npm ls *)",
+      "Bash(node --env-file=.env.local phone-e2e-temp.mjs)",
+      "Bash(node phone-debug-temp.mjs)",
+      "Bash(rm -f phone-e2e-temp.mjs)",
+      "Bash(npm uninstall *)",
+      "Bash(mkdir -p \"C:/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/scratchpad\")",
+      "Bash(mv c:/AltFFF/verify-exhibitor-form.png c:/AltFFF/verify-sponsorship-form.png \"C:/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/scratchpad/\")",
+      "Bash(cp .env.local .env.local.bak-temp)",
+      "Bash(sed -i 's/^QSTASH_CURRENT_SIGNING_KEY=/QSTASH_CURRENT_SIGNING_KEY_DISABLED_FOR_TEST=/' .env.local)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\AppData\\Local\\Temp\\claude\\c--AltFFF\\9847eea9-9eda-4d2b-b1b3-50716bf5086b\\scratchpad"

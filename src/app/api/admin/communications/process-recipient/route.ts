@@ -62,8 +62,33 @@ async function handler(request: Request) {
   return NextResponse.json({ ok: true });
 }
 
-export const POST = verifySignatureAppRouter(handler, {
-  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
-  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY,
-  url: `${process.env.SITE_URL}/api/admin/communications/process-recipient`,
-});
+/**
+ * verifySignatureAppRouter(handler, config) throws immediately if
+ * currentSigningKey/nextSigningKey are missing - calling it at module
+ * top-level (as this used to) meant that throw happened the instant Next
+ * imported this file during build-time page-data collection, crashing the
+ * entire deployment even though nothing had actually requested this route.
+ * Built lazily and cached here instead, so a missing QStash signing key only
+ * breaks this one route on its first real invocation, not the whole build.
+ */
+let cachedVerifiedHandler: ReturnType<typeof verifySignatureAppRouter> | null = null;
+
+function getVerifiedHandler() {
+  if (!cachedVerifiedHandler) {
+    cachedVerifiedHandler = verifySignatureAppRouter(handler, {
+      currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
+      nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY,
+      url: `${process.env.SITE_URL}/api/admin/communications/process-recipient`,
+    });
+  }
+  return cachedVerifiedHandler;
+}
+
+export async function POST(request: Request) {
+  try {
+    return await getVerifiedHandler()(request);
+  } catch (err) {
+    console.error("process-recipient: QStash signature verification is not configured", err);
+    return NextResponse.json({ ok: false, error: "QStash is not configured." }, { status: 500 });
+  }
+}
