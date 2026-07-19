@@ -126,4 +126,67 @@ html.lenis body {
   overflow: hidden;
 }
 
+/* News article rich text - shared by the Tiptap editor (admin) and the
+   public article page's rendered content_html, so both actually look the
+   same. Needed because Tailwind's preflight strips default browser
+   styling from headings/lists/blockquotes/links, and no typography plugin
+   is installed in this project. */
+.rich-text h2 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.rich-text h3 {
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.rich-text p {
+  margin-top: 1em;
+  line-height: 1.7;
+}
+.rich-text ul,
+.rich-text ol {
+  margin-top: 1em;
+  padding-left: 1.5em;
+}
+.rich-text ul {
+  list-style: disc;
+}
+.rich-text ol {
+  list-style: decimal;
+}
+.rich-text li + li {
+  margin-top: 0.35em;
+}
+.rich-text blockquote {
+  margin-top: 1em;
+  padding-left: 1em;
+  border-left: 3px solid var(--gold);
+  color: var(--indigo);
+  font-style: italic;
+}
+.rich-text a {
+  color: var(--gold-deep);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-text img {
+  margin-top: 1em;
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+.rich-text > *:first-child {
+  margin-top: 0;
+}
+
 

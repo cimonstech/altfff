@@ -40,7 +40,7 @@ const TILES: Tile[] = [
     iconClass: "text-paper",
     label: "Follow Us On",
     links: [
-      { text: "Instagram @Alt.FashionFabricFair", href: "https://instagram.com/Alt.FashionFabricFair" },
+      { text: "Instagram @fashionforumafrica", href: "https://www.instagram.com/fashionforumafrica" },
       // TODO: placeholder href - needs the real Fashion Forum Africa
       // LinkedIn company page URL before launch.
       { text: "LinkedIn Fashion Forum Africa", href: "#" },

@@ -1,9 +1,17 @@
 import type { MetadataRoute } from "next";
-import { getAllArticles } from "@/data/news";
+import { createClient } from "@/lib/supabase/server";
 import { SITE } from "@/lib/constants";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const articles = await getAllArticles();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select("slug, published_at, created_at")
+    .eq("published", true);
+  if (error) {
+    console.error("Failed to load news posts for sitemap:", error);
+  }
+  const posts = data ?? [];
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${SITE.url}/`, changeFrequency: "weekly", priority: 1 },
@@ -17,9 +25,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/privacy`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const articlePages: MetadataRoute.Sitemap = articles.map((a) => ({
-    url: `${SITE.url}/news/${a.slug}`,
-    lastModified: a.date,
+  const articlePages: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${SITE.url}/news/${p.slug}`,
+    lastModified: p.published_at ?? p.created_at,
     changeFrequency: "monthly",
     priority: 0.5,
   }));

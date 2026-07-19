@@ -7,7 +7,14 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
-const SOCIALS = ["Instagram", "LinkedIn", "Facebook"];
+// Instagram is the only confirmed URL so far (Fashion Forum Africa's
+// official brief, @fashionforumafrica) - LinkedIn/Facebook stay "#"
+// placeholders until their real company page URLs are confirmed.
+const SOCIALS = [
+  { label: "Instagram", href: "https://www.instagram.com/fashionforumafrica" },
+  { label: "LinkedIn", href: "#" },
+  { label: "Facebook", href: "#" },
+];
 const WORDMARK = "ALT.FFF";
 const PROXIMITY_RADIUS = 140; // px, cursor influence falls off to 0 past this
 const MAX_LIFT = 10; // px
@@ -134,9 +141,9 @@ export default function Footer() {
               </h3>
               <ul className="mt-4 flex flex-col gap-2 text-sm text-ink">
                 {SOCIALS.map((s) => (
-                  <li key={s}>
-                    <a href="#" className="hover:opacity-60">
-                      {s}
+                  <li key={s.label}>
+                    <a href={s.href} className="hover:opacity-60">
+                      {s.label}
                     </a>
                   </li>
                 ))}

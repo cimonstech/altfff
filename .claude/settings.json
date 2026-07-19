@@ -38,7 +38,13 @@
       "Bash(node goo-shot4.mjs)",
       "Bash(tail -10 \"/c/Users/User/AppData/Local/Temp/claude/c--AltFFF/9847eea9-9eda-4d2b-b1b3-50716bf5086b/tasks/bbpaaaq0h.output\")",
       "Bash(node verify-parts-ab.mjs)",
-      "Bash(node verify-map-b.mjs)"
+      "Bash(node verify-map-b.mjs)",
+      "Bash(curl -s -X POST http://127.0.0.1:3996/api/admin/upload-url -H 'Content-Type: application/json' -d '{\"filename\":\"test.png\",\"contentType\":\"image/png\",\"fileSize\":1000}' -w '\\\\nHTTP status: %{http_code}\\\\n')",
+      "Bash(curl -s -X DELETE http://127.0.0.1:3996/api/admin/upload-url -H 'Content-Type: application/json' -d '{\"publicUrl\":\"https://example.com/news/fake.png\"}' -w '\\\\nHTTP status: %{http_code}\\\\n')",
+      "Bash(curl -s -X POST http://127.0.0.1:3996/api/admin/upload-url -H 'Content-Type: application/json' -d '{\"filename\":\"test.exe\",\"contentType\":\"application/x-msdownload\",\"fileSize\":1000}' -w '\\\\nHTTP status: %{http_code}\\\\n')",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3997/)",
+      "Bash(node --env-file=.env.local comms-e2e-temp.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\AppData\\Local\\Temp\\claude\\c--AltFFF\\9847eea9-9eda-4d2b-b1b3-50716bf5086b\\scratchpad"

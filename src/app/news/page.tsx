@@ -5,8 +5,9 @@ import NewsHero from "@/components/NewsHero";
 import NewsFeatured from "@/components/NewsFeatured";
 import NewsGrid from "@/components/NewsGrid";
 import NewsletterBand from "@/components/NewsletterBand";
-import { getAllArticles, getFeaturedArticle, getLatestArticles } from "@/data/news";
+import { createClient } from "@/lib/supabase/server";
 import { buildMetadata } from "@/lib/metadata";
+import type { NewsPost } from "@/lib/newsPost";
 
 export const metadata: Metadata = buildMetadata({
   title: "News & Press | Alt.FFF 2026",
@@ -15,22 +16,32 @@ export const metadata: Metadata = buildMetadata({
   path: "/news",
 });
 
-export default async function NewsPage() {
-  const [allArticles, featured, latest] = await Promise.all([
-    getAllArticles(),
-    getFeaturedArticle(),
-    getLatestArticles(3),
-  ]);
+// Editor-driven content, not static build-time data - ISR so a newly
+// published or edited post shows up within a minute, no redeploy needed.
+export const revalidate = 60;
 
-  const gridArticles = featured ? allArticles.filter((a) => a.slug !== featured.slug) : allArticles;
+export default async function NewsPage() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select("id, slug, title, excerpt, cover_image_url, published_at, created_at")
+    .eq("published", true)
+    .order("published_at", { ascending: false });
+
+  if (error) {
+    console.error("Failed to load news posts:", error);
+  }
+  const posts = (data ?? []) as NewsPost[];
+  const [featured, ...rest] = posts;
+  const r2PublicUrl = process.env.R2_PUBLIC_URL ?? "";
 
   return (
     <>
       <Nav />
       <main>
-        <NewsHero latestTitles={latest.map((a) => a.title)} />
-        {featured && <NewsFeatured article={featured} />}
-        <NewsGrid articles={gridArticles} />
+        <NewsHero latestTitles={posts.slice(0, 3).map((a) => a.title)} />
+        {featured && <NewsFeatured article={featured} r2PublicUrl={r2PublicUrl} />}
+        <NewsGrid articles={rest} r2PublicUrl={r2PublicUrl} />
 
         {/* Press kit band */}
         <section aria-label="Press enquiries" className="bg-madder px-6 py-16 text-paper md:px-16">
@@ -74,5 +85,3 @@ export default async function NewsPage() {
     </>
   );
 }
-
-

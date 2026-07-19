@@ -1,17 +1,30 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ShareRow from "@/components/ShareRow";
-import { getAllArticles, getArticleBySlug } from "@/data/news";
+import { createClient } from "@/lib/supabase/server";
 import { formatDate } from "@/lib/date";
 import { buildMetadata } from "@/lib/metadata";
+import type { NewsPost } from "@/lib/newsPost";
+import NewsCoverImage from "@/components/NewsCoverImage";
 
-export async function generateStaticParams() {
-  const articles = await getAllArticles();
-  return articles.map((a) => ({ slug: a.slug }));
+// Editor-driven content now, not build-time static data - ISR instead of
+// generateStaticParams, so newly published articles (unknown at build
+// time) still render on first request and stay fresh thereafter.
+export const revalidate = 60;
+
+async function getPublishedPostBySlug(slug: string): Promise<NewsPost | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("news_posts")
+    .select("id, slug, title, excerpt, cover_image_url, content_html, published_at, created_at")
+    .eq("slug", slug)
+    .eq("published", true)
+    .single();
+  if (error || !data) return null;
+  return data as NewsPost;
 }
 
 export async function generateMetadata({
@@ -20,14 +33,14 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const article = await getPublishedPostBySlug(slug);
   if (!article) return {};
 
   return buildMetadata({
     title: `${article.title} | Alt.FFF News`,
-    description: article.excerpt,
+    description: article.excerpt ?? article.title,
     path: `/news/${slug}`,
-    image: article.image,
+    ...(article.cover_image_url ? { image: article.cover_image_url } : {}),
   });
 }
 
@@ -37,8 +50,11 @@ export default async function NewsArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const article = await getPublishedPostBySlug(slug);
   if (!article) notFound();
+
+  const date = article.published_at ?? article.created_at;
+  const r2PublicUrl = process.env.R2_PUBLIC_URL ?? "";
 
   return (
     <>
@@ -50,30 +66,32 @@ export default async function NewsArticlePage({
               &larr; Back to News
             </Link>
             <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-deep">
-              {article.category} &middot; {formatDate(article.date)}
+              {formatDate(date)}
             </p>
             <h1 className="mt-3 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase leading-tight tracking-tight text-ink">
               {article.title}
             </h1>
           </div>
 
-          <div className="relative mx-auto mt-10 aspect-[16/9] max-w-4xl overflow-hidden rounded-xl border border-hairline">
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              sizes="(min-width: 1024px) 900px, 100vw"
-              className="object-cover"
-              priority
-            />
-          </div>
+          {article.cover_image_url && (
+            <div className="relative mx-auto mt-10 aspect-[16/9] max-w-4xl overflow-hidden rounded-xl border border-hairline">
+              <NewsCoverImage
+                src={article.cover_image_url}
+                alt={article.title}
+                r2PublicUrl={r2PublicUrl}
+                sizes="(min-width: 1024px) 900px, 100vw"
+                priority
+              />
+            </div>
+          )}
 
           <div className="mx-auto mt-10 max-w-[65ch]">
-            {article.body.map((paragraph, i) => (
-              <p key={i} className="mt-5 text-base leading-relaxed text-ink first:mt-0">
-                {paragraph}
-              </p>
-            ))}
+            {/* content_html is pre-generated server-side (via @tiptap/html's
+                generateHTML) from a controlled editor, not raw user input -
+                safe to render directly. */}
+            {article.content_html && (
+              <div className="rich-text" dangerouslySetInnerHTML={{ __html: article.content_html }} />
+            )}
 
             <ShareRow slug={article.slug} />
 
@@ -90,4 +108,3 @@ export default async function NewsArticlePage({
     </>
   );
 }
-

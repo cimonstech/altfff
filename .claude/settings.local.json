@@ -6,7 +6,30 @@
       "Bash(grep -v \"^-\\\\|^+\\\\|^  \\\\|^It can\\\\|^$\\\\|hydrat\\\\|SSR-ed\\\\|Date form\\\\|External\\\\|Invalid HTML\\\\|browser extension\\\\|%s%s\")",
       "Bash(node verify-nav.mjs)",
       "Bash(node -e ' *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(npm install *)",
+      "Bash(git check-ignore *)",
+      "Bash(npm run *)",
+      "Bash(npx next *)",
+      "Bash(echo \"started with PID $!\")",
+      "Bash(curl -s -o /dev/null -w \"health check status: %{http_code}\\\\n\" http://localhost:3998/)",
+      "Bash(cat /tmp/next-start-3998.log 2>&1)",
+      "Read(//tmp/**)",
+      "Bash(curl -s -o /dev/null -w \"health check status: %{http_code}\\\\n\" http://127.0.0.1:3998/)",
+      "Bash(curl -s -X POST http://127.0.0.1:3998/api/exhibitor-applications -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST http://127.0.0.1:3998/api/sponsor-inquiries -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST http://127.0.0.1:3998/api/visitor-registrations -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(tail -60 /tmp/next-start-3998.log)",
+      "Bash(curl -s -X POST http://127.0.0.1:3998/api/contact -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(curl -s -X POST http://127.0.0.1:3998/api/sponsor-inquiries -H 'Content-Type: application/json' -d '{\"email\": \"enquiries@altfff.com\"}' -w '\\\\nHTTP status: %{http_code}\\\\n')",
+      "Bash(tail -40 /tmp/next-start-3998.log)",
+      "Bash(npx next start -p 3998 > /tmp/next-start-3998.log 2>&1 & *)",
+      "Bash(node --env-file=.env.local check-0003-temp.mjs)",
+      "Bash(node -e \"console.log\\(new Date\\(\\).toISOString\\(\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"health check: %{http_code}\\\\n\" http://127.0.0.1:3996/)"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
     ]
   }
 }

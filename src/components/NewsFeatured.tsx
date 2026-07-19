@@ -1,15 +1,16 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { formatDate } from "@/lib/date";
-import type { NewsArticle } from "@/data/news";
+import type { NewsPost } from "@/lib/newsPost";
+import NewsCoverImage from "@/components/NewsCoverImage";
 
-export default function NewsFeatured({ article }: { article: NewsArticle }) {
+export default function NewsFeatured({ article, r2PublicUrl }: { article: NewsPost; r2PublicUrl: string }) {
   const container = useRef<HTMLElement>(null);
+  const date = article.published_at ?? article.created_at;
 
   useGSAP(
     () => {
@@ -28,25 +29,25 @@ export default function NewsFeatured({ article }: { article: NewsArticle }) {
   return (
     <section ref={container} aria-label="Featured story" className="bg-paper px-6 py-20 md:px-16 md:py-28">
       <div className="featured-in mx-auto max-w-6xl overflow-hidden rounded-xl border border-hairline md:grid md:grid-cols-3">
-        <div className="relative aspect-[4/3] md:col-span-2 md:aspect-auto">
-          <Image
-            src={article.image}
-            alt={article.title}
-            fill
-            sizes="(min-width: 768px) 66vw, 100vw"
-            className="object-cover"
-            priority
-          />
-        </div>
+        {article.cover_image_url ? (
+          <div className="relative aspect-[4/3] overflow-hidden md:col-span-2 md:aspect-auto">
+            <NewsCoverImage
+              src={article.cover_image_url}
+              alt={article.title}
+              r2PublicUrl={r2PublicUrl}
+              sizes="(min-width: 768px) 66vw, 100vw"
+              priority
+            />
+          </div>
+        ) : (
+          <div className="hidden bg-surface md:col-span-2 md:block" aria-hidden="true" />
+        )}
         <div className="flex flex-col justify-center bg-surface p-8 md:p-10">
-          <span className="inline-flex w-fit items-center rounded-full bg-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ink">
-            {article.category}
-          </span>
-          <p className="mt-3 text-xs text-indigo">{formatDate(article.date)}</p>
+          <p className="text-xs text-indigo">{formatDate(date)}</p>
           <h2 className="mt-3 font-display text-2xl font-extrabold uppercase leading-tight tracking-tight text-ink md:text-3xl">
             {article.title}
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-ink">{article.excerpt}</p>
+          {article.excerpt && <p className="mt-4 text-sm leading-relaxed text-ink">{article.excerpt}</p>}
           <Link
             href={`/news/${article.slug}`}
             className="mt-6 inline-flex w-fit items-center gap-2 text-sm font-semibold text-gold-deep hover:opacity-75"
@@ -59,5 +60,3 @@ export default function NewsFeatured({ article }: { article: NewsArticle }) {
     </section>
   );
 }
-
-

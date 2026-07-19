@@ -94,7 +94,7 @@ export default function SponsorshipSidebar() {
           Socials
         </h3>
         <ul className="mt-3 flex flex-col gap-2.5 text-sm text-ink">
-          <Row icon={InstagramIcon} label="@Alt.FashionFabricFair" href="https://instagram.com/Alt.FashionFabricFair" />
+          <Row icon={InstagramIcon} label="@fashionforumafrica" href="https://www.instagram.com/fashionforumafrica" />
           {/* TODO: placeholder href - needs the real Fashion Forum Africa
               LinkedIn company page URL before launch. */}
           <Row icon={LinkedInIcon} label="Fashion Forum Africa" href="#" />

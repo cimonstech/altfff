@@ -162,11 +162,14 @@ export function FloatingTextarea({
 /** Same underline/floating-label treatment, native <select>. */
 export function FloatingSelect({
   id,
+  name,
   label,
   options,
   onFilledChange,
 }: {
   id: string;
+  /** Falls back to `id` when omitted - see FloatingField's own `name` doc. */
+  name?: string;
   label: string;
   options: { value: string; text: string }[];
   onFilledChange?: (id: string, filled: boolean) => void;
@@ -206,6 +209,7 @@ export function FloatingSelect({
       </span>
       <select
         id={id}
+        name={name ?? id}
         defaultValue=""
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}

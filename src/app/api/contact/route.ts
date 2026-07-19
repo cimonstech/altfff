@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -52,24 +53,48 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    // Fails loudly in server logs rather than silently pretending to send -
-    // TODO: set RESEND_API_KEY (and verify a sending domain in Resend)
-    // before this route can actually deliver mail.
-    console.error("RESEND_API_KEY is not set - contact form email was not sent.");
+  // The database write is the real submission now - a message landing
+  // safely in contact_messages matters more than the confirmation email
+  // firing in the same request cycle, same graceful pattern as the three
+  // newer routes (exhibitor-applications, sponsor-inquiries,
+  // visitor-registrations). Only a DB failure fails the whole request;
+  // an email failure below is logged, never surfaced as a submission error.
+  const supabase = await createClient();
+  const { error: insertError } = await supabase.from("contact_messages").insert({
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    phone: phone || null,
+    message,
+  });
+  if (insertError) {
+    console.error("Contact message insert failed:", insertError);
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
   }
 
-  const resend = new Resend(apiKey);
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !fromEmail) {
+    // Logged, not returned - the message was still saved successfully above.
+    console.error(
+      !apiKey
+        ? "RESEND_API_KEY is not set - contact form email was not sent."
+        : "RESEND_FROM_EMAIL is not set - contact form email was not sent.",
+    );
+    return NextResponse.json({ ok: true });
+  }
 
   try {
-    const { error } = await resend.emails.send({
-      // TODO: replace with a sender address on a domain verified in Resend.
-      from: "Alt.FFF Website <no-reply@altfff.com>",
+    const resend = new Resend(apiKey);
+    // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address on
+    // a borrowed Resend account (AgroTalentHub's), not altfff.com - the
+    // client's own domain isn't verified in Resend yet. Once it is, change
+    // RESEND_FROM_EMAIL in the environment; no code change needed.
+    const { data: sendData, error: sendError } = await resend.emails.send({
+      from: `Alt.FFF Website <${fromEmail}>`,
       to: "enquiries@altfff.com",
       replyTo: email,
       subject: `New contact form enquiry from ${firstName} ${lastName}`,
@@ -83,20 +108,13 @@ export async function POST(request: Request) {
         .filter(Boolean)
         .join("\n"),
     });
-
-    if (error) {
-      console.error("Resend error:", error);
-      return NextResponse.json(
-        { ok: false, error: "Sorry, something went wrong sending your message. Please try again." },
-        { status: 502 },
-      );
+    if (sendError) {
+      console.error("Resend error (contact form):", sendError);
+    } else {
+      console.log("Resend accepted (contact form), message id:", sendData?.id);
     }
   } catch (err) {
-    console.error("Contact form send failed:", err);
-    return NextResponse.json(
-      { ok: false, error: "Sorry, something went wrong sending your message. Please try again." },
-      { status: 500 },
-    );
+    console.error("Contact form email send failed:", err);
   }
 
   return NextResponse.json({ ok: true });
