@@ -8,11 +8,11 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import Ticker from "@/components/Ticker";
 
-// Swap to "ACCRA 2026" to compare - the period in "ALT.FFF" leaves a small
+ // Swap to "ACCRA 2026" to compare - the period in "Alt.FFF" leaves a small
 // visual gap once rotated into the vertical column; "ACCRA 2026" reads a
 // touch more evenly at this size but loses the wordmark. Default to the
 // wordmark since it doubles as brand reinforcement.
-const VERTICAL_WORD = "ALT.FFF";
+const VERTICAL_WORD = "Alt.FFF";
 
 /**
  * Mobile-only (below md) full-bleed editorial hero. Deliberately a separate

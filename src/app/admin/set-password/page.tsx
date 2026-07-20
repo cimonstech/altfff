@@ -21,9 +21,13 @@ function urlLooksLikeAuthCallback(): boolean {
 
 /**
  * The page Supabase's invite (and password-recovery) email link lands on.
- * Tokens arrive in the URL hash (implicit flow) or as a ?code= query param
- * (PKCE) - the browser client exchanges either asynchronously on mount.
- * This page waits for that exchange before enabling the password form.
+ *
+ * Invite emails use the implicit flow: tokens arrive in the URL hash
+ * (`#access_token=…&refresh_token=…&type=invite`). @supabase/ssr's
+ * createBrowserClient defaults to PKCE (`?code=`), so hash tokens are not
+ * auto-consumed — this page must call setSession explicitly.
+ *
+ * PKCE (`?code=`) is still handled for password-recovery / other flows.
  */
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -44,15 +48,16 @@ export default function SetPasswordPage() {
       }
     };
 
-    const markInvalid = (message?: string) => {
+    const markInvalid = (message: string) => {
       if (!settled) {
         settled = true;
         setSessionState("invalid");
-        if (message) setError(message);
+        setError(message);
       }
     };
 
     const bootstrap = async () => {
+      // PKCE: ?code= in the query string
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       if (code) {
@@ -65,6 +70,7 @@ export default function SetPasswordPage() {
         return;
       }
 
+      // Implicit invite/recovery: tokens in the hash fragment
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
       const hashError = hashParams.get("error_description") ?? hashParams.get("error");
       if (hashError) {
@@ -72,6 +78,25 @@ export default function SetPasswordPage() {
         return;
       }
 
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+      if (accessToken && refreshToken) {
+        const { error: setError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (setError) {
+          markInvalid(
+            setError.message ||
+              "This invite link is invalid or has expired. Ask a super admin to send a new invite.",
+          );
+          return;
+        }
+        markReady();
+        return;
+      }
+
+      // Already signed in (e.g. revisited the page after setting a password)
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -210,7 +235,7 @@ export default function SetPasswordPage() {
               />
             </div>
 
-            {error && sessionState === "ready" && (
+            {error && (
               <p className="text-sm text-madder" role="alert">
                 {error}
               </p>

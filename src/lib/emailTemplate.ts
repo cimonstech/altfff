@@ -45,7 +45,7 @@ export function buildEmailHtml({
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
             <tr>
               <td style="background-color:${GOLD}; padding:22px 32px;">
-                <span style="color:#FFFFFF; font-family:${FONT_STACK}; font-size:22px; font-weight:bold; letter-spacing:1px;">ALT.FFF</span>
+                <span style="color:#FFFFFF; font-family:${FONT_STACK}; font-size:22px; font-weight:bold; letter-spacing:1px;">Alt.FFF</span>
               </td>
             </tr>
             <tr>

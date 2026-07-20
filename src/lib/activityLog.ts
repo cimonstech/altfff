@@ -6,6 +6,7 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   login: "Login",
   export: "CSV export",
   admin_invited: "Admin invited",
+  admin_deleted: "Admin deleted",
   communication_sent: "Communication sent",
 };
 
@@ -51,6 +52,11 @@ export function formatActivitySummary(
       const email = str(details.invited_email);
       const role = str(details.role) || "admin";
       return email ? `Invited ${email} (${role.replace(/_/g, " ")})` : "Admin invited";
+    }
+    case "admin_deleted": {
+      const email = str(details.deleted_email);
+      const role = str(details.deleted_role) || "admin";
+      return email ? `Deleted ${email} (${role.replace(/_/g, " ")})` : "Admin deleted";
     }
     case "export": {
       const count = details.row_count;

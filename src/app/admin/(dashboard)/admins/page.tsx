@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import InviteAdminForm from "@/components/admin/InviteAdminForm";
+import AdminList, { type AdminRow } from "@/components/admin/AdminList";
 
 /**
  * super_admin only. This check is independent of the sidebar's hidden nav
@@ -32,6 +34,19 @@ export default async function AdminAdminsPage() {
     .select("id, full_name, role, invited_at")
     .order("invited_at", { ascending: false });
 
+  // Email lives on auth.users, not admin_profiles - resolve via the
+  // service-role client so the delete modal can show/type-confirm it.
+  const adminClient = createAdminClient();
+  const adminsWithEmail: AdminRow[] = await Promise.all(
+    (admins ?? []).map(async (admin) => {
+      const { data } = await adminClient.auth.admin.getUserById(admin.id);
+      return {
+        ...admin,
+        email: data.user?.email ?? null,
+      };
+    }),
+  );
+
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Admins</h1>
@@ -47,40 +62,8 @@ export default async function AdminAdminsPage() {
         <h2 className="font-display text-sm font-bold uppercase tracking-tight text-ink">
           Existing Admins
         </h2>
-        <div className="mt-4 overflow-x-auto rounded-md border border-hairline">
-          <table className="w-full min-w-[480px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="bg-surface">
-                <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
-                  Name
-                </th>
-                <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
-                  Role
-                </th>
-                <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
-                  Invited
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {(admins ?? []).map((a) => (
-                <tr key={a.id} className="border-t border-hairline">
-                  <td className="p-3 text-ink">{a.full_name || "—"}</td>
-                  <td className="p-3 text-ink">{a.role}</td>
-                  <td className="p-3 text-ink">
-                    {a.invited_at ? new Date(a.invited_at).toLocaleDateString() : "—"}
-                  </td>
-                </tr>
-              ))}
-              {(!admins || admins.length === 0) && (
-                <tr>
-                  <td colSpan={3} className="p-3 text-ink/60">
-                    No admins found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="mt-4">
+          <AdminList admins={adminsWithEmail} currentUserId={user.id} />
         </div>
       </div>
     </div>

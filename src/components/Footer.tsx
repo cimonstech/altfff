@@ -15,7 +15,7 @@ const SOCIALS = [
   { label: "LinkedIn", href: "#" },
   { label: "Facebook", href: "#" },
 ];
-const WORDMARK = "ALT.FFF";
+const WORDMARK = "Alt.FFF";
 const PROXIMITY_RADIUS = 140; // px, cursor influence falls off to 0 past this
 const MAX_LIFT = 10; // px
 const MAX_SCALE = 0.08; // +8% at the cursor's exact position
