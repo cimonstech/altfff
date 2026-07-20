@@ -1,4 +1,5 @@
 import { Client } from "@upstash/qstash";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 /**
  * SERVER-ONLY. QSTASH_TOKEN is a real credential - only import from Route
@@ -22,10 +23,6 @@ function getQstashClient(): Client {
     cachedClient = new Client({ token: process.env.QSTASH_TOKEN! });
   }
   return cachedClient;
-}
-
-function getSiteUrl(): string {
-  return process.env.SITE_URL ?? "http://localhost:3000";
 }
 
 /** Publishes a JSON payload to an absolute path on this deployment via QStash. */
