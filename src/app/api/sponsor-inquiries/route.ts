@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
+import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 
 export const runtime = "nodejs";
 
@@ -20,8 +21,8 @@ type Payload = {
   jobTitle?: unknown;
   businessNature?: unknown;
   newsletter?: unknown;
-  // Honeypot - see SponsorshipForm.tsx.
-  website?: unknown;
+  // Bot-protection fields (JS token, mount timestamp, decoy) are read via
+  // evaluateBotSignals - see src/lib/botProtection.ts.
 };
 
 export async function POST(request: Request) {
@@ -32,9 +33,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid request body." }, { status: 400 });
   }
 
-  // Honeypot tripped - pretend success, do nothing.
-  if (typeof body.website === "string" && body.website.trim().length > 0) {
+  // Combined bot check - see src/lib/botProtection.ts for the strategy and
+  // the two generations of honeypot false positives that led here.
+  const botCheck = evaluateBotSignals(body as Record<string, unknown>);
+  if (botCheck.verdict === "reject") {
+    console.warn(`[honeypot] tripped on /api/sponsor-inquiries (${botCheck.reason}) - submission dropped, fake success returned.`);
+    if (process.env.NODE_ENV !== "production") {
+      // DEV-ONLY diagnostic - never ships value-logging to production.
+      console.warn("[honeypot][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+    }
     return NextResponse.json({ ok: true });
+  }
+  if (botCheck.verdict === "accept_with_warning") {
+    console.warn("[bot-signal] decoy filled but JS token valid on /api/sponsor-inquiries - accepting (autofill/extension case).");
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[bot-signal][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+    }
   }
 
   const email = typeof body.email === "string" ? body.email.trim() : "";
@@ -58,7 +72,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // Deliberately the session-less anon client, never the cookie-aware
+  // server client - see src/lib/supabase/anon.ts for the PGRST303
+  // "JWT expired" incident that motivates this. Public form inserts are
+  // anonymous by design and must not inherit browser session cookies.
+  const supabase = createAnonClient();
   const { error: insertError } = await supabase.from("sponsor_inquiries").insert({
     email,
     full_name: fullName,

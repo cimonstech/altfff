@@ -501,6 +501,16 @@ export default function AfricaMap({
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
+      // `.textile-hover-ring` is conditionally rendered - it only exists in
+      // the DOM while a textile-tier country is actively hovered and its
+      // modal isn't open (see the JSX below, same condition). This effect
+      // re-runs on every textileHover/textileOpen change, including mount
+      // (nothing hovered yet) and hover-end (the circle just unmounted), so
+      // without this guard it was calling gsap.fromTo against a selector
+      // matching zero elements most of the time - harmless (GSAP just warns
+      // and no-ops) but a real, reproducible "GSAP target .textile-hover-ring
+      // not found" console warning on every page load and hover-out.
+      if (!textileHover || textileHover === textileOpen) return;
       gsap.fromTo(
         ".textile-hover-ring",
         { scale: 0.85, opacity: 0.9 },

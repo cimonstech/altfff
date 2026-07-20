@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FloatingField } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
+import { BotProtection } from "@/components/BotProtection";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -71,11 +72,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         <FloatingField id="visitor-attending" name="number_attending" label="Number Attending" />
         <FloatingField id="visitor-hear" name="heard_about_us" label="How did you hear about Alt.FFF?" />
 
-        {/* Honeypot - hidden from real users via CSS, matching
-            ContactForm.tsx's implementation. */}
-        <div aria-hidden="true" style={{ position: "absolute", left: "-5000px" }}>
-          <input type="text" name="website" tabIndex={-1} defaultValue="" />
-        </div>
+        <BotProtection />
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">

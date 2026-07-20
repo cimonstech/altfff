@@ -6,6 +6,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
+import { BotProtection } from "@/components/BotProtection";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -95,12 +96,7 @@ export default function SponsorshipForm() {
           the Alt.FFF event.
         </label>
 
-        {/* Honeypot - hidden from real users via CSS, matching
-            ContactForm.tsx's implementation. Named "website", not "company",
-            since this form already has a real "company" field. */}
-        <div aria-hidden="true" style={{ position: "absolute", left: "-5000px" }}>
-          <input type="text" name="website" tabIndex={-1} defaultValue="" />
-        </div>
+        <BotProtection />
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">

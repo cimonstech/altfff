@@ -6,6 +6,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingTextarea } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
+import { BotProtection } from "@/components/BotProtection";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -102,13 +103,7 @@ export default function ContactForm() {
         <PhoneInput id="phone" label="Phone" />
         <FloatingTextarea id="message" label="Message" required rows={5} />
 
-        {/* Honeypot - hidden from real users via CSS, never via
-            display:none/hidden (some bots skip those specifically). Left
-            empty by anyone genuine; the API route treats a filled-in value
-            as a bot and silently no-ops. */}
-        <div aria-hidden="true" style={{ position: "absolute", left: "-5000px" }}>
-          <input type="text" name="company" tabIndex={-1} defaultValue="" />
-        </div>
+        <BotProtection />
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">

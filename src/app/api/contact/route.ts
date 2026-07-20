@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/anon";
+import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 
 export const runtime = "nodejs";
 
@@ -16,9 +17,8 @@ type ContactPayload = {
   email?: unknown;
   phone?: unknown;
   message?: unknown;
-  // Honeypot: a field real users never see or fill in (hidden via CSS on
-  // the form), so anything filling it in is almost certainly a bot.
-  company?: unknown;
+  // Bot-protection fields (JS token, mount timestamp, decoy) are read via
+  // evaluateBotSignals - see src/lib/botProtection.ts.
 };
 
 // No Upstash/rate-limit helper exists in this project yet - the brief was
@@ -34,10 +34,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid request body." }, { status: 400 });
   }
 
-  // Honeypot tripped - pretend success so the bot doesn't learn anything,
-  // but never actually send the email.
-  if (typeof body.company === "string" && body.company.trim().length > 0) {
+  // Combined bot check - see src/lib/botProtection.ts for the strategy and
+  // the two generations of honeypot false positives (autofill, then a
+  // form-filler extension) that led here. Reject still returns fake success
+  // so bots learn nothing, but is ALWAYS logged - a dropped submission must
+  // never be invisible on the server.
+  const botCheck = evaluateBotSignals(body as Record<string, unknown>);
+  if (botCheck.verdict === "reject") {
+    console.warn(`[honeypot] tripped on /api/contact (${botCheck.reason}) - submission dropped, fake success returned.`);
+    if (process.env.NODE_ENV !== "production") {
+      // DEV-ONLY diagnostic - reveals what autofill/extensions inject.
+      // Never ships value-logging to production.
+      console.warn("[honeypot][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+    }
     return NextResponse.json({ ok: true });
+  }
+  if (botCheck.verdict === "accept_with_warning") {
+    console.warn("[bot-signal] decoy filled but JS token valid on /api/contact - accepting (autofill/extension case).");
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[bot-signal][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+    }
   }
 
   const firstName = typeof body.firstName === "string" ? body.firstName.trim() : "";
@@ -59,7 +75,11 @@ export async function POST(request: Request) {
   // newer routes (exhibitor-applications, sponsor-inquiries,
   // visitor-registrations). Only a DB failure fails the whole request;
   // an email failure below is logged, never surfaced as a submission error.
-  const supabase = await createClient();
+  // Deliberately the session-less anon client, never the cookie-aware
+  // server client - see src/lib/supabase/anon.ts for the PGRST303
+  // "JWT expired" incident that motivates this. Public form inserts are
+  // anonymous by design and must not inherit browser session cookies.
+  const supabase = createAnonClient();
   const { error: insertError } = await supabase.from("contact_messages").insert({
     first_name: firstName,
     last_name: lastName,

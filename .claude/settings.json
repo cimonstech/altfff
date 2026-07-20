@@ -83,7 +83,9 @@
       "Bash(node --env-file=.env.local debug-history-view-temp.mjs)",
       "Bash(node --env-file=.env.local verify-history-final-temp.mjs)",
       "Bash(node --env-file=.env.local debug-history-error-temp.mjs)",
-      "Bash(node --env-file=.env.local debug-alert-source-temp.mjs)"
+      "Bash(node --env-file=.env.local debug-alert-source-temp.mjs)",
+      "Bash(node verify-final-temp.mjs)",
+      "Bash(node --env-file=.env.local verify-botprot-temp.mjs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\User\\AppData\\Local\\Temp\\claude\\c--AltFFF\\9847eea9-9eda-4d2b-b1b3-50716bf5086b\\scratchpad"

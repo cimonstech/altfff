@@ -6,6 +6,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
+import { BotProtection } from "@/components/BotProtection";
 
 const INTEREST_OPTIONS = [
   { value: "materials", text: "Discovering New Materials & Innovation" },
@@ -102,11 +103,7 @@ export default function VisitRegisterForm() {
         <FloatingSelect id="visit-interest" name="interest" label="I am interested in" options={INTEREST_OPTIONS} />
         <FloatingField id="visit-hearAbout" name="heard_about_us" label="Where did you hear about Alt.FFF?" />
 
-        {/* Honeypot - hidden from real users via CSS, matching
-            ContactForm.tsx's implementation. */}
-        <div aria-hidden="true" style={{ position: "absolute", left: "-5000px" }}>
-          <input type="text" name="website" tabIndex={-1} defaultValue="" />
-        </div>
+        <BotProtection />
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">
