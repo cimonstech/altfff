@@ -7,6 +7,9 @@ import { FloatingField, FloatingTextarea } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { contactSchema } from "@/lib/validation/contact";
+import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -15,6 +18,7 @@ export default function ContactForm() {
   // useGSAP call below for why the scope root and the animated element
   // can never be the same node.
   const container = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -24,6 +28,8 @@ export default function ContactForm() {
   // label "filled" flag, PhoneInput's parsed value) back to empty, since
   // neither accepts a controlled `value` prop from here.
   const [formKey, setFormKey] = useState(0);
+  const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
+    useZodFormErrors(contactSchema);
 
   // BUG (fixed here): this used to scope useGSAP to the <form> element via
   // `ref={container}` on the form itself, then try to animate that same
@@ -59,12 +65,23 @@ export default function ContactForm() {
     { scope: container },
   );
 
+  const onBlurValidate = (field: string) => {
+    if (!formRef.current) return;
+    validateField(field, formDataToObject(formRef.current));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
+    const data = formDataToObject(e.currentTarget);
+    const check = validateAll(data);
+    if (!check.ok) {
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("submitting");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
@@ -72,6 +89,18 @@ export default function ContactForm() {
         body: JSON.stringify(data),
       });
       const body = await res.json();
+      if (res.status === 429) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 400 && body.fieldErrors && typeof body.fieldErrors === "object") {
+        applyServerFieldErrors(body.fieldErrors as Record<string, string>);
+        setStatus("idle");
+        return;
+      }
       if (!res.ok || !body.ok) {
         setErrorMessage(body.error || "Something went wrong. Please try again.");
         setStatus("error");
@@ -79,6 +108,7 @@ export default function ContactForm() {
       }
       setStatus("idle");
       setShowBanner(true);
+      clearFieldErrors();
       setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
@@ -94,14 +124,46 @@ export default function ContactForm() {
           onDismiss={() => setShowBanner(false)}
         />
       )}
-      <form key={formKey} className="contact-form-in flex flex-col gap-1" onSubmit={handleSubmit}>
+      <form
+        key={formKey}
+        ref={formRef}
+        noValidate
+        className="contact-form-in flex flex-col gap-1"
+        onSubmit={handleSubmit}
+      >
         <div className="grid grid-cols-2 gap-x-4">
-          <FloatingField id="firstName" label="First Name" required />
-          <FloatingField id="lastName" label="Last Name" required />
+          <FloatingField
+            id="firstName"
+            label="First Name"
+            required
+            error={fieldErrors.firstName}
+            onBlurValidate={onBlurValidate}
+          />
+          <FloatingField
+            id="lastName"
+            label="Last Name"
+            required
+            error={fieldErrors.lastName}
+            onBlurValidate={onBlurValidate}
+          />
         </div>
-        <FloatingField id="email" label="Email" required type="email" />
-        <PhoneInput id="phone" label="Phone" />
-        <FloatingTextarea id="message" label="Message" required rows={5} />
+        <FloatingField
+          id="email"
+          label="Email"
+          required
+          type="email"
+          error={fieldErrors.email}
+          onBlurValidate={onBlurValidate}
+        />
+        <PhoneInput id="phone" label="Phone" error={fieldErrors.phone} onBlurValidate={onBlurValidate} />
+        <FloatingTextarea
+          id="message"
+          label="Message"
+          required
+          rows={5}
+          error={fieldErrors.message}
+          onBlurValidate={onBlurValidate}
+        />
 
         <BotProtection />
 
@@ -122,5 +184,3 @@ export default function ContactForm() {
     </div>
   );
 }
-
-

@@ -1,21 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { FloatingField } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { visitorRegistrationSchema } from "@/lib/validation/visitor";
+import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
 type Status = "idle" | "submitting" | "error";
 
 /**
  * Visitor registration form - rendered as the shared Modal's content when
- * opened from any "Register to visit" / "Register for event" CTA. Submits
+ * opened from any "Register to visit" CTA. Submits
  * to /api/visitor-registrations, shared with the fuller inline form on
  * /visit (VisitRegisterForm.tsx) - both use the same canonical field names
  * so that one route can handle either submission shape.
  */
 export default function VisitorRegisterForm({ headingId }: { headingId?: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -23,13 +27,26 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
   // remount - the simplest reliable way to reset both native uncontrolled
   // inputs AND PhoneInput/FloatingField's own internal state back to empty.
   const [formKey, setFormKey] = useState(0);
+  const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
+    useZodFormErrors(visitorRegistrationSchema);
+
+  const onBlurValidate = (field: string) => {
+    if (!formRef.current) return;
+    validateField(field, formDataToObject(formRef.current));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
+    const data = formDataToObject(e.currentTarget);
+    const check = validateAll(data);
+    if (!check.ok) {
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("submitting");
     try {
       const res = await fetch("/api/visitor-registrations", {
         method: "POST",
@@ -37,6 +54,18 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         body: JSON.stringify(data),
       });
       const body = await res.json();
+      if (res.status === 429) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 400 && body.fieldErrors && typeof body.fieldErrors === "object") {
+        applyServerFieldErrors(body.fieldErrors as Record<string, string>);
+        setStatus("idle");
+        return;
+      }
       if (!res.ok || !body.ok) {
         setErrorMessage(body.error || "Something went wrong. Please try again.");
         setStatus("error");
@@ -44,6 +73,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       }
       setStatus("idle");
       setShowBanner(true);
+      clearFieldErrors();
       setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
@@ -65,12 +95,50 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         />
       )}
 
-      <form key={formKey} className="mt-2 flex flex-col gap-1" onSubmit={handleSubmit}>
-        <FloatingField id="visitor-name" name="full_name" label="Full Name" />
-        <FloatingField id="visitor-email" name="email" label="Email Address" required type="email" />
-        <PhoneInput id="visitor-phone" name="phone" label="Phone Number" />
-        <FloatingField id="visitor-attending" name="number_attending" label="Number Attending" />
-        <FloatingField id="visitor-hear" name="heard_about_us" label="How did you hear about Alt.FFF?" />
+      <form
+        key={formKey}
+        ref={formRef}
+        noValidate
+        className="mt-2 flex flex-col gap-1"
+        onSubmit={handleSubmit}
+      >
+        <FloatingField
+          id="visitor-name"
+          name="full_name"
+          label="Full Name"
+          error={fieldErrors.full_name}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visitor-email"
+          name="email"
+          label="Email Address"
+          required
+          type="email"
+          error={fieldErrors.email}
+          onBlurValidate={onBlurValidate}
+        />
+        <PhoneInput
+          id="visitor-phone"
+          name="phone"
+          label="Phone Number"
+          error={fieldErrors.phone}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visitor-attending"
+          name="number_attending"
+          label="Number Attending"
+          error={fieldErrors.number_attending}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visitor-hear"
+          name="heard_about_us"
+          label="How did you hear about Alt.FFF?"
+          error={fieldErrors.heard_about_us}
+          onBlurValidate={onBlurValidate}
+        />
 
         <BotProtection />
 

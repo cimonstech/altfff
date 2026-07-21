@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,11 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
     if (countError) {
       console.error("Failed to count super_admin profiles:", countError);
+      reportServerError(countError, {
+        route: "/api/admin/admins/[id]",
+        kind: "admin",
+        extra: { op: "count_super_admins" },
+      });
       return NextResponse.json({ ok: false, error: "Failed to verify super admin count." }, { status: 500 });
     }
 
@@ -82,6 +88,11 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { data: targetAuth, error: targetAuthError } = await adminClient.auth.admin.getUserById(targetId);
   if (targetAuthError || !targetAuth.user) {
     console.error("Failed to load target auth user before delete:", targetAuthError);
+    reportServerError(targetAuthError ?? new Error("target auth user missing"), {
+      route: "/api/admin/admins/[id]",
+      kind: "admin",
+      extra: { op: "get_user" },
+    });
     return NextResponse.json({ ok: false, error: "Admin auth account not found." }, { status: 404 });
   }
 
@@ -92,6 +103,11 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { error: deleteError } = await adminClient.auth.admin.deleteUser(targetId);
   if (deleteError) {
     console.error("Admin delete failed:", deleteError);
+    reportServerError(deleteError, {
+      route: "/api/admin/admins/[id]",
+      kind: "admin",
+      extra: { op: "delete_user" },
+    });
     return NextResponse.json({ ok: false, error: deleteError.message }, { status: 502 });
   }
 

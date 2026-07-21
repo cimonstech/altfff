@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import AdminCard from "@/components/admin/AdminCard";
 
 type NewsPostRow = {
   id: string;
@@ -71,10 +72,11 @@ export default function AdminNewsListPage() {
 
       <p className="mt-3 text-xs text-ink/50">{loading ? "Loading…" : `${posts.length} post${posts.length === 1 ? "" : "s"}`}</p>
 
-      <div className="mt-4 overflow-x-auto rounded-md border border-hairline">
+      <AdminCard className="mt-4 overflow-hidden" padding="none">
+      <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
-            <tr className="bg-surface">
+            <tr className="bg-paper/60">
               <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">Title</th>
               <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">Status</th>
               <th scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">Created</th>
@@ -124,6 +126,7 @@ export default function AdminNewsListPage() {
           </tbody>
         </table>
       </div>
+      </AdminCard>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef } from "react";
+import { Download } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { useTilt } from "@/lib/use-tilt";
@@ -179,6 +180,17 @@ export default function ExhibitingReasons() {
             <ReasonCard key={r.heading} index={i} {...r} />
           ))}
         </div>
+
+        <a
+          href="/Exhibitors+Pack+ALT.FFF_June+2026.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          download
+          className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-gold-deep underline-offset-4 transition-opacity hover:opacity-80 hover:underline"
+        >
+          <Download className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={1.75} />
+          Download the full Exhibitor Pack (PDF)
+        </a>
       </div>
     </section>
   );

@@ -22,10 +22,8 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",
-    // TODO: confirm the founder's name with the client before launch -
-    // deliberately not naming anyone here rather than guessing.
     answer:
-      "Alt.FFF is organised by Fashion Forum Africa. We're confirming the individual founder credit with the organising team and will update this answer before launch.",
+      "Alt.FFF was founded by Makeba Nana Pokua Boateng, APR, USPAP-ISA, a celebrated cultural strategist and appraiser with more than three decades of experience championing African fashion and textile heritage.",
   },
   {
     question: "How can I register as an exhibitor for Alt.FFF 2026?",

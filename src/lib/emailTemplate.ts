@@ -4,7 +4,7 @@ import { EVENT } from "@/lib/constants";
 // email clients strip <style> blocks and CSS custom properties both -
 // everything in this template has to be inline, literal values.
 const GOLD = "#DA8E06";
-const INK = "#171C26";
+const INK = "#015347";
 const PAPER = "#F6F1E7";
 const FOREST = "#007563";
 const INK_MUTED = "#5B6169";

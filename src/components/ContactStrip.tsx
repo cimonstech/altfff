@@ -32,18 +32,15 @@ const TILES: Tile[] = [
     links: [{ text: "www.altfff.com", href: "https://www.altfff.com" }],
   },
   {
-    // lucide-react dropped brand/logo icons (no Instagram/LinkedIn glyphs
-    // available in this version) - AtSign is a neutral stand-in for
-    // "social handle" rather than a literal platform logo.
+    // lucide-react dropped brand/logo icons (no Instagram glyph in this
+    // version) - AtSign is a neutral stand-in for "social handle" rather
+    // than a literal platform logo. LinkedIn omitted: FFA has no presence.
     icon: AtSign,
     circleClass: "bg-ink",
     iconClass: "text-paper",
     label: "Follow Us On",
     links: [
       { text: "Instagram @fashionforumafrica", href: "https://www.instagram.com/fashionforumafrica" },
-      // TODO: placeholder href - needs the real Fashion Forum Africa
-      // LinkedIn company page URL before launch.
-      { text: "LinkedIn Fashion Forum Africa", href: "#" },
     ],
   },
 ];

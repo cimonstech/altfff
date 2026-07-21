@@ -24,7 +24,9 @@ export function PhoneInput({
   label,
   required,
   defaultCountry = "GH",
+  error,
   onFilledChange,
+  onBlurValidate,
 }: {
   id: string;
   /** Falls back to `id`, same convention as FloatingField. */
@@ -33,12 +35,15 @@ export function PhoneInput({
   required?: boolean;
   /** ISO 3166-1 alpha-2 country code to preselect. */
   defaultCountry?: Country;
+  error?: string;
   onFilledChange?: (id: string, filled: boolean) => void;
+  onBlurValidate?: (fieldName: string) => void;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
   const [focused, setFocused] = useState(false);
   const [value, setValue] = useState<string | undefined>(undefined);
+  const fieldName = name ?? id;
 
   const filled = !!value;
 
@@ -82,8 +87,13 @@ export function PhoneInput({
         }}
         numberInputProps={{
           className: "alt-phone-input__number",
+          "aria-invalid": error ? true : undefined,
+          "aria-describedby": error ? `${id}-error` : undefined,
           onFocus: () => setFocused(true),
-          onBlur: () => setFocused(false),
+          onBlur: () => {
+            setFocused(false);
+            onBlurValidate?.(fieldName);
+          },
         }}
         countrySelectProps={{ className: "alt-phone-input__country" }}
       />
@@ -91,13 +101,18 @@ export function PhoneInput({
           serialization - this hidden mirror is the field every form's
           `new FormData(e.currentTarget)` actually reads, always the clean
           E.164 value (or "" if empty/invalid), never the visible partial text. */}
-      <input type="hidden" name={name ?? id} value={value ?? ""} />
+      <input type="hidden" name={fieldName} value={value ?? ""} />
       <span
         ref={underlineRef}
         aria-hidden="true"
         className="absolute bottom-0 left-0 h-[2px] w-full origin-left bg-gold"
         style={{ transform: "scaleX(0)" }}
       />
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-madder" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

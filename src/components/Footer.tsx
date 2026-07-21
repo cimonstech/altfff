@@ -7,12 +7,11 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
-// Instagram is the only confirmed URL so far (Fashion Forum Africa's
-// official brief, @fashionforumafrica) - LinkedIn/Facebook stay "#"
-// placeholders until their real company page URLs are confirmed.
+// Instagram is confirmed (Fashion Forum Africa, @fashionforumafrica).
+// LinkedIn removed entirely - FFA has no LinkedIn presence.
+// Facebook stays "#" until a real company page URL is confirmed.
 const SOCIALS = [
   { label: "Instagram", href: "https://www.instagram.com/fashionforumafrica" },
-  { label: "LinkedIn", href: "#" },
   { label: "Facebook", href: "#" },
 ];
 const WORDMARK = "Alt.FFF";

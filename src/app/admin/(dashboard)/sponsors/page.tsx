@@ -29,6 +29,7 @@ export default function AdminSponsorsPage() {
             { label: "Phone", field: "phone" },
             { label: "Company", field: "company_name" },
             { label: "Job Title", field: "job_title" },
+            { label: "Country", field: "country" },
             { label: "Nature of Business", field: "nature_of_business" },
             { label: "LinkedIn Handle", field: "linkedin_handle" },
             { label: "Heard About Us Via", field: "heard_about_us" },

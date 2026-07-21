@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,11 @@ export async function POST(request: Request) {
 
   if (inviteError) {
     console.error("Admin invite failed:", inviteError);
+    reportServerError(inviteError, {
+      route: "/api/admin/invite",
+      kind: "admin",
+      extra: { op: "invite_user" },
+    });
     return NextResponse.json({ ok: false, error: inviteError.message }, { status: 502 });
   }
 
@@ -85,6 +91,11 @@ export async function POST(request: Request) {
       .eq("id", invited.user.id);
     if (roleError) {
       console.error("Failed to set invited admin's role:", roleError);
+      reportServerError(roleError, {
+        route: "/api/admin/invite",
+        kind: "admin",
+        extra: { op: "set_role" },
+      });
     }
   }
 

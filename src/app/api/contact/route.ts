@@ -2,32 +2,20 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
+import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
+import { contactSchema, type ContactInput } from "@/lib/validation/contact";
+import { parseWithSchema } from "@/lib/validation/parse";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
-// No zod in this project yet, so this is a small set of plain checks
-// rather than pulling in a new validation dependency for one route.
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-type ContactPayload = {
-  firstName?: unknown;
-  lastName?: unknown;
-  email?: unknown;
-  phone?: unknown;
-  message?: unknown;
-  // Bot-protection fields (JS token, mount timestamp, decoy) are read via
-  // evaluateBotSignals - see src/lib/botProtection.ts.
-};
-
-// No Upstash/rate-limit helper exists in this project yet - the brief was
-// explicit not to add a new dependency just for this route, so this
-// deliberately ships without rate limiting. Worth revisiting if spam
-// becomes a real problem.
-
 export async function POST(request: Request) {
-  let body: ContactPayload;
+  const rate = await checkPublicFormRateLimit(request, "contact");
+  if (!rate.success) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });
+  }
+
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
@@ -39,35 +27,36 @@ export async function POST(request: Request) {
   // form-filler extension) that led here. Reject still returns fake success
   // so bots learn nothing, but is ALWAYS logged - a dropped submission must
   // never be invisible on the server.
-  const botCheck = evaluateBotSignals(body as Record<string, unknown>);
+  const botCheck = evaluateBotSignals(body);
   if (botCheck.verdict === "reject") {
     console.warn(`[honeypot] tripped on /api/contact (${botCheck.reason}) - submission dropped, fake success returned.`);
     if (process.env.NODE_ENV !== "production") {
       // DEV-ONLY diagnostic - reveals what autofill/extensions inject.
       // Never ships value-logging to production.
-      console.warn("[honeypot][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[honeypot][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
     return NextResponse.json({ ok: true });
   }
   if (botCheck.verdict === "accept_with_warning") {
     console.warn("[bot-signal] decoy filled but JS token valid on /api/contact - accepting (autofill/extension case).");
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[bot-signal][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[bot-signal][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
   }
 
-  const firstName = typeof body.firstName === "string" ? body.firstName.trim() : "";
-  const lastName = typeof body.lastName === "string" ? body.lastName.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const phone = typeof body.phone === "string" ? body.phone.trim() : "";
-  const message = typeof body.message === "string" ? body.message.trim() : "";
+  const parsed = parseWithSchema<ContactInput>(contactSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Please fix the highlighted fields.",
+        fieldErrors: parsed.fieldErrors,
+      },
+      { status: 400 },
+    );
+  }
 
-  if (!firstName || !lastName || !email || !message) {
-    return NextResponse.json({ ok: false, error: "Please fill in all required fields." }, { status: 400 });
-  }
-  if (!isValidEmail(email)) {
-    return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
-  }
+  const { firstName, lastName, email, phone, message } = parsed.data;
 
   // The database write is the real submission now - a message landing
   // safely in contact_messages matters more than the confirmation email
@@ -89,6 +78,7 @@ export async function POST(request: Request) {
   });
   if (insertError) {
     console.error("Contact message insert failed:", insertError);
+    reportServerError(insertError, { route: "/api/contact", kind: "db", extra: { op: "insert" } });
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
@@ -130,14 +120,14 @@ export async function POST(request: Request) {
     });
     if (sendError) {
       console.error("Resend error (contact form):", sendError);
+      reportServerError(sendError, { route: "/api/contact", kind: "email", extra: { op: "resend" } });
     } else {
       console.log("Resend accepted (contact form), message id:", sendData?.id);
     }
   } catch (err) {
     console.error("Contact form email send failed:", err);
+    reportServerError(err, { route: "/api/contact", kind: "email", extra: { op: "resend_throw" } });
   }
 
   return NextResponse.json({ ok: true });
 }
-
-

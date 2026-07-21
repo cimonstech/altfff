@@ -12,6 +12,7 @@ import {
   type AudienceType,
   type CustomRecipient,
 } from "@/lib/communications";
+import AdminCard from "@/components/admin/AdminCard";
 
 type ChannelOption = "email" | "sms" | "both";
 type ComposeAudience = AudienceType | "custom";
@@ -187,7 +188,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
   };
 
   return (
-    <div className="mt-6 rounded-md border border-hairline bg-surface p-5">
+    <AdminCard className="mt-6">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/60">Compose</h2>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -395,7 +396,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
       >
         {sending ? "Sending…" : "Send"}
       </button>
-    </div>
+    </AdminCard>
   );
 }
 
@@ -407,21 +408,58 @@ type CommunicationLogRow = {
   recipient_count: number;
   status: string;
   sent_by: string | null;
+  sent_by_email: string | null;
 };
 
 type RecipientRow = {
   id: string;
   recipient_email: string | null;
   recipient_phone: string | null;
+  recipient_name: string | null;
   status: string;
   sent_at: string | null;
   error_message: string | null;
 };
 
+function formatSenderLabel(row: CommunicationLogRow): string {
+  if (row.sent_by_email) return row.sent_by_email;
+  // Both null = genuine system-triggered send (no such path yet; label ready).
+  if (!row.sent_by && !row.sent_by_email) return "System";
+  // Data anomaly: FK present but snapshot missing (pre-migration row that
+  // somehow didn't backfill, or insert path skipped the snapshot). Surface
+  // the raw fact rather than a vague "Unknown admin".
+  return "(missing sender email)";
+}
+
+function formatRecipientLabel(r: RecipientRow): string {
+  if (r.recipient_name && r.recipient_name.trim()) return r.recipient_name.trim();
+  return r.recipient_email || r.recipient_phone || "(no contact info)";
+}
+
+function csvField(value: unknown): string {
+  const str = value === null || value === undefined ? "" : String(value);
+  if (/[",\n]/.test(str)) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function downloadCsv(filename: string, headers: string[], rows: string[][]) {
+  const lines = [headers, ...rows].map((r) => r.map(csvField).join(","));
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function History({ refreshToken }: { refreshToken: number }) {
   const supabase = useMemo(() => createClient(), []);
   const [rows, setRows] = useState<CommunicationLogRow[]>([]);
-  const [senderNames, setSenderNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   // Distinct from "genuinely zero rows" - a failed query used to fall
   // through to the exact same "No communications sent yet" empty state
@@ -437,7 +475,7 @@ function History({ refreshToken }: { refreshToken: number }) {
     setLoadError("");
     const { data, error } = await supabase
       .from("communication_log")
-      .select("id, created_at, channel, audience_type, recipient_count, status, sent_by")
+      .select("id, created_at, channel, audience_type, recipient_count, status, sent_by, sent_by_email")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) {
@@ -448,16 +486,6 @@ function History({ refreshToken }: { refreshToken: number }) {
       return;
     }
     setRows((data ?? []) as CommunicationLogRow[]);
-
-    const senderIds = Array.from(new Set((data ?? []).map((r) => r.sent_by).filter((id): id is string => !!id)));
-    if (senderIds.length > 0) {
-      const { data: admins } = await supabase.from("admin_profiles").select("id, full_name").in("id", senderIds);
-      const map: Record<string, string> = {};
-      (admins ?? []).forEach((a) => {
-        map[a.id as string] = (a.full_name as string) || "Unknown admin";
-      });
-      setSenderNames(map);
-    }
     setLoading(false);
   }, [supabase]);
 
@@ -507,14 +535,14 @@ function History({ refreshToken }: { refreshToken: number }) {
                 <td className="p-3 text-ink">{row.audience_type}</td>
                 <td className="p-3 text-ink">{row.recipient_count}</td>
                 <td className="p-3 text-ink">{row.status}</td>
-                <td className="p-3 text-ink">{row.sent_by ? senderNames[row.sent_by] ?? "…" : "—"}</td>
+                <td className="p-3 text-ink">{formatSenderLabel(row)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <Modal isOpen={selected !== null} onClose={() => setSelected(null)} titleId="communication-detail-heading" panelClassName="max-w-lg">
+      <Modal isOpen={selected !== null} onClose={() => setSelected(null)} titleId="communication-detail-heading" panelClassName="max-w-2xl">
         {selected && <HistoryDetail key={selected.id} log={selected} supabase={supabase} />}
       </Modal>
     </div>
@@ -531,7 +559,7 @@ function HistoryDetail({ log, supabase }: { log: CommunicationLogRow; supabase: 
       setLoading(true);
       const { data, error } = await supabase
         .from("communication_recipients")
-        .select("id, recipient_email, recipient_phone, status, sent_at, error_message")
+        .select("id, recipient_email, recipient_phone, recipient_name, status, sent_at, error_message")
         .eq("communication_id", log.id)
         .order("created_at", { ascending: true });
       if (cancelled) return;
@@ -544,6 +572,23 @@ function HistoryDetail({ log, supabase }: { log: CommunicationLogRow; supabase: 
     };
   }, [supabase, log.id]);
 
+  const handleExportCsv = () => {
+    const headers = ["Recipient", "Email", "Phone", "Status", "Sent At", "Error"];
+    const rows = recipients.map((r) => [
+      formatRecipientLabel(r),
+      r.recipient_email ?? "",
+      r.recipient_phone ?? "",
+      r.status,
+      r.sent_at ?? "",
+      r.error_message ?? "",
+    ]);
+    downloadCsv(
+      `communication-${log.id.slice(0, 8)}-recipients.csv`,
+      headers,
+      rows,
+    );
+  };
+
   return (
     <div className="p-6 md:p-8">
       <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-deep">Communication</p>
@@ -551,28 +596,49 @@ function HistoryDetail({ log, supabase }: { log: CommunicationLogRow; supabase: 
         {log.channel} to {log.audience_type} ({log.recipient_count})
       </h2>
       <p className="mt-2 text-xs text-ink/60">
-        {formatDateTime(log.created_at)} · status: {log.status}
+        {formatDateTime(log.created_at)} · status: {log.status} · sent by: {formatSenderLabel(log)}
       </p>
 
-      <div className="mt-5">
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+          Recipients{!loading ? ` (${recipients.length})` : ""}
+        </p>
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={loading || recipients.length === 0}
+          className="rounded-full border border-hairline px-4 py-1.5 text-xs font-medium text-ink hover:bg-paper disabled:opacity-50"
+        >
+          Export CSV
+        </button>
+      </div>
+
+      <div className="mt-3">
         {loading ? (
           <p className="text-sm text-ink/50">Loading…</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
             {recipients.map((r) => (
-              <div key={r.id} className="rounded-md border border-hairline bg-surface p-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-ink">{r.recipient_email || r.recipient_phone || "(no contact info)"}</span>
+              <AdminCard key={r.id} padding="sm" className="text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink">{formatRecipientLabel(r)}</p>
+                    {(r.recipient_name || (r.recipient_email && r.recipient_phone)) && (
+                      <p className="mt-0.5 truncate text-xs text-ink/50">
+                        {[r.recipient_email, r.recipient_phone].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </div>
                   <span
                     className={
-                      r.status === "sent" ? "text-forest" : r.status === "failed" ? "text-madder" : "text-ink/50"
+                      r.status === "sent" ? "shrink-0 text-forest" : r.status === "failed" ? "shrink-0 text-madder" : "shrink-0 text-ink/50"
                     }
                   >
                     {r.status}
                   </span>
                 </div>
                 {r.error_message && <p className="mt-1 text-xs text-madder">{r.error_message}</p>}
-              </div>
+              </AdminCard>
             ))}
           </div>
         )}

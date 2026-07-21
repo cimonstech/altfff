@@ -3,6 +3,8 @@ import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { processRecipient } from "@/lib/communicationDelivery";
 import type { Channel } from "@/lib/communications";
+import { getSiteUrl } from "@/lib/siteUrl";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
@@ -46,18 +48,34 @@ async function handler(request: Request) {
 
   if (logError || !log) {
     console.error("process-recipient: parent communication_log not found", communicationId, logError);
+    reportServerError(logError ?? new Error("communication_log not found"), {
+      route: "/api/admin/communications/process-recipient",
+      kind: "worker",
+      extra: { op: "load_log" },
+    });
     // Nothing retrying this will fix - ack rather than let QStash retry forever.
     return NextResponse.json({ ok: false, error: "Communication not found." });
   }
 
-  await processRecipient(supabase, {
-    communicationId,
-    recipientId,
-    channel: log.channel as Channel,
-    subject: log.subject,
-    body: log.body,
-    mergeFields,
-  });
+  try {
+    await processRecipient(supabase, {
+      communicationId,
+      recipientId,
+      channel: log.channel as Channel,
+      subject: log.subject,
+      body: log.body,
+      mergeFields,
+    });
+  } catch (err) {
+    console.error("process-recipient: unexpected delivery failure", err);
+    reportServerError(err, {
+      route: "/api/admin/communications/process-recipient",
+      kind: "worker",
+      extra: { op: "process_recipient" },
+    });
+    // Return non-2xx so QStash can retry transient delivery failures.
+    return NextResponse.json({ ok: false, error: "Delivery failed." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }
@@ -78,7 +96,7 @@ function getVerifiedHandler() {
     cachedVerifiedHandler = verifySignatureAppRouter(handler, {
       currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
       nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY,
-      url: `${process.env.SITE_URL}/api/admin/communications/process-recipient`,
+      url: `${getSiteUrl()}/api/admin/communications/process-recipient`,
     });
   }
   return cachedVerifiedHandler;
@@ -89,6 +107,14 @@ export async function POST(request: Request) {
     return await getVerifiedHandler()(request);
   } catch (err) {
     console.error("process-recipient: QStash signature verification is not configured", err);
+    // Missing signing keys in production is a real config failure; in local
+    // dev the SDK is disabled so this won't flood Sentry for the known
+    // "QStash can't reach localhost" / incomplete-env case.
+    reportServerError(err, {
+      route: "/api/admin/communications/process-recipient",
+      kind: "config",
+      extra: { op: "qstash_verify" },
+    });
     return NextResponse.json({ ok: false, error: "QStash is not configured." }, { status: 500 });
   }
 }

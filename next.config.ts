@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 /**
  * Derived from R2_PUBLIC_URL rather than hardcoded - next.config.ts runs in
@@ -31,4 +32,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Source-map upload is optional: only when SENTRY_AUTH_TOKEN + org/project
+ * are set (typically CI). Without them the SDK still captures errors via
+ * NEXT_PUBLIC_SENTRY_DSN at runtime; builds must not fail for missing
+ * Sentry CI credentials.
+ */
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  disableLogger: true,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+});

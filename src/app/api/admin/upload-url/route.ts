@@ -4,6 +4,7 @@ import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createClient } from "@/lib/supabase/server";
 import { getR2Client, R2_BUCKET_NAME } from "@/lib/r2";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
@@ -123,6 +124,11 @@ export async function DELETE(request: Request) {
     await getR2Client().send(new DeleteObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key }));
   } catch (err) {
     console.error("Failed to delete R2 object:", key, err);
+    reportServerError(err, {
+      route: "/api/admin/upload-url",
+      kind: "storage",
+      extra: { op: "delete_object" },
+    });
     return NextResponse.json({ ok: false, error: "Failed to delete image." }, { status: 500 });
   }
 

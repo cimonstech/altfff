@@ -7,6 +7,9 @@ import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { exhibitorApplicationSchema } from "@/lib/validation/exhibitor";
+import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
 const TOTAL_FIELDS = 10; // 8 text/tel/email inputs + 2 selects
 
@@ -20,6 +23,7 @@ type Status = "idle" | "submitting" | "error";
  */
 export default function ExhibitApplicationForm({ headingId }: { headingId?: string }) {
   const progressBarRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const filledSetRef = useRef<Set<string>>(new Set());
   const [filledCount, setFilledCount] = useState(0);
   const [status, setStatus] = useState<Status>("idle");
@@ -29,6 +33,8 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
   // remount - the simplest reliable way to reset both native uncontrolled
   // inputs AND PhoneInput/FloatingField's own internal state back to empty.
   const [formKey, setFormKey] = useState(0);
+  const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
+    useZodFormErrors(exhibitorApplicationSchema);
 
   const handleFilledChange = useCallback((id: string, filled: boolean) => {
     const set = filledSetRef.current;
@@ -46,12 +52,23 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
     });
   }, [filledCount]);
 
+  const onBlurValidate = (field: string) => {
+    if (!formRef.current) return;
+    validateField(field, formDataToObject(formRef.current));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
+    const data = formDataToObject(e.currentTarget);
+    const check = validateAll(data);
+    if (!check.ok) {
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("submitting");
     try {
       const res = await fetch("/api/exhibitor-applications", {
         method: "POST",
@@ -59,6 +76,18 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         body: JSON.stringify(data),
       });
       const body = await res.json();
+      if (res.status === 429) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 400 && body.fieldErrors && typeof body.fieldErrors === "object") {
+        applyServerFieldErrors(body.fieldErrors as Record<string, string>);
+        setStatus("idle");
+        return;
+      }
       if (!res.ok || !body.ok) {
         setErrorMessage(body.error || "Something went wrong. Please try again.");
         setStatus("error");
@@ -72,6 +101,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
       // cleared explicitly.
       filledSetRef.current.clear();
       setFilledCount(0);
+      clearFieldErrors();
       setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
@@ -103,25 +133,78 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         </span>
       </div>
 
-      <form key={formKey} className="flex flex-col gap-1" onSubmit={handleSubmit}>
-        <FloatingField id="email" label="Email Address" required type="email" onFilledChange={handleFilledChange} />
-        <FloatingField id="name" label="Full Name" onFilledChange={handleFilledChange} />
-        <PhoneInput id="phone" label="Phone Number" onFilledChange={handleFilledChange} />
-        <FloatingField id="company" label="Company Name" onFilledChange={handleFilledChange} />
-        <FloatingField id="title" label="Job Title" onFilledChange={handleFilledChange} />
-        <FloatingField id="nature" label="What is the nature of your business" onFilledChange={handleFilledChange} />
-        <FloatingField id="based" label="Where is your business based" onFilledChange={handleFilledChange} />
+      <form key={formKey} ref={formRef} noValidate className="flex flex-col gap-1" onSubmit={handleSubmit}>
+        <FloatingField
+          id="email"
+          label="Email Address"
+          required
+          type="email"
+          error={fieldErrors.email}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="name"
+          label="Full Name"
+          error={fieldErrors.name}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <PhoneInput
+          id="phone"
+          label="Phone Number"
+          error={fieldErrors.phone}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="company"
+          label="Company Name"
+          error={fieldErrors.company}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="title"
+          label="Job Title"
+          error={fieldErrors.title}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="nature"
+          label="What is the nature of your business"
+          error={fieldErrors.nature}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="based"
+          label="Where is your business based"
+          error={fieldErrors.based}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
 
         {/* Structured country field, distinct from "based" above - that
             field is free text (city/region detail varies a lot, e.g.
             "Kumasi, Ghana" or "West Africa region") while this is a clean,
             filterable value for the country column added in migration 0004. */}
-        <FloatingSelect id="country" label="Country" onFilledChange={handleFilledChange} options={COUNTRY_OPTIONS} />
+        <FloatingSelect
+          id="country"
+          label="Country"
+          onFilledChange={handleFilledChange}
+          options={COUNTRY_OPTIONS}
+          error={fieldErrors.country}
+          onBlurValidate={onBlurValidate}
+        />
 
         <FloatingSelect
           id="space"
           label="We would like a space"
           onFilledChange={handleFilledChange}
+          error={fieldErrors.space}
+          onBlurValidate={onBlurValidate}
           options={[
             { value: "standard", text: "Standard Booth (3m x 3m) - GHS 8,400" },
             { value: "medium", text: "Medium Booth (3m x 4m) - GHS 11,500" },
@@ -133,7 +216,13 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
           ]}
         />
 
-        <FloatingField id="hear" label="Where did you hear about Alt.FFF?" onFilledChange={handleFilledChange} />
+        <FloatingField
+          id="hear"
+          label="Where did you hear about Alt.FFF?"
+          error={fieldErrors.hear}
+          onFilledChange={handleFilledChange}
+          onBlurValidate={onBlurValidate}
+        />
 
         <BotProtection />
 

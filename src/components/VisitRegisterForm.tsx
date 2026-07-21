@@ -7,6 +7,9 @@ import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { visitPageRegistrationSchema } from "@/lib/validation/visitor";
+import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
 const INTEREST_OPTIONS = [
   { value: "materials", text: "Discovering New Materials & Innovation" },
@@ -32,6 +35,7 @@ export default function VisitRegisterForm() {
   // be found - confirmed as the same bug already found and fixed in
   // ContactForm.tsx.
   const container = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
@@ -39,6 +43,8 @@ export default function VisitRegisterForm() {
   // remount - the simplest reliable way to reset both native uncontrolled
   // inputs AND PhoneInput/FloatingField's own internal state back to empty.
   const [formKey, setFormKey] = useState(0);
+  const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
+    useZodFormErrors(visitPageRegistrationSchema);
 
   useGSAP(
     () => {
@@ -54,12 +60,23 @@ export default function VisitRegisterForm() {
     { scope: container },
   );
 
+  const onBlurValidate = (field: string) => {
+    if (!formRef.current) return;
+    validateField(field, formDataToObject(formRef.current));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
+    const data = formDataToObject(e.currentTarget);
+    const check = validateAll(data);
+    if (!check.ok) {
+      setStatus("idle");
+      return;
+    }
+
+    setStatus("submitting");
     try {
       const res = await fetch("/api/visitor-registrations", {
         method: "POST",
@@ -67,6 +84,18 @@ export default function VisitRegisterForm() {
         body: JSON.stringify(data),
       });
       const body = await res.json();
+      if (res.status === 429) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 400 && body.fieldErrors && typeof body.fieldErrors === "object") {
+        applyServerFieldErrors(body.fieldErrors as Record<string, string>);
+        setStatus("idle");
+        return;
+      }
       if (!res.ok || !body.ok) {
         setErrorMessage(body.error || "Something went wrong. Please try again.");
         setStatus("error");
@@ -74,6 +103,7 @@ export default function VisitRegisterForm() {
       }
       setStatus("idle");
       setShowBanner(true);
+      clearFieldErrors();
       setFormKey((k) => k + 1);
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
@@ -91,17 +121,71 @@ export default function VisitRegisterForm() {
       )}
       <form
         key={formKey}
+        ref={formRef}
+        noValidate
         className="visit-form-in flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <FloatingField id="visit-email" name="email" label="Email Address" required type="email" />
-        <FloatingField id="visit-fullName" name="full_name" label="Full Name" required />
-        <PhoneInput id="visit-phone" name="phone" label="Phone Number" />
-        <FloatingField id="visit-company" name="company_name" label="Company Name" />
-        <FloatingField id="visit-jobTitle" name="job_title" label="Job Title" />
-        <FloatingField id="visit-country" name="country" label="Country" />
-        <FloatingSelect id="visit-interest" name="interest" label="I am interested in" options={INTEREST_OPTIONS} />
-        <FloatingField id="visit-hearAbout" name="heard_about_us" label="Where did you hear about Alt.FFF?" />
+        <FloatingField
+          id="visit-email"
+          name="email"
+          label="Email Address"
+          required
+          type="email"
+          error={fieldErrors.email}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visit-fullName"
+          name="full_name"
+          label="Full Name"
+          required
+          error={fieldErrors.full_name}
+          onBlurValidate={onBlurValidate}
+        />
+        <PhoneInput
+          id="visit-phone"
+          name="phone"
+          label="Phone Number"
+          error={fieldErrors.phone}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visit-company"
+          name="company_name"
+          label="Company Name"
+          error={fieldErrors.company_name}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visit-jobTitle"
+          name="job_title"
+          label="Job Title"
+          error={fieldErrors.job_title}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visit-country"
+          name="country"
+          label="Country"
+          error={fieldErrors.country}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingSelect
+          id="visit-interest"
+          name="interest"
+          label="I am interested in"
+          options={INTEREST_OPTIONS}
+          error={fieldErrors.interest}
+          onBlurValidate={onBlurValidate}
+        />
+        <FloatingField
+          id="visit-hearAbout"
+          name="heard_about_us"
+          label="Where did you hear about Alt.FFF?"
+          error={fieldErrors.heard_about_us}
+          onBlurValidate={onBlurValidate}
+        />
 
         <BotProtection />
 

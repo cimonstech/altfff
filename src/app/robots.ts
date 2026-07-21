@@ -7,8 +7,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // /admin and /dashboard aren't built yet, but reserved disallowed
-        // now so they're already correct once either ships.
+        // Admin dashboard is real; keep it out of search indexes.
+        // /dashboard reserved in case a non-admin dashboard route is added later.
         disallow: ["/admin", "/dashboard"],
       },
     ],

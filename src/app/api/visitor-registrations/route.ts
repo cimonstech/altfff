@@ -4,12 +4,15 @@ import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
+import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
+import {
+  visitorRegistrationSchema,
+  type VisitorRegistrationInput,
+} from "@/lib/validation/visitor";
+import { parseWithSchema } from "@/lib/validation/parse";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
 
 /**
  * Shared by both visitor-facing forms - the quick modal (VisitorRegisterForm.tsx)
@@ -21,29 +24,17 @@ function isValidEmail(value: string) {
  * number_attending, company_name, job_title, country, and interest are only
  * ever sent by one form or the other - all are nullable columns (see
  * migration 0002), so that's expected and fine.
+ *
+ * Server schema requires email only (same as before). The /visit page uses a
+ * stricter client schema that also requires full_name.
  */
-type Payload = {
-  email?: unknown;
-  full_name?: unknown;
-  phone?: unknown;
-  number_attending?: unknown;
-  heard_about_us?: unknown;
-  company_name?: unknown;
-  job_title?: unknown;
-  country?: unknown;
-  interest?: unknown;
-  // Bot-protection fields (JS token, mount timestamp, decoy) are read via
-  // evaluateBotSignals - see src/lib/botProtection.ts.
-};
-
-function toTrimmedStringOrNull(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
 export async function POST(request: Request) {
-  let body: Payload;
+  const rate = await checkPublicFormRateLimit(request, "visitor-registrations");
+  if (!rate.success) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });
+  }
+
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
@@ -52,46 +43,45 @@ export async function POST(request: Request) {
 
   // Combined bot check - see src/lib/botProtection.ts for the strategy and
   // the two generations of honeypot false positives that led here.
-  const botCheck = evaluateBotSignals(body as Record<string, unknown>);
+  const botCheck = evaluateBotSignals(body);
   if (botCheck.verdict === "reject") {
     console.warn(`[honeypot] tripped on /api/visitor-registrations (${botCheck.reason}) - submission dropped, fake success returned.`);
     if (process.env.NODE_ENV !== "production") {
       // DEV-ONLY diagnostic - never ships value-logging to production.
-      console.warn("[honeypot][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[honeypot][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
     return NextResponse.json({ ok: true });
   }
   if (botCheck.verdict === "accept_with_warning") {
     console.warn("[bot-signal] decoy filled but JS token valid on /api/visitor-registrations - accepting (autofill/extension case).");
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[bot-signal][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[bot-signal][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
   }
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-
-  // `email` is the only field marked required on either form's current UI -
-  // matched exactly, not inventing additional required fields.
-  if (!email) {
-    return NextResponse.json({ ok: false, error: "Please fill in all required fields." }, { status: 400 });
+  const parsed = parseWithSchema<VisitorRegistrationInput>(visitorRegistrationSchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Please fix the highlighted fields.",
+        fieldErrors: parsed.fieldErrors,
+      },
+      { status: 400 },
+    );
   }
-  if (!isValidEmail(email)) {
-    return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
-  }
 
-  const fullName = toTrimmedStringOrNull(body.full_name);
-  const phone = toTrimmedStringOrNull(body.phone);
-  const heardAboutUs = toTrimmedStringOrNull(body.heard_about_us);
-  const companyName = toTrimmedStringOrNull(body.company_name);
-  const jobTitle = toTrimmedStringOrNull(body.job_title);
-  const country = toTrimmedStringOrNull(body.country);
-  const interest = toTrimmedStringOrNull(body.interest);
-
-  let numberAttending: number | null = null;
-  if (typeof body.number_attending === "string" && body.number_attending.trim().length > 0) {
-    const parsed = Number.parseInt(body.number_attending.trim(), 10);
-    if (Number.isFinite(parsed) && parsed > 0) numberAttending = parsed;
-  }
+  const {
+    email,
+    full_name: fullName,
+    phone,
+    number_attending: numberAttending,
+    heard_about_us: heardAboutUs,
+    company_name: companyName,
+    job_title: jobTitle,
+    country,
+    interest,
+  } = parsed.data;
 
   // Deliberately the session-less anon client, never the cookie-aware
   // server client - see src/lib/supabase/anon.ts for the PGRST303
@@ -100,18 +90,23 @@ export async function POST(request: Request) {
   const supabase = createAnonClient();
   const { error: insertError } = await supabase.from("visitor_registrations").insert({
     email,
-    full_name: fullName,
-    phone,
+    full_name: fullName || null,
+    phone: phone || null,
     number_attending: numberAttending ?? undefined, // let the column default (1) apply if omitted
-    heard_about_us: heardAboutUs,
-    company_name: companyName,
-    job_title: jobTitle,
-    country,
-    interest,
+    heard_about_us: heardAboutUs || null,
+    company_name: companyName || null,
+    job_title: jobTitle || null,
+    country: country || null,
+    interest: interest || null,
   });
 
   if (insertError) {
     console.error("Visitor registration insert failed:", insertError);
+    reportServerError(insertError, {
+      route: "/api/visitor-registrations",
+      kind: "db",
+      extra: { op: "insert" },
+    });
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
@@ -154,11 +149,50 @@ export async function POST(request: Request) {
     });
     if (sendError) {
       console.error("Resend error (visitor registration):", sendError);
+      reportServerError(sendError, {
+        route: "/api/visitor-registrations",
+        kind: "email",
+        extra: { op: "submitter_confirmation" },
+      });
     } else {
       console.log("Resend accepted (visitor registration), message id:", sendData?.id);
     }
+
+    // Internal team alert - alongside the submitter confirmation, not instead of it.
+    const internalBody = [
+      `Name: ${fullName || "—"}`,
+      companyName ? `Company: ${companyName}` : null,
+      `Email: ${email}`,
+      phone ? `Phone: ${phone}` : null,
+      country ? `Country: ${country}` : null,
+      numberAttending != null ? `Number attending: ${numberAttending}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const { data: internalData, error: internalError } = await resend.emails.send({
+      from: `Alt.FFF Website <${fromEmail}>`,
+      to: "enquiries@altfff.com",
+      replyTo: email,
+      subject: "New visitor registration received",
+      text: internalBody,
+    });
+    if (internalError) {
+      console.error("Resend error (visitor internal alert):", internalError);
+      reportServerError(internalError, {
+        route: "/api/visitor-registrations",
+        kind: "email",
+        extra: { op: "internal_alert" },
+      });
+    } else {
+      console.log("Resend accepted (visitor internal alert), message id:", internalData?.id);
+    }
   } catch (err) {
     console.error("Visitor registration confirmation email failed:", err);
+    reportServerError(err, {
+      route: "/api/visitor-registrations",
+      kind: "email",
+      extra: { op: "resend_throw" },
+    });
   }
 
   return NextResponse.json({ ok: true });

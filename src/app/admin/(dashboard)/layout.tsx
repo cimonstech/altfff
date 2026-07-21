@@ -1,20 +1,35 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/admin/actions";
+import AdminSidebar, { type AdminNavItem } from "@/components/admin/AdminSidebar";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: AdminNavItem[] = [
   { label: "Overview", href: "/admin" },
-  { label: "Exhibitor Applications", href: "/admin/exhibitors" },
-  { label: "Sponsor Inquiries", href: "/admin/sponsors" },
-  { label: "Visitor Registrations", href: "/admin/visitors" },
-  { label: "Contact Messages", href: "/admin/contact" },
+  {
+    label: "Exhibitor Applications",
+    href: "/admin/exhibitors",
+    attention: { table: "exhibitor_applications", status: "new" },
+  },
+  {
+    label: "Sponsor Inquiries",
+    href: "/admin/sponsors",
+    attention: { table: "sponsor_inquiries", status: "new_inquiry" },
+  },
+  {
+    label: "Visitor Registrations",
+    href: "/admin/visitors",
+    attention: { table: "visitor_registrations", status: "registered" },
+  },
+  {
+    label: "Contact Messages",
+    href: "/admin/contact",
+    attention: { table: "contact_messages", status: "new" },
+  },
   { label: "News", href: "/admin/news" },
   { label: "Communications", href: "/admin/communications" },
 ];
 
-const SUPER_ADMIN_NAV_ITEMS = [
+const SUPER_ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Activity Log", href: "/admin/activity" },
   { label: "Admins", href: "/admin/admins" },
 ];
@@ -30,6 +45,9 @@ const SUPER_ADMIN_NAV_ITEMS = [
  * The middleware already redirects unauthenticated requests away from
  * /admin/* at the edge; this check is a second, independent layer at the
  * Server Component level in case that edge config is ever wrong.
+ *
+ * Badge counts are fetched once here for the initial paint, then kept live
+ * by AdminSidebar's Realtime subscription (client).
  */
 export default async function AdminDashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -48,43 +66,35 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     .single();
 
   const isSuperAdmin = profile?.role === "super_admin";
-  const navItems = isSuperAdmin ? [...NAV_ITEMS, ...SUPER_ADMIN_NAV_ITEMS] : NAV_ITEMS;
+  const coreNavItems = NAV_ITEMS;
+  const superAdminNavItems = isSuperAdmin ? SUPER_ADMIN_NAV_ITEMS : [];
+  const navItems = [...coreNavItems, ...superAdminNavItems];
+
+  const badgeTargets = navItems.filter((item) => item.attention);
+  const badgeCounts = await Promise.all(
+    badgeTargets.map(async (item) => {
+      const { count } = await supabase
+        .from(item.attention!.table)
+        .select("*", { count: "exact", head: true })
+        .eq("status", item.attention!.status);
+      return count ?? 0;
+    }),
+  );
+  const badgesByHref: Record<string, number> = {};
+  badgeTargets.forEach((item, i) => {
+    badgesByHref[item.href] = badgeCounts[i];
+  });
+
+  const userLabel = `${profile?.full_name || user.email}${isSuperAdmin ? " · Super Admin" : ""}`;
 
   return (
     <div className="flex min-h-screen bg-paper">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-hairline bg-surface px-5 py-8">
-        <div>
-          <p className="font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-            Alt.FFF Admin
-          </p>
-          <p className="mt-1 text-xs text-indigo">
-            {profile?.full_name || user.email}
-            {isSuperAdmin && " · Super Admin"}
-          </p>
-        </div>
-
-        <nav aria-label="Admin navigation" className="mt-8 flex flex-1 flex-col gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-md px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <form action={logout}>
-          <button
-            type="submit"
-            className="mt-4 w-full rounded-md border border-hairline px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
-          >
-            Log out
-          </button>
-        </form>
-      </aside>
-
+      <AdminSidebar
+        coreNavItems={coreNavItems}
+        superAdminNavItems={superAdminNavItems}
+        initialBadges={badgesByHref}
+        userLabel={userLabel}
+      />
       <main className="flex-1 px-8 py-10">{children}</main>
     </div>
   );

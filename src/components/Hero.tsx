@@ -174,7 +174,7 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [gooEnabled, setGooEnabled] = useState<boolean | null>(null);
-  const { openVisitorModal } = useSiteModals();
+  const { openExhibitModal } = useSiteModals();
   const { sizes: wordFontSizes } = useMaterialWordSizes(
     // Desktop-specific order: start with cotton, place kente near the end
     ((): string[] => {
@@ -572,10 +572,10 @@ export default function Hero() {
             </p>
             <button
               type="button"
-              onClick={openVisitorModal}
+              onClick={openExhibitModal}
               className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
             >
-              Register for event
+              Apply to exhibit
               <span aria-hidden>&gt;</span>
             </button>
           </div>

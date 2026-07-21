@@ -55,8 +55,8 @@ export default async function NewsPage() {
         <section aria-label="Press enquiries" className="bg-madder px-6 py-16 text-paper md:px-16">
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
-              <h2 className="font-display text-2xl font-extrabold uppercase tracking-tight md:text-3xl">
-                Writing about Alt.FFF?
+              <h2 className="font-display text-2xl font-extrabold  tracking-tight md:text-3xl">
+                WRITING ABOUT Alt.FFF?
               </h2>
               <p className="mt-2 max-w-[55ch] text-sm leading-relaxed text-paper/85 md:text-base">
                 Get in touch for the press kit, imagery, and interviews with
@@ -83,11 +83,11 @@ export default async function NewsPage() {
           </div>
         </section>
 
-        <section aria-label="Newsletter" className="bg-paper px-6 py-20 md:px-16 md:py-28">
+        {/* <section aria-label="Newsletter" className="bg-paper px-6 py-20 md:px-16 md:py-28">
           <div className="mx-auto max-w-6xl">
             <NewsletterBand fieldId="news-newsletter-email" />
           </div>
-        </section>
+        </section> */}
       </main>
       <Footer />
     </>

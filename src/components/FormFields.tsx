@@ -14,7 +14,9 @@ export function FloatingField({
   label,
   required,
   type = "text",
+  error,
   onFilledChange,
+  onBlurValidate,
 }: {
   id: string;
   /** Falls back to `id` when omitted. Only matters for forms that submit
@@ -24,12 +26,17 @@ export function FloatingField({
   label: string;
   required?: boolean;
   type?: string;
+  /** Zod / server field error shown under the input. */
+  error?: string;
   onFilledChange?: (id: string, filled: boolean) => void;
+  /** Called after blur with the field's form `name` (for shared Zod schemas). */
+  onBlurValidate?: (fieldName: string) => void;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
   const [focused, setFocused] = useState(false);
   const [filled, setFilled] = useState(false);
+  const fieldName = name ?? id;
 
   useEffect(() => {
     const up = focused || filled;
@@ -62,11 +69,15 @@ export function FloatingField({
       </span>
       <input
         id={id}
-        name={name ?? id}
+        name={fieldName}
         type={type}
-        required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlurValidate?.(fieldName);
+        }}
         onChange={(e) => {
           const isFilled = e.target.value.length > 0;
           setFilled(isFilled);
@@ -80,6 +91,11 @@ export function FloatingField({
         className="absolute bottom-0 left-0 h-[2px] w-full origin-left bg-gold"
         style={{ transform: "scaleX(0)" }}
       />
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-madder" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -92,19 +108,24 @@ export function FloatingTextarea({
   label,
   required,
   rows = 4,
+  error,
   onFilledChange,
+  onBlurValidate,
 }: {
   id: string;
   name?: string;
   label: string;
   required?: boolean;
   rows?: number;
+  error?: string;
   onFilledChange?: (id: string, filled: boolean) => void;
+  onBlurValidate?: (fieldName: string) => void;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
   const [focused, setFocused] = useState(false);
   const [filled, setFilled] = useState(false);
+  const fieldName = name ?? id;
 
   useEffect(() => {
     const up = focused || filled;
@@ -137,11 +158,15 @@ export function FloatingTextarea({
       </span>
       <textarea
         id={id}
-        name={name ?? id}
-        required={required}
+        name={fieldName}
         rows={rows}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlurValidate?.(fieldName);
+        }}
         onChange={(e) => {
           const isFilled = e.target.value.length > 0;
           setFilled(isFilled);
@@ -155,6 +180,11 @@ export function FloatingTextarea({
         className="absolute bottom-0 left-0 h-[2px] w-full origin-left bg-gold"
         style={{ transform: "scaleX(0)" }}
       />
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-madder" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -165,19 +195,24 @@ export function FloatingSelect({
   name,
   label,
   options,
+  error,
   onFilledChange,
+  onBlurValidate,
 }: {
   id: string;
   /** Falls back to `id` when omitted - see FloatingField's own `name` doc. */
   name?: string;
   label: string;
   options: { value: string; text: string }[];
+  error?: string;
   onFilledChange?: (id: string, filled: boolean) => void;
+  onBlurValidate?: (fieldName: string) => void;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
   const [focused, setFocused] = useState(false);
   const [filled, setFilled] = useState(false);
+  const fieldName = name ?? id;
 
   useEffect(() => {
     const up = focused || filled;
@@ -209,10 +244,15 @@ export function FloatingSelect({
       </span>
       <select
         id={id}
-        name={name ?? id}
+        name={fieldName}
         defaultValue=""
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlurValidate?.(fieldName);
+        }}
         onChange={(e) => {
           const isFilled = e.target.value.length > 0;
           setFilled(isFilled);
@@ -233,6 +273,11 @@ export function FloatingSelect({
         className="absolute bottom-0 left-0 h-[2px] w-full origin-left bg-gold"
         style={{ transform: "scaleX(0)" }}
       />
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-madder" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

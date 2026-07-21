@@ -11,6 +11,7 @@ import {
   type Channel,
   type CustomRecipient,
 } from "@/lib/communications";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,9 @@ type SendPayload = {
 type ResolvedRecipient = {
   email: string | null;
   phone: string | null;
+  /** Real name when known (audience rows / preloaded selection); null for
+   * freeform Custom-typed addresses that genuinely have no name. */
+  name: string | null;
   mergeFields: Record<string, string>;
 };
 
@@ -116,6 +120,8 @@ export async function POST(request: Request) {
     resolvedRecipients = validRecipients.map((r) => ({
       email: r.email,
       phone: r.phone,
+      // Preloaded hand-offs carry a real name; freeform typed entries stay null.
+      name: r.name && r.name.length > 0 ? r.name : null,
       // "name" is the only merge field a Custom recipient can ever have -
       // present for a preloaded (data-table) selection, absent for raw
       // typed/pasted addresses, which carry no name data at all.
@@ -142,17 +148,27 @@ export async function POST(request: Request) {
 
     if (recipientsError) {
       console.error("Failed to load recipients for communication send:", recipientsError);
+      reportServerError(recipientsError, {
+        route: "/api/admin/communications/send",
+        kind: "db",
+        extra: { op: "load_recipients", audience },
+      });
       return NextResponse.json({ ok: false, error: "Failed to load recipients." }, { status: 500 });
     }
     if (!recipients || recipients.length === 0) {
       return NextResponse.json({ ok: false, error: "No recipients match the selected filters." }, { status: 400 });
     }
 
-    resolvedRecipients = recipients.map((r) => ({
-      email: (r.email as string | null | undefined) ?? null,
-      phone: (r.phone as string | null | undefined) ?? null,
-      mergeFields: getMergeFieldValues(audienceType, r),
-    }));
+    resolvedRecipients = recipients.map((r) => {
+      const mergeFields = getMergeFieldValues(audienceType, r);
+      const name = mergeFields.name.trim().length > 0 ? mergeFields.name.trim() : null;
+      return {
+        email: (r.email as string | null | undefined) ?? null,
+        phone: (r.phone as string | null | undefined) ?? null,
+        name,
+        mergeFields,
+      };
+    });
     audienceFilter = { status };
   }
 
@@ -167,12 +183,19 @@ export async function POST(request: Request) {
       recipient_count: resolvedRecipients.length,
       status: "queued",
       sent_by: user.id,
+      // Snapshot at send time - survives later admin deletion (migration 0005).
+      sent_by_email: user.email ?? null,
     })
     .select("id")
     .single();
 
   if (logError || !log) {
     console.error("Failed to insert communication_log:", logError);
+    reportServerError(logError ?? new Error("communication_log insert returned no row"), {
+      route: "/api/admin/communications/send",
+      kind: "db",
+      extra: { op: "insert_log" },
+    });
     return NextResponse.json({ ok: false, error: "Failed to create communication record." }, { status: 500 });
   }
 
@@ -183,6 +206,7 @@ export async function POST(request: Request) {
         communication_id: log.id,
         recipient_email: r.email,
         recipient_phone: r.phone,
+        recipient_name: r.name,
         status: "pending",
       })),
     )
@@ -190,6 +214,11 @@ export async function POST(request: Request) {
 
   if (recipientsInsertError || !insertedRecipients || insertedRecipients.length !== resolvedRecipients.length) {
     console.error("Failed to insert communication_recipients:", recipientsInsertError);
+    reportServerError(recipientsInsertError ?? new Error("recipient insert count mismatch"), {
+      route: "/api/admin/communications/send",
+      kind: "db",
+      extra: { op: "insert_recipients" },
+    });
     return NextResponse.json({ ok: false, error: "Failed to create recipient records." }, { status: 500 });
   }
 
@@ -245,6 +274,11 @@ export async function POST(request: Request) {
     failedCount = failedJobs.length;
 
     if (failedJobs.length > 0) {
+      reportServerError(new Error(`Failed to queue ${failedJobs.length} of ${jobs.length} recipients`), {
+        route: "/api/admin/communications/send",
+        kind: "queue",
+        extra: { failedCount: failedJobs.length, total: jobs.length },
+      });
       await Promise.all(
         failedJobs.map(({ job, result }) => {
           const reason = result.status === "rejected" ? result.reason : undefined;
@@ -261,6 +295,11 @@ export async function POST(request: Request) {
     // still no idea which, if any, actually queued, so treat the whole
     // batch as failed-to-queue rather than guessing.
     console.error("Unexpected error while queuing communication:", err);
+    reportServerError(err, {
+      route: "/api/admin/communications/send",
+      kind: "queue",
+      extra: { op: "queue_batch" },
+    });
     failedCount = jobs.length;
     queuedCount = 0;
     await supabase
@@ -281,6 +320,11 @@ export async function POST(request: Request) {
     .eq("id", log.id);
   if (statusUpdateError) {
     console.error("Failed to update communication_log status after queuing:", statusUpdateError);
+    reportServerError(statusUpdateError, {
+      route: "/api/admin/communications/send",
+      kind: "db",
+      extra: { op: "update_status" },
+    });
   }
 
   return NextResponse.json({

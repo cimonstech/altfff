@@ -4,29 +4,20 @@ import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
+import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
+import { sponsorInquirySchema, type SponsorInquiryInput } from "@/lib/validation/sponsor";
+import { parseWithSchema } from "@/lib/validation/parse";
+import { reportServerError } from "@/lib/sentryReport";
 
 export const runtime = "nodejs";
 
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-type Payload = {
-  email?: unknown;
-  fullName?: unknown;
-  phone?: unknown;
-  hearAbout?: unknown;
-  linkedin?: unknown;
-  company?: unknown;
-  jobTitle?: unknown;
-  businessNature?: unknown;
-  newsletter?: unknown;
-  // Bot-protection fields (JS token, mount timestamp, decoy) are read via
-  // evaluateBotSignals - see src/lib/botProtection.ts.
-};
-
 export async function POST(request: Request) {
-  let body: Payload;
+  const rate = await checkPublicFormRateLimit(request, "sponsor-inquiries");
+  if (!rate.success) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });
+  }
+
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
@@ -35,42 +26,49 @@ export async function POST(request: Request) {
 
   // Combined bot check - see src/lib/botProtection.ts for the strategy and
   // the two generations of honeypot false positives that led here.
-  const botCheck = evaluateBotSignals(body as Record<string, unknown>);
+  const botCheck = evaluateBotSignals(body);
   if (botCheck.verdict === "reject") {
     console.warn(`[honeypot] tripped on /api/sponsor-inquiries (${botCheck.reason}) - submission dropped, fake success returned.`);
     if (process.env.NODE_ENV !== "production") {
       // DEV-ONLY diagnostic - never ships value-logging to production.
-      console.warn("[honeypot][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[honeypot][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
     return NextResponse.json({ ok: true });
   }
   if (botCheck.verdict === "accept_with_warning") {
     console.warn("[bot-signal] decoy filled but JS token valid on /api/sponsor-inquiries - accepting (autofill/extension case).");
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[bot-signal][dev-only] decoy value:", (body as Record<string, unknown>)[DECOY_FIELD_NAME]);
+      console.warn("[bot-signal][dev-only] decoy value:", body[DECOY_FIELD_NAME]);
     }
   }
 
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const fullName = typeof body.fullName === "string" ? body.fullName.trim() : "";
-  const phone = typeof body.phone === "string" ? body.phone.trim() : "";
-  const hearAbout = typeof body.hearAbout === "string" ? body.hearAbout.trim() : "";
-  const linkedin = typeof body.linkedin === "string" ? body.linkedin.trim() : "";
-  const company = typeof body.company === "string" ? body.company.trim() : "";
-  const jobTitle = typeof body.jobTitle === "string" ? body.jobTitle.trim() : "";
-  const businessNature = typeof body.businessNature === "string" ? body.businessNature.trim() : "";
+  const parsed = parseWithSchema<SponsorInquiryInput>(sponsorInquirySchema, body);
+  if (!parsed.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Please fix the highlighted fields.",
+        fieldErrors: parsed.fieldErrors,
+      },
+      { status: 400 },
+    );
+  }
+
+  const {
+    email,
+    fullName,
+    phone,
+    hearAbout,
+    linkedin,
+    company,
+    jobTitle,
+    country,
+    businessNature,
+    newsletter,
+  } = parsed.data;
   // Checkbox: FormData only includes a checked box at all, so its presence
   // (any non-empty string, typically "on") means checked.
-  const newsletterOptIn = typeof body.newsletter === "string" && body.newsletter.length > 0;
-
-  // Matches every field currently marked `required` in SponsorshipForm.tsx's
-  // UI exactly - not inventing additional required fields.
-  if (!email || !fullName || !phone || !hearAbout || !linkedin || !company || !jobTitle || !businessNature) {
-    return NextResponse.json({ ok: false, error: "Please fill in all required fields." }, { status: 400 });
-  }
-  if (!isValidEmail(email)) {
-    return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
-  }
+  const newsletterOptIn = typeof newsletter === "string" && newsletter.length > 0;
 
   // Deliberately the session-less anon client, never the cookie-aware
   // server client - see src/lib/supabase/anon.ts for the PGRST303
@@ -83,6 +81,7 @@ export async function POST(request: Request) {
     phone,
     company_name: company,
     job_title: jobTitle,
+    country: country || null,
     nature_of_business: businessNature,
     linkedin_handle: linkedin,
     heard_about_us: hearAbout,
@@ -91,6 +90,7 @@ export async function POST(request: Request) {
 
   if (insertError) {
     console.error("Sponsor inquiry insert failed:", insertError);
+    reportServerError(insertError, { route: "/api/sponsor-inquiries", kind: "db", extra: { op: "insert" } });
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
@@ -110,6 +110,10 @@ export async function POST(request: Request) {
 
   try {
     const resend = new Resend(apiKey);
+    // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address
+    // on a borrowed Resend account (AgroTalentHub's), not altfff.com -
+    // the client's own domain isn't verified in Resend yet. Once it is,
+    // change RESEND_FROM_EMAIL in the environment; no code change needed.
     const textBody = [
       `Thanks for your interest in sponsoring Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
       "",
@@ -118,10 +122,6 @@ export async function POST(request: Request) {
       "Questions in the meantime? Reach us at enquiries@altfff.com.",
     ].join("\n");
     const { data: sendData, error: sendError } = await resend.emails.send({
-      // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address
-      // on a borrowed Resend account (AgroTalentHub's), not altfff.com -
-      // the client's own domain isn't verified in Resend yet. Once it is,
-      // change RESEND_FROM_EMAIL in the environment; no code change needed.
       from: `Alt.FFF <${fromEmail}>`,
       to: email,
       replyTo: "enquiries@altfff.com",
@@ -131,11 +131,50 @@ export async function POST(request: Request) {
     });
     if (sendError) {
       console.error("Resend error (sponsor inquiry):", sendError);
+      reportServerError(sendError, {
+        route: "/api/sponsor-inquiries",
+        kind: "email",
+        extra: { op: "submitter_confirmation" },
+      });
     } else {
       console.log("Resend accepted (sponsor inquiry), message id:", sendData?.id);
     }
+
+    // Internal team alert - alongside the submitter confirmation, not instead of it.
+    const internalBody = [
+      `Name: ${fullName}`,
+      `Company: ${company}`,
+      `Email: ${email}`,
+      `Phone: ${phone}`,
+      country ? `Country: ${country}` : null,
+      jobTitle ? `Job title: ${jobTitle}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const { data: internalData, error: internalError } = await resend.emails.send({
+      from: `Alt.FFF Website <${fromEmail}>`,
+      to: "enquiries@altfff.com",
+      replyTo: email,
+      subject: "New sponsor inquiry received",
+      text: internalBody,
+    });
+    if (internalError) {
+      console.error("Resend error (sponsor internal alert):", internalError);
+      reportServerError(internalError, {
+        route: "/api/sponsor-inquiries",
+        kind: "email",
+        extra: { op: "internal_alert" },
+      });
+    } else {
+      console.log("Resend accepted (sponsor internal alert), message id:", internalData?.id);
+    }
   } catch (err) {
     console.error("Sponsor inquiry confirmation email failed:", err);
+    reportServerError(err, {
+      route: "/api/sponsor-inquiries",
+      kind: "email",
+      extra: { op: "resend_throw" },
+    });
   }
 
   return NextResponse.json({ ok: true });

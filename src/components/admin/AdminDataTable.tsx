@@ -24,6 +24,19 @@ export type AdminColumn = {
 // the brief; this is the "reasonable page-size limit" instead.
 const ROW_LIMIT = 500;
 
+/** Tables that track first-open via `viewed_at` (UI unread styling only). */
+const VIEWED_AT_TABLES = new Set([
+  "exhibitor_applications",
+  "sponsor_inquiries",
+  "visitor_registrations",
+]);
+
+function isUnreadRow(table: string, row: Record<string, unknown>): boolean {
+  if (table === "contact_messages") return row.status === "new";
+  if (VIEWED_AT_TABLES.has(table)) return row.viewed_at == null;
+  return false;
+}
+
 function toDisplayValue(row: Record<string, unknown>, field: string): React.ReactNode {
   const value = row[field];
   if (value === null || value === undefined || value === "") return "—";
@@ -176,6 +189,25 @@ export default function AdminDataTable({
     await updateRow(row.id as string, { status: newStatus });
   };
 
+  /**
+   * Contact: opening a `new` message marks it `read` via the same update
+   * path as a manual status change (activity log: new → read).
+   *
+   * Exhibitor/Sponsor/Visitor: first open stamps `viewed_at` only (UI unread
+   * styling). Does not change status, does not write activity_logs, and does
+   * not affect sidebar badge counts.
+   */
+  const openDetail = async (row: Record<string, unknown>) => {
+    setSelected(row);
+    if (table === "contact_messages" && row.status === "new") {
+      await handleStatusChange(row, "read");
+      return;
+    }
+    if (VIEWED_AT_TABLES.has(table) && row.viewed_at == null) {
+      await updateRow(row.id as string, { viewed_at: new Date().toISOString() });
+    }
+  };
+
   const handleExport = async () => {
     const headers = columns.map((c) => c.label);
     const csvRows = rows.map((row) =>
@@ -321,10 +353,14 @@ export default function AdminDataTable({
                 </td>
               </tr>
             )}
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const unread = isUnreadRow(table, row);
+              return (
               <tr
                 key={row.id as string}
-                onClick={() => setSelected(row)}
+                onClick={() => {
+                  void openDetail(row);
+                }}
                 className="cursor-pointer border-t border-hairline hover:bg-surface"
               >
                 <td className="p-3" onClick={(e) => e.stopPropagation()}>
@@ -336,13 +372,17 @@ export default function AdminDataTable({
                     className="h-4 w-4 rounded border-hairline"
                   />
                 </td>
-                {columns.map((c) => (
-                  <td key={c.field} className="p-3 text-ink">
+                {columns.map((c, colIndex) => (
+                  <td
+                    key={c.field}
+                    className={`p-3 text-ink ${unread && colIndex === 0 ? "font-semibold" : "font-normal"}`}
+                  >
                     {c.format ? c.format(row) : toDisplayValue(row, c.field)}
                   </td>
                 ))}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

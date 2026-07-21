@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { useTilt } from "@/lib/use-tilt";
 import HeroArtifacts from "@/components/HeroArtifacts";
+import { useSiteModals } from "@/components/SiteModals";
 
 const INTRO_PARAGRAPH =
   "Exhibiting at Alt.FFF is an opportunity to place your brand at the centre of one of the most exciting conversations in fashion, manufacturing, and African creative enterprise. It's where innovation meets opportunity, and where businesses gain visibility, connections, and real commercial potential.";
@@ -39,6 +40,7 @@ export default function ExhibitingHero() {
   const idleTweensRef = useRef<(gsap.core.Tween | null)[]>(
     GARMENTS.map(() => null),
   );
+  const { openExhibitModal } = useSiteModals();
 
   // Garment rotation: slide-down entrance, slide-down-and-fade exit,
   // gentle idle float once resting. Reduced motion: first garment shown
@@ -236,7 +238,7 @@ export default function ExhibitingHero() {
             </p>
           </div>
 
-          {/* Right: rotating garment stage + floating deck-download card */}
+          {/* Right: rotating garment stage + floating register CTA card */}
           <div className="exhibit-hero-in relative mt-12 md:col-span-5 md:mt-0">
             <div
               ref={stageRef}
@@ -297,17 +299,15 @@ export default function ExhibitingHero() {
               }}
             >
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink/70">
-                Exhibitor Information Pack
+                Open Call · Accra 2026
               </p>
-              <a
-                href="/Exhibitors+Pack+ALT.FFF_June+2026.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                download
+              <button
+                type="button"
+                onClick={openExhibitModal}
                 className="mt-3 inline-flex items-center rounded-full bg-madder px-4 py-2.5 text-xs font-semibold text-paper transition-opacity hover:opacity-85"
               >
-                Download Deck Here
-              </a>
+                Register to Exhibit
+              </button>
             </div>
           </div>
         </div>

@@ -38,16 +38,6 @@ function InstagramIcon() {
     </svg>
   );
 }
-function LinkedInIcon() {
-  return (
-    <svg viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="15" height="15" rx="2" stroke="var(--gold)" strokeWidth="1.4" />
-      <circle cx="6.3" cy="6.5" r="1" fill="var(--gold)" />
-      <path d="M6.3 9v5.5M10 9v5.5M10 11.3c0-1.3 1-2.3 2.2-2.3s2 1 2 2.3v3.2" stroke="var(--gold)" strokeWidth="1.4" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function Row({ icon: Icon, label, href }: { icon: () => React.ReactElement; label: string; href: string }) {
   return (
     <li className="flex items-center gap-2.5">
@@ -95,9 +85,6 @@ export default function SponsorshipSidebar() {
         </h3>
         <ul className="mt-3 flex flex-col gap-2.5 text-sm text-ink">
           <Row icon={InstagramIcon} label="@fashionforumafrica" href="https://www.instagram.com/fashionforumafrica" />
-          {/* TODO: placeholder href - needs the real Fashion Forum Africa
-              LinkedIn company page URL before launch. */}
-          <Row icon={LinkedInIcon} label="Fashion Forum Africa" href="#" />
         </ul>
       </div>
     </div>
