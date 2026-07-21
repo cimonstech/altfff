@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/admin/actions";
 import { ADMIN_SECTION_ICONS } from "@/components/admin/adminVisual";
@@ -21,11 +22,8 @@ function navItemIsActive(href: string, pathname: string): boolean {
 }
 
 /**
- * Client sidebar: initial badge counts come from the server layout, then
- * stay live via a single Realtime channel on the four form tables.
- * INSERT (new submission) and UPDATE (status change) both trigger a
- * head-count refetch for that table — more reliable than incremental math
- * from event payloads under RLS.
+ * Client sidebar: desktop persistent rail; below md a top-bar + overlay drawer.
+ * Badge counts stay live via Realtime (unchanged).
  */
 export default function AdminSidebar({
   coreNavItems,
@@ -41,6 +39,7 @@ export default function AdminSidebar({
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
   const [badgesByHref, setBadgesByHref] = useState(initialBadges);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const allNavItems = useMemo(
@@ -48,11 +47,28 @@ export default function AdminSidebar({
     [coreNavItems, superAdminNavItems],
   );
 
-  // Keep badges in sync if the server layout re-renders with new initials
-  // (e.g. soft navigation that remounts the layout with fresh RSC data).
   useEffect(() => {
     setBadgesByHref(initialBadges);
   }, [initialBadges]);
+
+  // Close drawer on route change (nav link tap).
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen]);
 
   const badgeTargets = useMemo(
     () =>
@@ -138,7 +154,7 @@ export default function AdminSidebar({
         href={item.href}
         aria-current={active ? "page" : undefined}
         className={[
-          "flex items-center justify-between gap-2 rounded-md py-2 pr-3 pl-2.5 text-sm font-medium transition-colors",
+          "flex min-h-11 items-center justify-between gap-2 rounded-md py-2.5 pr-3 pl-2.5 text-sm font-medium transition-colors",
           active
             ? "border-l-[3px] border-l-gold bg-paper text-ink"
             : "border-l-[3px] border-l-transparent text-ink hover:bg-paper",
@@ -155,7 +171,7 @@ export default function AdminSidebar({
           <span className="min-w-0 leading-snug">{item.label}</span>
         </span>
         {count > 0 && (
-          <span className="shrink-0 rounded-full bg-gold px-2 py-0.5 text-[11px] font-semibold leading-none text-white">
+          <span className="shrink-0 rounded-full bg-gold px-2.5 py-1 text-[11px] font-semibold leading-none text-white">
             {count > 99 ? "99+" : count}
           </span>
         )}
@@ -163,8 +179,8 @@ export default function AdminSidebar({
     );
   };
 
-  return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-hairline bg-surface px-5 py-8">
+  const panel = (
+    <>
       <div className="flex items-start gap-3">
         <Image
           src="/Afff_icon.png"
@@ -182,7 +198,7 @@ export default function AdminSidebar({
         </div>
       </div>
 
-      <nav aria-label="Admin navigation" className="mt-8 flex flex-1 flex-col gap-1">
+      <nav aria-label="Admin navigation" className="mt-8 flex flex-1 flex-col gap-1 overflow-y-auto">
         {coreNavItems.map(renderNavLink)}
 
         {superAdminNavItems.length > 0 && (
@@ -199,11 +215,76 @@ export default function AdminSidebar({
       <form action={logout}>
         <button
           type="submit"
-          className="mt-4 w-full rounded-md border border-hairline px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
+          className="mt-4 flex min-h-11 w-full items-center justify-center rounded-md border border-hairline px-3 py-2 text-sm font-medium text-ink hover:bg-paper"
         >
           Log out
         </button>
       </form>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-hairline bg-surface px-4 md:hidden">
+        <button
+          type="button"
+          aria-label="Open navigation menu"
+          aria-expanded={drawerOpen}
+          aria-controls="admin-nav-drawer"
+          onClick={() => setDrawerOpen(true)}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-ink hover:bg-paper"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" strokeWidth={1.75} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-sm font-extrabold uppercase tracking-tight text-ink">
+            Alt.FFF Admin
+          </p>
+        </div>
+        <Image
+          src="/Afff_icon.png"
+          alt=""
+          width={28}
+          height={28}
+          className="h-7 w-7 shrink-0 object-contain"
+          aria-hidden="true"
+        />
+      </header>
+
+      {/* Mobile drawer overlay */}
+      {drawerOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          className="fixed inset-0 z-40 bg-ink/40 md:hidden"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      <aside
+        id="admin-nav-drawer"
+        className={[
+          "flex flex-col border-hairline bg-surface",
+          // Desktop: persistent rail
+          "md:relative md:flex md:h-auto md:w-64 md:shrink-0 md:translate-x-0 md:border-r md:px-5 md:py-8",
+          // Mobile: fixed drawer
+          "fixed inset-y-0 left-0 z-50 w-[min(20rem,88vw)] max-w-full border-r px-5 py-6 shadow-[8px_0_24px_rgba(23,28,38,0.12)] transition-transform duration-200 ease-out md:shadow-none",
+          drawerOpen ? "translate-x-0" : "-translate-x-full pointer-events-none max-md:invisible md:pointer-events-auto md:visible md:translate-x-0",
+        ].join(" ")}
+      >
+        <div className="mb-4 flex items-center justify-end md:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setDrawerOpen(false)}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-ink/60 hover:bg-paper hover:text-ink"
+          >
+            <X className="h-5 w-5" aria-hidden="true" strokeWidth={1.75} />
+          </button>
+        </div>
+        {panel}
+      </aside>
+    </>
   );
 }

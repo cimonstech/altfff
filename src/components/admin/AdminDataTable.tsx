@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Modal from "@/components/Modal";
 import { storePreloadedRecipients, type CustomRecipient } from "@/lib/communications";
+import { adminStatusPillClass, formatAdminStatusLabel } from "@/components/admin/adminVisual";
 
 export type AdminColumn = {
   label: string;
@@ -19,10 +20,10 @@ export type AdminColumn = {
   format?: (row: Record<string, unknown>) => React.ReactNode;
 };
 
-// Rows beyond this are simply not fetched - an admin tool for a
-// thousands-of-rows-at-most dataset doesn't need real pagination UI, per
-// the brief; this is the "reasonable page-size limit" instead.
-const ROW_LIMIT = 500;
+/** Rows per page for both mobile cards and the desktop table. */
+const PAGE_SIZE = 25;
+/** Hard cap when exporting all filtered rows (not just the current page). */
+const EXPORT_CAP = 2000;
 
 /** Tables that track first-open via `viewed_at` (UI unread styling only). */
 const VIEWED_AT_TABLES = new Set([
@@ -48,6 +49,13 @@ function formatDateTime(value: unknown): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatDateShort(value: unknown): string {
+  if (!value || typeof value !== "string") return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", { dateStyle: "medium" });
 }
 
 type EntityNote = {
@@ -81,6 +89,30 @@ function downloadCsv(filename: string, headers: string[], rows: string[][]) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+type FilterOpts = {
+  statusFilter: string;
+  search: string;
+  searchFields: string[];
+};
+
+type FilterableQuery = {
+  eq: (column: string, value: string) => FilterableQuery;
+  or: (filters: string) => FilterableQuery;
+};
+
+/** Apply status + text search to a Supabase query builder. */
+function applyListFilters<T extends FilterableQuery>(query: T, opts: FilterOpts): T {
+  let next: FilterableQuery = query;
+  if (opts.statusFilter !== "all") {
+    next = next.eq("status", opts.statusFilter);
+  }
+  const q = opts.search.trim();
+  if (q && opts.searchFields.length > 0) {
+    next = next.or(opts.searchFields.map((f) => `${f}.ilike.%${q}%`).join(","));
+  }
+  return next as T;
 }
 
 export default function AdminDataTable({
@@ -118,16 +150,29 @@ export default function AdminDataTable({
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<CurrentAdmin | null>(null);
-  // Keyed by row id, not just a Set of ids - keeps each selected row's own
-  // data available for the "Message Selected" hand-off even if a search or
-  // status-filter change makes it drop out of the currently-loaded `rows`.
+  // One expanded card at a time keeps long lists scannable.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Keyed by row id - persists across pages so "Message Selected" works
+  // for rows chosen on page 1 and page 3 together.
   const [selectedRows, setSelectedRows] = useState<Map<string, Record<string, unknown>>>(new Map());
+
+  const filterOpts = useMemo(
+    () => ({ statusFilter, search, searchFields }),
+    [statusFilter, search, searchFields],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const pageFrom = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
+  const pageTo = Math.min(totalCount, (page + 1) * PAGE_SIZE);
 
   useEffect(() => {
     (async () => {
@@ -140,37 +185,47 @@ export default function AdminDataTable({
     })();
   }, [supabase]);
 
+  // Search / status change: jump back to first page and collapse cards
+  // (done in the control handlers so the next fetch already uses page 0).
+
   const fetchRows = useCallback(async () => {
     setLoading(true);
     setLoadError("");
 
-    let query = supabase.from(table).select("*").order("created_at", { ascending: false }).limit(ROW_LIMIT);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-    if (statusFilter !== "all") {
-      query = query.eq("status", statusFilter);
-    }
-    const q = search.trim();
-    if (q && searchFields.length > 0) {
-      query = query.or(searchFields.map((f) => `${f}.ilike.%${q}%`).join(","));
-    }
+    let query = supabase
+      .from(table)
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    query = applyListFilters(query, filterOpts);
 
-    const { data, error } = await query;
+    const { data, error, count } = await query;
     if (error) {
       console.error(`Failed to load ${table}:`, error);
       setLoadError("Failed to load data. Please try again.");
       setRows([]);
+      setTotalCount(0);
     } else {
       setRows(data ?? []);
+      setTotalCount(count ?? 0);
     }
     setLoading(false);
-  }, [supabase, table, statusFilter, search, searchFields]);
+  }, [supabase, table, filterOpts, page]);
+
+  // If filters shrink the result set past the current page, clamp.
+  useEffect(() => {
+    const pages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+    if (page > pages - 1) setPage(pages - 1);
+  }, [totalCount, page]);
 
   useEffect(() => {
-    // Debounce search re-fetches; status-filter changes fire immediately
-    // via the same effect since both are dependencies.
-    const t = setTimeout(fetchRows, 300);
+    // Debounce search re-fetches; page/status fire via the same effect.
+    const t = setTimeout(fetchRows, search.trim() ? 300 : 0);
     return () => clearTimeout(t);
-  }, [fetchRows]);
+  }, [fetchRows, search]);
 
   const updateRow = async (id: string, patch: Record<string, unknown>) => {
     const { data, error } = await supabase.from(table).update(patch).eq("id", id).select().single();
@@ -180,6 +235,12 @@ export default function AdminDataTable({
     }
     setRows((prev) => prev.map((r) => (r.id === id ? data : r)));
     setSelected((prev) => (prev && prev.id === id ? data : prev));
+    setSelectedRows((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Map(prev);
+      next.set(id, data);
+      return next;
+    });
     return data;
   };
 
@@ -208,25 +269,48 @@ export default function AdminDataTable({
     }
   };
 
+  /** Export every row matching the current filters (not just this page). */
   const handleExport = async () => {
-    const headers = columns.map((c) => c.label);
-    const csvRows = rows.map((row) =>
-      columns.map((c) => (c.format ? String(c.format(row) ?? "") : String(toDisplayValue(row, c.field)))),
-    );
-    downloadCsv(`${table}-${new Date().toISOString().slice(0, 10)}.csv`, headers, csvRows);
+    setExporting(true);
+    try {
+      let query = supabase
+        .from(table)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(EXPORT_CAP);
+      query = applyListFilters(query, filterOpts);
+      const { data, error } = await query;
+      if (error) {
+        console.error(`Failed to export ${table}:`, error);
+        setLoadError("Failed to export CSV. Please try again.");
+        return;
+      }
+      const exportRows = data ?? [];
+      const headers = columns.map((c) => c.label);
+      const csvRows = exportRows.map((row) =>
+        columns.map((c) => (c.format ? String(c.format(row) ?? "") : String(toDisplayValue(row, c.field)))),
+      );
+      downloadCsv(`${table}-${new Date().toISOString().slice(0, 10)}.csv`, headers, csvRows);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (user) {
-      const { error } = await supabase.from("activity_logs").insert({
-        actor_id: user.id,
-        actor_email: user.email,
-        action: "export",
-        target_table: table,
-        details: { filters: { search: search.trim() || null, status: statusFilter }, row_count: rows.length },
-      });
-      if (error) console.error("Failed to log export:", error);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { error: logError } = await supabase.from("activity_logs").insert({
+          actor_id: user.id,
+          actor_email: user.email,
+          action: "export",
+          target_table: table,
+          details: {
+            filters: { search: search.trim() || null, status: statusFilter },
+            row_count: exportRows.length,
+            capped: exportRows.length >= EXPORT_CAP,
+          },
+        });
+        if (logError) console.error("Failed to log export:", logError);
+      }
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -273,51 +357,135 @@ export default function AdminDataTable({
     router.push("/admin/communications");
   };
 
-  return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="search"
-          placeholder="Search…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:w-auto"
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus-visible:border-gold"
-        >
-          <option value="all">All statuses</option>
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        {selectedRows.size > 0 && (
-          <button
-            type="button"
-            onClick={handleMessageSelected}
-            className="rounded-full bg-gold px-4 py-2 text-sm font-medium text-ink hover:opacity-85"
-          >
-            Message Selected ({selectedRows.size})
-          </button>
-        )}
+  const rowTitle = (row: Record<string, unknown>) =>
+    getTitle ? getTitle(row) : toDisplayValue(row, titleField);
+
+  /** Secondary fields for expanded mobile cards — skip title/status/created. */
+  const cardSecondaryColumns = columns.filter(
+    (c) =>
+      c.field !== titleField &&
+      c.field !== "status" &&
+      c.field !== "created_at" &&
+      c.field !== "name",
+  );
+
+  const goToPage = (next: number) => {
+    setExpandedId(null);
+    setPage(Math.max(0, Math.min(totalPages - 1, next)));
+  };
+
+  const pagination = (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <p className="text-xs text-ink/50">
+        {loading
+          ? "Loading…"
+          : totalCount === 0
+            ? "0 results"
+            : `Showing ${pageFrom}–${pageTo} of ${totalCount}`}
+      </p>
+      <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={handleExport}
-          disabled={rows.length === 0}
-          className="ml-auto rounded-full border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-surface disabled:opacity-50"
+          onClick={() => goToPage(page - 1)}
+          disabled={loading || page <= 0}
+          className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-surface disabled:opacity-40"
         >
-          Export CSV
+          Previous
+        </button>
+        <span className="min-w-[4.5rem] text-center text-xs text-ink/60">
+          {totalCount === 0 ? "—" : `${page + 1} / ${totalPages}`}
+        </span>
+        <button
+          type="button"
+          onClick={() => goToPage(page + 1)}
+          disabled={loading || page >= totalPages - 1 || totalCount === 0}
+          className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-surface disabled:opacity-40"
+        >
+          Next
         </button>
       </div>
+    </div>
+  );
 
-      <p className="mt-3 text-xs text-ink/50">
-        {loading ? "Loading…" : `${rows.length} result${rows.length === 1 ? "" : "s"}`}
-        {rows.length === ROW_LIMIT && " (showing the first 500 - narrow your search or filter for more)"}
-      </p>
+  return (
+    <div>
+      {/* Sticky on mobile below the drawer top bar (h-14 / top-14); static on desktop. */}
+      <div className="sticky top-14 z-30 -mx-4 space-y-3 border-b border-hairline bg-paper/95 px-4 py-3 backdrop-blur-sm md:static md:z-auto md:mx-0 md:space-y-0 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <input
+            type="search"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+              setExpandedId(null);
+            }}
+            className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:max-w-xs"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(0);
+              setExpandedId(null);
+            }}
+            className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:w-auto sm:text-sm"
+          >
+            <option value="all">All statuses</option>
+            {statuses.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+            {selectedRows.size > 0 && (
+              <button
+                type="button"
+                onClick={handleMessageSelected}
+                className="inline-flex min-h-11 items-center rounded-full bg-gold px-4 py-2 text-sm font-medium text-ink hover:opacity-85"
+              >
+                Message Selected ({selectedRows.size})
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                void handleExport();
+              }}
+              disabled={exporting || totalCount === 0}
+              className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-2 text-sm font-medium text-ink hover:bg-surface disabled:opacity-50"
+            >
+              {exporting ? "Exporting…" : "Export CSV"}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 md:mt-3">
+          <p className="text-xs text-ink/50 md:hidden">
+            {loading
+              ? "Loading…"
+              : totalCount === 0
+                ? "0 results"
+                : `Showing ${pageFrom}–${pageTo} of ${totalCount}`}
+          </p>
+          {/* Select all on the current page only — selection Map still
+              accumulates across pages for Message Selected. */}
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-ink/60 md:hidden">
+            <input
+              type="checkbox"
+              aria-label="Select all rows on this page"
+              checked={allVisibleSelected}
+              onChange={toggleSelectAllVisible}
+              className="h-5 w-5 rounded border-hairline"
+            />
+            Select page
+          </label>
+        </div>
+      </div>
+
+      <div className="mt-3 hidden md:block">{pagination}</div>
 
       {loadError && (
         <p className="mt-2 text-sm text-madder" role="alert">
@@ -325,18 +493,129 @@ export default function AdminDataTable({
         </p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-md border border-hairline">
+      {/* Mobile card list — collapsed by default (title / status / date). */}
+      <ul className="mt-4 flex flex-col gap-2 md:hidden">
+        {!loading && rows.length === 0 && (
+          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">
+            No {entityLabel.toLowerCase()} records found.
+          </li>
+        )}
+        {rows.map((row) => {
+          const unread = isUnreadRow(table, row);
+          const status = typeof row.status === "string" ? row.status : "";
+          const id = row.id as string;
+          const expanded = expandedId === id;
+
+          return (
+            <li key={id}>
+              <div
+                className={`rounded-md border border-hairline bg-surface ${expanded ? "ring-1 ring-gold/40" : ""}`}
+              >
+                <div className="flex items-stretch gap-0">
+                  <label
+                    className="flex h-auto min-h-14 w-11 shrink-0 cursor-pointer items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      aria-label="Select row"
+                      checked={selectedRows.has(id)}
+                      onChange={() => toggleRowSelected(row)}
+                      className="h-5 w-5 rounded border-hairline"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    onClick={() => setExpandedId(expanded ? null : id)}
+                    className="min-w-0 flex-1 px-2 py-3 text-left"
+                  >
+                    <p className={`text-base leading-snug text-ink ${unread ? "font-semibold" : "font-medium"}`}>
+                      {rowTitle(row)}
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      {status && (
+                        <span
+                          className={`inline-flex min-h-7 items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${adminStatusPillClass(status)}`}
+                        >
+                          {formatAdminStatusLabel(status)}
+                        </span>
+                      )}
+                      <span className="text-xs text-ink/50">{formatDateShort(row.created_at)}</span>
+                      <span className="text-xs font-medium text-ink/35" aria-hidden="true">
+                        {expanded ? "▴" : "▾"}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+
+                {expanded && (
+                  <div className="border-t border-hairline px-3 pb-3 pt-2">
+                    {cardSecondaryColumns.length > 0 && (
+                      <dl className="space-y-1.5">
+                        {cardSecondaryColumns.map((c) => (
+                          <div key={c.field} className="flex gap-2 text-sm">
+                            <dt className="w-24 shrink-0 text-ink/45">{c.label}</dt>
+                            <dd className="min-w-0 break-words text-ink">
+                              {c.format ? c.format(row) : toDisplayValue(row, c.field)}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    )}
+
+                    <div className="mt-3">
+                      <label htmlFor={`mobile-status-${id}`} className="block text-xs font-semibold uppercase tracking-wide text-ink/50">
+                        Status
+                      </label>
+                      <select
+                        id={`mobile-status-${id}`}
+                        value={status}
+                        onChange={(e) => {
+                          void handleStatusChange(row, e.target.value);
+                        }}
+                        className="mt-1 min-h-11 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
+                      >
+                        {statuses.map((s) => (
+                          <option key={s} value={s}>
+                            {formatAdminStatusLabel(s)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void openDetail(row);
+                      }}
+                      className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-hairline px-4 py-2 text-sm font-semibold text-gold-deep hover:bg-paper"
+                    >
+                      Full details &amp; notes
+                    </button>
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Desktop table */}
+      <div className="mt-4 hidden overflow-x-auto rounded-md border border-hairline md:block">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-surface">
-              <th scope="col" className="w-10 p-3">
-                <input
-                  type="checkbox"
-                  aria-label="Select all visible rows"
-                  checked={allVisibleSelected}
-                  onChange={toggleSelectAllVisible}
-                  className="h-4 w-4 rounded border-hairline"
-                />
+              <th scope="col" className="w-12 p-3">
+                <label className="flex h-11 w-11 items-center justify-center">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all rows on this page"
+                    checked={allVisibleSelected}
+                    onChange={toggleSelectAllVisible}
+                    className="h-5 w-5 rounded border-hairline"
+                  />
+                </label>
               </th>
               {columns.map((c) => (
                 <th key={c.field} scope="col" className="p-3 text-xs font-semibold uppercase tracking-wide text-ink/50">
@@ -356,36 +635,40 @@ export default function AdminDataTable({
             {rows.map((row) => {
               const unread = isUnreadRow(table, row);
               return (
-              <tr
-                key={row.id as string}
-                onClick={() => {
-                  void openDetail(row);
-                }}
-                className="cursor-pointer border-t border-hairline hover:bg-surface"
-              >
-                <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    aria-label={`Select row`}
-                    checked={selectedRows.has(row.id as string)}
-                    onChange={() => toggleRowSelected(row)}
-                    className="h-4 w-4 rounded border-hairline"
-                  />
-                </td>
-                {columns.map((c, colIndex) => (
-                  <td
-                    key={c.field}
-                    className={`p-3 text-ink ${unread && colIndex === 0 ? "font-semibold" : "font-normal"}`}
-                  >
-                    {c.format ? c.format(row) : toDisplayValue(row, c.field)}
+                <tr
+                  key={row.id as string}
+                  onClick={() => {
+                    void openDetail(row);
+                  }}
+                  className="cursor-pointer border-t border-hairline hover:bg-surface"
+                >
+                  <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                    <label className="flex h-11 w-11 items-center justify-center">
+                      <input
+                        type="checkbox"
+                        aria-label="Select row"
+                        checked={selectedRows.has(row.id as string)}
+                        onChange={() => toggleRowSelected(row)}
+                        className="h-5 w-5 rounded border-hairline"
+                      />
+                    </label>
                   </td>
-                ))}
-              </tr>
+                  {columns.map((c, colIndex) => (
+                    <td
+                      key={c.field}
+                      className={`p-3 text-ink ${unread && colIndex === 0 ? "font-semibold" : "font-normal"}`}
+                    >
+                      {c.format ? c.format(row) : toDisplayValue(row, c.field)}
+                    </td>
+                  ))}
+                </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+
+      <div className="mt-4">{pagination}</div>
 
       <Modal isOpen={selected !== null} onClose={() => setSelected(null)} titleId="admin-row-detail-heading" panelClassName="max-w-lg">
         {selected && (
@@ -505,7 +788,7 @@ function RowDetail({
           id="detail-status"
           value={String(row.status ?? "")}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="mt-1 w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
+          className="mt-1 min-h-11 w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
         >
           {statuses.map((s) => (
             <option key={s} value={s}>
@@ -558,7 +841,7 @@ function RowDetail({
             type="button"
             onClick={handleAddNote}
             disabled={submitting || !newNote.trim()}
-            className="inline-flex w-fit items-center justify-center rounded-full bg-ink px-5 py-2 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-50"
+            className="inline-flex min-h-11 w-fit items-center justify-center rounded-full bg-ink px-5 py-2 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-50"
           >
             {submitting ? "Adding…" : "Add Note"}
           </button>

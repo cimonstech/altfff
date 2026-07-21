@@ -74,18 +74,18 @@ export default function ActivityLogView() {
 
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <input
           type="search"
           placeholder="Filter by actor email…"
           value={actorSearch}
           onChange={(e) => setActorSearch(e.target.value)}
-          className="w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:w-auto"
+          className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:max-w-xs"
         />
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="rounded-md border border-hairline bg-surface px-3 py-2 text-sm text-ink outline-none focus-visible:border-gold"
+          className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:w-auto sm:text-sm"
         >
           <option value="all">All actions</option>
           {ACTIVITY_ACTIONS.map((action) => (
@@ -107,7 +107,47 @@ export default function ActivityLogView() {
         </p>
       )}
 
-      <div className="mt-4 overflow-x-auto rounded-md border border-hairline">
+      {/* Mobile cards */}
+      <ul className="mt-4 flex flex-col gap-3 md:hidden">
+        {!loading && rows.length === 0 && (
+          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">No activity logged yet.</li>
+        )}
+        {rows.map((row) => {
+          const summary = formatActivitySummary(row.action, row.details);
+          const hasRawDetails = row.details && Object.keys(row.details).length > 0;
+          const showFallbackJson = summary === "—" && hasRawDetails;
+          const isExpanded = expandedId === row.id;
+
+          return (
+            <li key={row.id} className="rounded-md border border-hairline bg-surface p-4">
+              <p className="text-sm font-medium text-ink">{formatActivityAction(row.action)}</p>
+              <p className="mt-1 text-xs text-ink/50">{formatDateTime(row.created_at)}</p>
+              <p className="mt-2 text-sm text-ink">{row.actor_email || "—"}</p>
+              <p className="mt-1 text-xs text-ink/60">{formatActivityTarget(row.target_table, row.target_id)}</p>
+              <div className="mt-3 border-t border-hairline pt-3 text-sm text-ink">
+                <p>{showFallbackJson ? formatActivityDetailsJson(row.details) : summary}</p>
+                {hasRawDetails && !showFallbackJson && (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : row.id)}
+                    className="mt-1 inline-flex min-h-11 items-center text-xs font-medium text-gold-deep hover:underline"
+                  >
+                    {isExpanded ? "Hide raw JSON" : "Show raw JSON"}
+                  </button>
+                )}
+                {isExpanded && hasRawDetails && (
+                  <pre className="mt-2 max-h-48 overflow-auto rounded-md bg-paper p-2 text-xs text-ink/80">
+                    {formatActivityDetailsJson(row.details)}
+                  </pre>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Desktop table */}
+      <div className="mt-4 hidden overflow-x-auto rounded-md border border-hairline md:block">
         <table className="w-full min-w-[760px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-surface">
@@ -155,7 +195,7 @@ export default function ActivityLogView() {
                         <button
                           type="button"
                           onClick={() => setExpandedId(isExpanded ? null : row.id)}
-                          className="mt-1 text-xs font-medium text-gold-deep hover:underline"
+                          className="mt-1 inline-flex min-h-11 items-center text-xs font-medium text-gold-deep hover:underline"
                         >
                           {isExpanded ? "Hide raw JSON" : "Show raw JSON"}
                         </button>

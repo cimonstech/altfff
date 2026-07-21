@@ -68,7 +68,7 @@ export default async function AdminOverviewPage() {
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Overview</h1>
 
-      <div className="mt-6 grid gap-5 sm:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {ENTITIES.map((entity, i) => {
           const { total, perStatus } = results[i];
           // Only show statuses with at least one row, so a mostly-empty

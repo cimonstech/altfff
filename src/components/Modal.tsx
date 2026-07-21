@@ -178,7 +178,7 @@ export default function Modal({
             type="button"
             aria-label="Close"
             onClick={onClose}
-            className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink"
+            className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-ink/5 hover:text-ink max-md:right-[max(0.5rem,env(safe-area-inset-right))] max-md:top-[max(0.5rem,env(safe-area-inset-top))]"
           >
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
               <path d="M1 1 L15 15 M15 1 L1 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -187,7 +187,7 @@ export default function Modal({
           {/* Scrolls internally if content exceeds the panel's max-height
               (e.g. a long form on a short viewport) - the close button
               above sits outside this scroll area so it stays put. */}
-          <div className="overflow-y-auto">{children}</div>
+          <div className="overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">{children}</div>
         </div>
       </div>
     </div>

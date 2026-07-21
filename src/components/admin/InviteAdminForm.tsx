@@ -81,7 +81,7 @@ export default function InviteAdminForm() {
             id="invite-role"
             value={role}
             onChange={(e) => setRole(e.target.value as "admin" | "super_admin")}
-            className="mt-1 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
+            className="mt-1 min-h-11 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
           >
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
@@ -98,7 +98,7 @@ export default function InviteAdminForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex w-fit items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-60"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-60 sm:w-fit"
         >
           {submitting ? "Sending…" : "Send Invite"}
         </button>

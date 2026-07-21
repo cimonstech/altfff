@@ -56,12 +56,12 @@ export default function ImageUpload({
               entirely, not worth the remotePatterns friction here. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="" className="h-40 w-full rounded-md border border-hairline object-cover" />
-          <div className="mt-2 flex items-center gap-3">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="text-sm font-semibold text-gold-deep hover:opacity-75 disabled:opacity-50"
+              className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-gold-deep hover:opacity-75 disabled:opacity-50"
             >
               {uploading ? "Uploading…" : "Replace"}
             </button>
@@ -69,7 +69,7 @@ export default function ImageUpload({
               type="button"
               onClick={() => onChange(null)}
               disabled={uploading}
-              className="text-sm font-semibold text-madder hover:opacity-75 disabled:opacity-50"
+              className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-madder hover:opacity-75 disabled:opacity-50"
             >
               Remove
             </button>

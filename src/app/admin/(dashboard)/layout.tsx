@@ -88,14 +88,14 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const userLabel = `${profile?.full_name || user.email}${isSuperAdmin ? " · Super Admin" : ""}`;
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div className="flex min-h-screen flex-col bg-paper md:flex-row">
       <AdminSidebar
         coreNavItems={coreNavItems}
         superAdminNavItems={superAdminNavItems}
         initialBadges={badgesByHref}
         userLabel={userLabel}
       />
-      <main className="flex-1 px-8 py-10">{children}</main>
+      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10">{children}</main>
     </div>
   );
 }

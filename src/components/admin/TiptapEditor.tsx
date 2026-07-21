@@ -44,7 +44,7 @@ function ToolbarButton({
       onClick={onClick}
       aria-label={label}
       aria-pressed={active}
-      className={`flex h-8 min-w-8 items-center justify-center rounded px-2 text-sm font-semibold ${
+      className={`flex h-11 min-w-11 items-center justify-center rounded px-2.5 text-sm font-semibold ${
         active ? "bg-ink text-paper" : "text-ink hover:bg-paper"
       }`}
     >
@@ -86,7 +86,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   };
 
   return (
-    <div className="flex flex-wrap gap-1 border-b border-hairline p-2">
+    <div className="-mx-px flex flex-wrap gap-1 overflow-x-auto border-b border-hairline p-2 [-ms-overflow-style:none] [scrollbar-width:thin]">
       <ToolbarButton label="Bold" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
         B
       </ToolbarButton>

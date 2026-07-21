@@ -70,7 +70,48 @@ export default function AdminList({
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-md border border-hairline">
+      {/* Mobile cards */}
+      <ul className="flex flex-col gap-3 md:hidden">
+        {admins.length === 0 && (
+          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">No admins found.</li>
+        )}
+        {admins.map((admin) => (
+          <li key={admin.id} className="rounded-md border border-hairline bg-surface p-4">
+            <p className="font-medium text-ink">{admin.full_name || "—"}</p>
+            <p className="mt-1 truncate text-sm text-ink/70">{admin.email || "—"}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink/50">
+              <span className="capitalize">{admin.role.replace(/_/g, " ")}</span>
+              <span>·</span>
+              <span>Invited {admin.invited_at ? new Date(admin.invited_at).toLocaleDateString() : "—"}</span>
+            </div>
+            <div className="mt-2">
+              {admin.id === currentUserId ? (
+                <span className="text-xs text-ink/50">You</span>
+              ) : admin.email ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSuccess("");
+                    setDeleteTarget(admin);
+                    setConfirmEmail("");
+                    setError("");
+                  }}
+                  className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-madder hover:underline"
+                >
+                  Delete
+                </button>
+              ) : (
+                <span className="text-xs text-ink/50" title="No email on file">
+                  —
+                </span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop table */}
+      <div className="hidden overflow-x-auto rounded-md border border-hairline md:block">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-surface">
@@ -112,7 +153,7 @@ export default function AdminList({
                         setConfirmEmail("");
                         setError("");
                       }}
-                      className="text-sm font-medium text-madder hover:underline"
+                      className="inline-flex min-h-11 items-center text-sm font-medium text-madder hover:underline"
                     >
                       Delete
                     </button>

@@ -244,12 +244,12 @@ export default function NewsPostForm({ postId }: { postId?: string }) {
         </p>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           type="button"
           onClick={() => save(false)}
           disabled={saving !== null}
-          className="inline-flex items-center justify-center rounded-full border border-hairline px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center rounded-full border border-hairline px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface disabled:opacity-50"
         >
           {saving === "draft" ? "Saving…" : "Save as Draft"}
         </button>
@@ -257,7 +257,7 @@ export default function NewsPostForm({ postId }: { postId?: string }) {
           type="button"
           onClick={() => save(true)}
           disabled={saving !== null}
-          className="inline-flex items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85 disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85 disabled:opacity-50"
         >
           {saving === "publish" ? "Publishing…" : "Publish"}
         </button>
