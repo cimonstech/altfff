@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import type { AuthChangeEvent, RealtimeChannel, Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/admin/actions";
 import { ADMIN_SECTION_ICONS } from "@/components/admin/adminVisual";
@@ -16,6 +17,11 @@ export type AdminNavItem = {
   attention?: { table: string; status: string };
 };
 
+const BADGE_CHANNEL_NAME = "admin-sidebar-badges";
+/** Backoff for Realtime reconnect after channel errors or offline blips. */
+const RECONNECT_BASE_MS = 3000;
+const RECONNECT_MAX_MS = 30000;
+
 function navItemIsActive(href: string, pathname: string): boolean {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -23,7 +29,7 @@ function navItemIsActive(href: string, pathname: string): boolean {
 
 /**
  * Client sidebar: desktop persistent rail; below md a top-bar + overlay drawer.
- * Badge counts stay live via Realtime (unchanged).
+ * Badge counts stay live via Realtime; auth token sync + reconnect on expiry/errors.
  */
 export default function AdminSidebar({
   coreNavItems,
@@ -113,33 +119,159 @@ export default function AdminSidebar({
   useEffect(() => {
     if (badgeTargets.length === 0) return;
 
+    let cancelled = false;
+    let channel: RealtimeChannel | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectAttempt = 0;
+    let subscribed = false;
+    let connecting = false;
+    let intentionalTeardown = false;
+
     const tables = badgeTargets.map((t) => t.table);
-    let channel = supabase.channel("admin-sidebar-badges");
 
-    for (const table of tables) {
-      channel = channel
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table },
-          () => scheduleRefetch(table),
-        )
-        .on(
-          "postgres_changes",
-          { event: "UPDATE", schema: "public", table },
-          () => scheduleRefetch(table),
-        );
-    }
-
-    channel.subscribe((status, err) => {
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        console.error("[AdminSidebar] Realtime channel error:", status, err);
+    const syncRealtimeAuth = async (accessToken?: string | null) => {
+      if (accessToken !== undefined) {
+        await supabase.realtime.setAuth(accessToken);
+        return;
       }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      await supabase.realtime.setAuth(session?.access_token ?? null);
+    };
+
+    const clearReconnectTimer = () => {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+    };
+
+    const teardownChannel = async () => {
+      if (!channel) return;
+      intentionalTeardown = true;
+      const existing = channel;
+      channel = null;
+      subscribed = false;
+      await supabase.removeChannel(existing);
+      intentionalTeardown = false;
+    };
+
+    const subscribeChannel = async () => {
+      if (cancelled || connecting) return;
+      connecting = true;
+      clearReconnectTimer();
+
+      try {
+        await teardownChannel();
+        await syncRealtimeAuth();
+        if (cancelled) return;
+
+        let nextChannel = supabase.channel(BADGE_CHANNEL_NAME);
+        for (const table of tables) {
+          nextChannel = nextChannel
+            .on(
+              "postgres_changes",
+              { event: "INSERT", schema: "public", table },
+              () => scheduleRefetch(table),
+            )
+            .on(
+              "postgres_changes",
+              { event: "UPDATE", schema: "public", table },
+              () => scheduleRefetch(table),
+            );
+        }
+
+        channel = nextChannel;
+        nextChannel.subscribe((status, err) => {
+          if (cancelled) return;
+
+          if (status === "SUBSCRIBED") {
+            subscribed = true;
+            reconnectAttempt = 0;
+            return;
+          }
+
+          subscribed = false;
+
+          if (intentionalTeardown) return;
+
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            console.error("[AdminSidebar] Realtime channel error:", status, err);
+            scheduleReconnect();
+          }
+        });
+      } finally {
+        connecting = false;
+      }
+    };
+
+    const scheduleReconnect = () => {
+      if (cancelled || reconnectTimer || connecting) return;
+      const delay = Math.min(RECONNECT_BASE_MS * 2 ** reconnectAttempt, RECONNECT_MAX_MS);
+      reconnectAttempt += 1;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        void subscribeChannel();
+      }, delay);
+    };
+
+    const handleAuthChange = async (event: AuthChangeEvent, session: Session | null) => {
+      if (cancelled) return;
+
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        await supabase.realtime.setAuth(session?.access_token ?? null);
+        // setAuth updates joined channels, but an errored subscription stays
+        // dead until we tear down and subscribe again with the fresh token.
+        if (!subscribed) scheduleReconnect();
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        clearReconnectTimer();
+        reconnectAttempt = 0;
+        await teardownChannel();
+        await supabase.realtime.setAuth(null);
+      }
+    };
+
+    const {
+      data: { subscription: authSubscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      void handleAuthChange(event, session);
     });
 
+    const recoverConnection = () => {
+      if (cancelled || subscribed || connecting) return;
+      scheduleReconnect();
+    };
+
+    const onOnline = () => recoverConnection();
+
+    const onVisibility = () => {
+      if (document.visibilityState !== "visible" || cancelled) return;
+      void (async () => {
+        // Idle tabs may miss TOKEN_REFRESHED while throttled; re-read session
+        // when the admin returns and reconnect if the channel isn't healthy.
+        await supabase.auth.getSession();
+        await syncRealtimeAuth();
+        if (!subscribed) scheduleReconnect();
+      })();
+    };
+
+    window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisibility);
+    void subscribeChannel();
+
     return () => {
+      cancelled = true;
+      authSubscription.unsubscribe();
+      clearReconnectTimer();
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onVisibility);
+      void teardownChannel();
       for (const timer of Object.values(debounceRef.current)) clearTimeout(timer);
       debounceRef.current = {};
-      void supabase.removeChannel(channel);
     };
   }, [supabase, badgeTargets, scheduleRefetch]);
 
