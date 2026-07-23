@@ -47,28 +47,28 @@ const MATERIAL_OPTIONS = [
     src: "/materials/Finished-Materials/gator-skin.webp",
     label: "leather",
     alt: "Stacked dyed leather hides in layered colour",
-    caption: "Leather · Sourced Across Africa",
+    caption: "Leather · Sourced in Africa",
     tagline: "Hand-finished technique, generations in the making.",
   },
   {
     src: "/materials/Finished-Materials/mohair-finished-1.webp",
     label: "mohair",
     alt: "Finished mohair textile",
-    caption: "Mohair · Sourced Across Africa",
+    caption: "Mohair · Sourced in Africa",
     tagline: "Spun and woven using time-honoured techniques.",
   },
   {
     src: "/materials/Finished-Materials/pineapple-finished-1.webp",
     label: "pineapple leather",
     alt: "Finished pineapple-leather material",
-    caption: "Pineapple Leather · Sourced Across Africa",
+    caption: "Pineapple Leather · Sourced in Africa",
     tagline: "A plant-based leather alternative, innovation meets tradition.",
   },
   {
     src: "/materials/Finished-Materials/Raffia-dress.jpg",
     label: "raffia",
     alt: "Finished raffia garment",
-    caption: "Raffia · Sourced Across Africa",
+    caption: "Raffia · Sourced in Africa",
     tagline: "Hand-woven fibre, a craft passed through generations.",
   },
 ];
@@ -359,7 +359,7 @@ export default function AboutHero() {
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
               Take a look +
             </p>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
+            <p className="text-xs font-semibold normal-case tracking-[0.2em] text-ink/70">
               Alt.FFF 2026
             </p>
           </div>
@@ -448,8 +448,8 @@ export default function AboutHero() {
               backdropFilter: "blur(10px)",
             }}
           >
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-ink/70">
-              Raw &amp; Finished Materials
+            <p className="text-[11px] font-semibold normal-case tracking-[0.2em] text-ink/70">
+              Raw, Semi Processed &amp; Finished materials
             </p>
             <Link
               href="/exhibiting"
@@ -479,9 +479,9 @@ export default function AboutHero() {
           <div className="relative mt-4 w-full max-w-[16rem] rounded-2xl border border-hairline bg-surface p-4 md:absolute md:-bottom-8 md:-right-6 md:mt-0 md:ml-auto">
             <SpoolIcon />
             <p className="mt-2 font-display text-sm font-extrabold uppercase tracking-tight text-ink">
-              Sourcing Across Africa
+              Sourcing in Africa
             </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-indigo">
+            <p className="mt-1.5 text-[13px] leading-relaxed text-indigo">
               Raw fibres, finished textiles, leather, and process-led innovation.
             </p>
           </div>

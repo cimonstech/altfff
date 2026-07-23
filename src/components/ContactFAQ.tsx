@@ -13,12 +13,12 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What types of materials and innovations will be showcased at Alt.FFF 2026?",
     answer:
-      "Alt.FFF showcases African-sourced materials across fibres, dyes and finished textiles - including kente, natural dyes, raffia, leather, cotton and cowrie craft - alongside the manufacturers and innovators working with them. Expect both raw material sourcing and finished-product innovation on the floor.",
+      "Alt.FFF showcases African-sourced materials across fibres, dyes and finished textiles - including kente, natural dyes, raffia, leather, cotton and cowrie & shells - alongside the manufacturers and innovators working with them. Expect both raw material sourcing and finished-product innovation in one space.",
   },
   {
     question: "What are the dates and location for the Alternative Fashion Fabric Fair (Alt.FFF) 2026?",
     answer:
-      "Alt.FFF 2026 runs September 17 to 19, 2026 at The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana.",
+      "Alt.FFF 2026 runs 17- 19, Sept 2026 at The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana.",
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",
@@ -49,18 +49,18 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Are there any platforms that promote collaborations between African artisans and global fashion brands?",
     answer:
-      "Alt.FFF is built for exactly this kind of connection, bringing manufacturers, artisans and material producers face to face with international buyers, designers and brands over three days on one floor.",
+      "Alt.FFF is built for exactly this kind of connection, bringing manufacturers, artisans and material producers face to face with international buyers, designers and brands over three days in one space.",
   },
   {
     question:
       "How can textile producers in Africa connect with designers and buyers interested in alternative materials?",
     answer:
-      "The most direct route is exhibiting at Alt.FFF, where producers get a booth on the trade floor in front of buyers actively sourcing alternative materials - apply via the Exhibiting page.",
+      "The most direct route is exhibiting at Alt.FFF, where producers get a booth in one space in front of buyers actively sourcing alternative materials - apply via the Exhibiting page.",
   },
   {
     question: "What are some events in 2026 that highlight African heritage textiles and innovations?",
     answer:
-      "Alt.FFF, September 17 to 19, 2026 in Accra, is designed as exactly this kind of event - a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.",
+      "Alt.FFF, 17- 19, Sept 2026 in Accra, is designed as exactly this kind of event - a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.",
   },
 ];
 

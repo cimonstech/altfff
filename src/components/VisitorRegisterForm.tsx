@@ -86,7 +86,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       <h2 id={headingId} className="pr-8 font-display text-lg font-extrabold uppercase tracking-tight text-ink">
         Register to Visit Alt.FFF
       </h2>
-      <p className="mt-2 text-sm text-indigo">Join us September 17–19, 2026 in Accra.</p>
+      <p className="mt-2 text-sm text-indigo">Join us 17- 19, Sept 2026 in Accra.</p>
 
       {showBanner && (
         <SuccessBanner

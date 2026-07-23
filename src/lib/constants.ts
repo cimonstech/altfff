@@ -2,7 +2,7 @@ export const EVENT = {
   name: "Alt.FFF",
   startDate: "2026-09-17",
   endDate: "2026-09-19",
-  dates: "September 17–19, 2026",
+  dates: "17- 19, Sept 2026",
   venue: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
   city: "Accra, Ghana",
 } as const;
@@ -110,7 +110,7 @@ export const MATERIALS: Material[] = [
   },
   {
     id: "cowrie",
-    name: "Cowrie Craft",
+    name: "Cowrie & Shells",
     origin: "Senegal",
     description:
       "Shell-work, beading and embellishment from Dakar's ateliers, currency turned ornament.",

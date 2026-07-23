@@ -164,7 +164,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="hover:text-ink hover:opacity-80"
           >
-            An initiative by Fashion Forum Africa (FFF)
+            An initiative by Fashion Forum Africa (FFA)
           </a>
         </div>
       </div>

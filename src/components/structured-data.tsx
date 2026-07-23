@@ -36,7 +36,7 @@ const WEBSITE_SCHEMA = {
   name: "Alt.FFF",
   url: "https://www.altfff.com",
   description:
-    "Where materials speak before fashion. Alt.FFF is Ghana's first alternative fashion fabric fair, taking place September 17 to 19, 2026 in Accra.",
+    "Where materials speak before fashion. Alt.FFF is Ghana's first alternative fashion fabric fair, taking place 17- 19, Sept 2026 in Accra.",
   inLanguage: "en",
   // No potentialAction/SearchAction - the site has no working search
   // functionality.

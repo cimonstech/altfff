@@ -17,7 +17,7 @@ import { buildMetadata } from "@/lib/metadata";
 export const metadata: Metadata = buildMetadata({
   title: "Before Fashion, There are Materials",
   description:
-    "Where materials speak before fashion. Three days of fibres, dyes, weaves and the people behind them - Accra, September 17-19, 2026.",
+    "Where materials speak before fashion. Three days of fibres, dyes, weaves and the people behind them - Accra, 17- 19, Sept 2026.",
   path: "/",
 });
 

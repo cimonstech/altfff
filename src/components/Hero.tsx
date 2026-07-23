@@ -598,7 +598,7 @@ export default function Hero() {
           }}
         >
           <p className="text-sm font-semibold leading-snug text-ink">
-            Trade fair date: 17 - 19 Sept, 2026
+            Trade Fair Date: 17- 19, Sept 2026
           </p>
           <p className="mt-3 text-xs leading-snug text-ink/70">
             {EVENT.venue}

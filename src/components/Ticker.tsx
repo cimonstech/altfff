@@ -7,10 +7,10 @@ import { EVENT, MATERIALS } from "@/lib/constants";
 
 const DEFAULT_ITEMS = [
   ...MATERIALS.map((m) => m.name),
-  "Accra · Sept 17–19, 2026",
+  "Accra · 17- 19, Sept 2026",
   EVENT.venue,
   "54 countries",
-  "One floor",
+  "One space",
 ];
 
 function Row({
