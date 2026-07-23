@@ -565,7 +565,7 @@ export default function Hero() {
               (CSS-toggled by breakpoint, not conditionally rendered, to
               avoid a hydration flash) so the DOM would otherwise contain
               two <h1>s at once regardless of which is visually hidden. */}
-          <p className="mb-4 inline-block w-fit bg-gold px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.24em] text-paper">
+          <p className="mb-4 text-[13px] font-semibold uppercase tracking-[0.24em] text-paper">
             {EYEBROW}
           </p>
           <p className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tighter text-paper">

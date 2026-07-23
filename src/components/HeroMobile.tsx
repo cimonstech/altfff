@@ -115,7 +115,7 @@ export default function HeroMobile() {
       {/* Bottom-left headline cluster. right-24 keeps it clear of the
           vertical word at every width down to 360px. */}
       <div ref={clusterRef} className="absolute bottom-16 left-5 right-24 z-10">
-        <p className="mb-3 inline-block w-fit bg-gold px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-paper">
+        <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.24em] text-paper">
           1st Alternative Fashion Fabric Fair
         </p>
         <h1 className="font-display text-[clamp(1.9rem,8.5vw,2.75rem)] font-extrabold uppercase leading-[1.02] tracking-tighter text-paper">
