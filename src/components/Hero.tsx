@@ -25,7 +25,11 @@ const BLOB_R = 26; // gooey blob radius (slightly larger than thumb radius)
 // material changes rather than trying to interpolate a gradient string.
 const DEFAULT_SCRIM_OPACITY = 0.15;
 
-const HEADLINE = "WHERE MATERIALS SPEAK BEFORE FASHION";
+const HEADLINE_LINES = [
+  "WHERE MATERIALS",
+  "SPEAK BEFORE",
+  "FASHION",
+] as const;
 const EYEBROW = "1st Alternative Fashion Fabric Fair";
 
 // Giant material word: fixed font-size ceiling. Short words render at this
@@ -138,16 +142,20 @@ function useMaterialWordSizes(words: string[]) {
 function HeadlineChars() {
   return (
     <>
-      {HEADLINE.split(" ").map((word, wi) => (
-        <span key={wi} className="inline-block overflow-hidden pb-[0.06em] align-top">
-          <span className="inline-block whitespace-pre">
-            {word.split("").map((ch, ci) => (
-              <span key={ci} className="hchar inline-block will-change-transform">
-                {ch}
+      {HEADLINE_LINES.map((line, li) => (
+        <span key={li} className="block whitespace-nowrap">
+          {line.split(" ").map((word, wi) => (
+            <span key={wi} className="inline-block overflow-hidden pb-[0.06em] align-top">
+              <span className="inline-block whitespace-pre">
+                {word.split("").map((ch, ci) => (
+                  <span key={ci} className="hchar inline-block will-change-transform">
+                    {ch}
+                  </span>
+                ))}
+                {wi < line.split(" ").length - 1 ? " " : ""}
               </span>
-            ))}
-            {wi < HEADLINE.split(" ").length - 1 ? " " : ""}
-          </span>
+            </span>
+          ))}
         </span>
       ))}
     </>
@@ -557,10 +565,10 @@ export default function Hero() {
               (CSS-toggled by breakpoint, not conditionally rendered, to
               avoid a hydration flash) so the DOM would otherwise contain
               two <h1>s at once regardless of which is visually hidden. */}
-          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+          <p className="mb-4 inline-block w-fit bg-gold px-3 py-1.5 text-[13px] font-semibold uppercase tracking-[0.24em] text-paper">
             {EYEBROW}
           </p>
-          <p className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
+          <p className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tighter text-paper">
             <HeadlineChars />
           </p>
           {/* Side by side from md up so the CTA doesn't stack a whole
