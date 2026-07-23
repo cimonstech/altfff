@@ -70,7 +70,7 @@ export default function HeroMobile() {
   return (
     <section
       ref={container}
-      aria-label="Alt.FFF - when materials speak before fashion"
+      aria-label="Alt.FFF - where materials speak before fashion"
       className="relative h-[100dvh] w-full overflow-hidden bg-ink"
     >
       <div ref={imgRef} className="absolute inset-0">
@@ -115,8 +115,11 @@ export default function HeroMobile() {
       {/* Bottom-left headline cluster. right-24 keeps it clear of the
           vertical word at every width down to 360px. */}
       <div ref={clusterRef} className="absolute bottom-16 left-5 right-24 z-10">
+        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+          1st Alternative Fashion Fabric Fair
+        </p>
         <h1 className="font-display text-[clamp(1.9rem,8.5vw,2.75rem)] font-extrabold uppercase leading-[1.05] tracking-tight text-paper">
-          When Materials Speak Before Fashion
+          Where Materials Speak Before Fashion
         </h1>
         <p className="mt-3 text-sm text-paper/60">Accra</p>
         <p className="mt-3 text-sm text-paper/70">

@@ -25,7 +25,8 @@ const BLOB_R = 26; // gooey blob radius (slightly larger than thumb radius)
 // material changes rather than trying to interpolate a gradient string.
 const DEFAULT_SCRIM_OPACITY = 0.15;
 
-const HEADLINE = "WHEN MATERIALS SPEAK BEFORE FASHION";
+const HEADLINE = "WHERE MATERIALS SPEAK BEFORE FASHION";
+const EYEBROW = "1st Alternative Fashion Fabric Fair";
 
 // Giant material word: fixed font-size ceiling. Short words render at this
 // size, left-aligned; long words scale down below it just enough to span
@@ -556,6 +557,9 @@ export default function Hero() {
               (CSS-toggled by breakpoint, not conditionally rendered, to
               avoid a hydration flash) so the DOM would otherwise contain
               two <h1>s at once regardless of which is visually hidden. */}
+          <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold">
+            {EYEBROW}
+          </p>
           <p className="font-display text-[clamp(2.6rem,6vw,4.9rem)] font-semibold uppercase leading-[0.97] tracking-tight text-paper">
             <HeadlineChars />
           </p>
