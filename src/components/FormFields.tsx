@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { textWithBrandName } from "@/components/BrandName";
 import { gsap } from "@/lib/gsap";
 
 /** Underline-style labelled input: label floats up + shrinks on focus or
@@ -64,7 +65,7 @@ export function FloatingField({
         ref={labelRef}
         className="pointer-events-none absolute left-0 top-5 origin-left text-xs font-semibold uppercase tracking-wide text-ink/50"
       >
-        {label}
+        {textWithBrandName(label)}
         {required && <span className="text-madder"> *</span>}
       </span>
       <input
@@ -153,7 +154,7 @@ export function FloatingTextarea({
         ref={labelRef}
         className="pointer-events-none absolute left-0 top-5 origin-left text-xs font-semibold uppercase tracking-wide text-ink/50"
       >
-        {label}
+        {textWithBrandName(label)}
         {required && <span className="text-madder"> *</span>}
       </span>
       <textarea
@@ -240,7 +241,7 @@ export function FloatingSelect({
         ref={labelRef}
         className="pointer-events-none absolute left-0 top-5 origin-left text-xs font-semibold uppercase tracking-wide text-ink/50"
       >
-        {label}
+        {textWithBrandName(label)}
       </span>
       <select
         id={id}

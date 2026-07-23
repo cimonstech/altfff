@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Boxes, Hammer, Mic, LayoutGrid, BookOpen, Scissors } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { textWithBrandName } from "@/components/BrandName";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 
@@ -77,7 +78,7 @@ export default function VisitExperience() {
         <div className="visit-experience-in mt-14 flex flex-col items-start justify-between gap-6 border-t border-paper/15 pt-10 md:flex-row md:items-center">
           <div>
             <p className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-              Alt.FFF is the pathway to power your next connection.
+              {textWithBrandName("Alt.FFF is the pathway to power your next connection.")}
             </p>
             <p className="mt-2 max-w-[55ch] text-sm text-paper/70">
               Connect directly with buyers, partners, and industry leaders

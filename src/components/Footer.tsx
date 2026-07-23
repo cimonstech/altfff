@@ -176,7 +176,7 @@ export default function Footer() {
       >
         <div
           ref={wordRef}
-          className="whitespace-nowrap font-display font-extrabold uppercase leading-none tracking-tight text-ink"
+          className="whitespace-nowrap font-display font-extrabold leading-none tracking-tight text-ink"
         >
           {WORDMARK.split("").map((ch, i) => (
             <span

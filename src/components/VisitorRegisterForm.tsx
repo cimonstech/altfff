@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FloatingField } from "@/components/FormFields";
+import { BrandName } from "@/components/BrandName";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
@@ -84,7 +85,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
   return (
     <div className="p-6 md:p-8">
       <h2 id={headingId} className="pr-8 font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-        Register to Visit Alt.FFF
+        Register to Visit <BrandName />
       </h2>
       <p className="mt-2 text-sm text-indigo">Join us 17- 19, Sept 2026 in Accra.</p>
 

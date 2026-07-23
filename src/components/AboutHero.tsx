@@ -78,9 +78,12 @@ const MATERIAL_OPTIONS = [
 // character-stagger treatment.
 const CREDITS = [
   "Organised by Fashion Forum Africa",
-  "In partnership with MCPR Africa",
+  "In partnership with Black Star Experience, MCPR Africa",
   "Supported by the National Commission on Culture",
-  "With the Association of Ghana Industries",
+  "Association of Ghana Industries",
+  "Ghana Culture Forum",
+  "Institute of Textiles & Fashion Professionals Ghana",
+  "Sponsored by DIMO",
 ];
 
 const INTRO_PARAGRAPH_1 =

@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { useTilt } from "@/lib/use-tilt";
 import HeroArtifacts from "@/components/HeroArtifacts";
+import { BrandName } from "@/components/BrandName";
 import { useSiteModals } from "@/components/SiteModals";
 
 const INTRO_PARAGRAPH =
@@ -231,7 +232,7 @@ export default function ExhibitingHero() {
           {/* Left: headline, intro paragraph */}
           <div className="md:col-span-7">
             <h1 className="exhibit-hero-in font-display text-[clamp(2.2rem,6vw,4.5rem)] font-extrabold uppercase leading-[1.03] tracking-tight text-paper">
-              Why Exhibit at Alt.FFF?
+              Why Exhibit at <BrandName />?
             </h1>
             <p className="exhibit-hero-in mt-6 max-w-[60ch] text-base leading-relaxed text-paper/75 md:text-lg">
               {INTRO_PARAGRAPH}

@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { textWithBrandName } from "@/components/BrandName";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 type FAQItem = { question: string; answer: string };
@@ -135,7 +136,7 @@ function AccordionItem({ item, open, onToggle }: { item: FAQItem; open: boolean;
           className="flex w-full items-center justify-between gap-4 py-5 text-left"
         >
           <span className="font-display text-sm font-bold uppercase tracking-tight text-ink md:text-base">
-            {item.question}
+            {textWithBrandName(item.question)}
           </span>
           <Indicator open={open} />
         </button>
@@ -149,7 +150,7 @@ function AccordionItem({ item, open, onToggle }: { item: FAQItem; open: boolean;
         style={{ height: 0 }}
       >
         <div ref={contentRef} className="pb-5 text-sm leading-relaxed text-indigo md:text-base">
-          {item.answer}
+          {textWithBrandName(item.answer)}
         </div>
       </div>
     </div>

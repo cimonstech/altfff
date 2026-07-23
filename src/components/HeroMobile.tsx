@@ -109,7 +109,7 @@ export default function HeroMobile() {
           letterSpacing: "-0.01em",
         }}
       >
-        {VERTICAL_WORD}
+        <span className="normal-case">{VERTICAL_WORD}</span>
       </span>
 
       {/* Bottom-left headline cluster. right-24 keeps it clear of the

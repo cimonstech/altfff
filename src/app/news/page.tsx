@@ -5,6 +5,7 @@ import NewsHero from "@/components/NewsHero";
 import NewsFeatured from "@/components/NewsFeatured";
 import NewsGrid from "@/components/NewsGrid";
 import NewsletterBand from "@/components/NewsletterBand";
+import { BrandName } from "@/components/BrandName";
 import { createClient } from "@/lib/supabase/server";
 import { buildMetadata } from "@/lib/metadata";
 import type { NewsPost } from "@/lib/newsPost";
@@ -56,7 +57,7 @@ export default async function NewsPage() {
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <div>
               <h2 className="font-display text-2xl font-extrabold  tracking-tight md:text-3xl">
-                WRITING ABOUT Alt.FFF?
+                WRITING ABOUT <BrandName />?
               </h2>
               <p className="mt-2 max-w-[55ch] text-sm leading-relaxed text-paper/85 md:text-base">
                 Get in touch for the press kit, imagery, and interviews with

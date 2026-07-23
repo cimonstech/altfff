@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { Sparkles, Users, GraduationCap, Briefcase } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
+import { BrandName } from "@/components/BrandName";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 const BENEFITS = [
@@ -83,7 +84,7 @@ export default function VisitBenefits() {
     >
       <div className="mx-auto max-w-6xl">
         <h2 className="mb-12 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight text-ink">
-          What Will You Gain From Visiting Alt.FFF
+          What Will You Gain From Visiting <BrandName />
         </h2>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

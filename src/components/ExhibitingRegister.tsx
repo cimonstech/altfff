@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { useSiteModals } from "@/components/SiteModals";
+import { BrandName } from "@/components/BrandName";
 
 const REASON_HEADINGS = [
   "Showcase Your Brand to the Right Audience",
@@ -61,7 +62,7 @@ export default function ExhibitingRegister() {
     >
       <div className="mx-auto max-w-3xl">
         <h2 className="register-in font-display text-[clamp(1.8rem,4vw,3rem)] font-extrabold uppercase tracking-tight text-ink">
-          Register to Exhibit at Alt.FFF
+          Register to Exhibit at <BrandName />
         </h2>
         <p className="register-in mt-4 max-w-[50ch] text-sm leading-relaxed text-indigo md:text-base">
           If you&apos;re interested in exhibiting with us, complete the form

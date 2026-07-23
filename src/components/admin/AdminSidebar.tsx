@@ -9,6 +9,7 @@ import type { AuthChangeEvent, RealtimeChannel, Session } from "@supabase/supaba
 import { createClient } from "@/lib/supabase/client";
 import { logout } from "@/app/admin/actions";
 import { ADMIN_SECTION_ICONS } from "@/components/admin/adminVisual";
+import { BrandName } from "@/components/BrandName";
 
 export type AdminNavItem = {
   label: string;
@@ -324,7 +325,7 @@ export default function AdminSidebar({
         />
         <div className="min-w-0">
           <p className="font-display text-lg font-extrabold uppercase tracking-tight text-ink">
-            Alt.FFF Admin
+            <BrandName /> Admin
           </p>
           <p className="mt-1 text-xs text-indigo">{userLabel}</p>
         </div>
@@ -371,7 +372,7 @@ export default function AdminSidebar({
         </button>
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-sm font-extrabold uppercase tracking-tight text-ink">
-            Alt.FFF Admin
+            <BrandName /> Admin
           </p>
         </div>
         <Image
