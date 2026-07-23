@@ -13,7 +13,7 @@ import { EVENT } from "@/lib/constants";
 
 export const metadata: Metadata = buildMetadata({
   title: "Visit Alt.FFF 2026 - Plan Your Visit",
-  description: `Plan your visit to ${EVENT.name}, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
+  description: `Plan your visit to ${EVENT.name}, ${EVENT.dates} at ${EVENT.venue}.`,
   path: "/visit",
 });
 

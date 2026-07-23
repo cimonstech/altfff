@@ -469,7 +469,7 @@ export default function AboutHero() {
                 ))}
               </div>
               <span className="rounded-full border border-hairline px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-ink/70">
-                +100 MFRS
+                +25 MFRS
               </span>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function AboutHero() {
               Sourcing Across Africa
             </p>
             <p className="mt-1.5 text-xs leading-relaxed text-indigo">
-              Raw fibres, finished textiles, leather, and process-led innovation, all on one floor.
+              Raw fibres, finished textiles, leather, and process-led innovation.
             </p>
           </div>
         </div>
@@ -539,7 +539,7 @@ export default function AboutHero() {
               01
             </span>
             <span className="inline-flex items-center rounded-full border border-hairline px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-ink">
-              +2,000 Expected Buyers
+              +1,500 Visitors
             </span>
           </div>
         </div>

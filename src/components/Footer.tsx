@@ -131,7 +131,6 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>{EVENT.venue}</li>
-                <li>{EVENT.city}</li>
               </ul>
             </div>
             <div>

@@ -6,7 +6,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 const LINES = [
   "Before fashion, there are materials.",
-  "Alt.FFF brings the makers, dyers, weavers and tanners of a continent onto one floor,",
+  "Alt.FFF brings the makers, dyers, weavers and tanners of the African continent into one space,",
   "so the industry can see where fashion really begins.",
 ];
 

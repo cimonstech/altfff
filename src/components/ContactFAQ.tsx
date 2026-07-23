@@ -18,7 +18,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What are the dates and location for the Alternative Fashion Fabric Fair (Alt.FFF) 2026?",
     answer:
-      "Alt.FFF 2026 runs September 17 to 19, 2026 at The Palms Convention Centre, La Palm Royal Beach Hotel, Accra, Ghana.",
+      "Alt.FFF 2026 runs September 17 to 19, 2026 at The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana.",
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",

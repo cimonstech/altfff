@@ -52,7 +52,7 @@ const EVENT_SCHEMA = {
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
   location: {
     "@type": "Place",
-    name: "The Palms Convention Centre",
+    name: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
     address: {
       "@type": "PostalAddress",
       streetAddress: "La Palm Royal Beach Hotel",

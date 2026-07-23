@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     // No ticket/confirmation number - no ticketing system exists yet, so no
     // promise of one is made here.
     const textBody = [
-      `Thanks for registering to visit Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
+      `Thanks for registering to visit Alt.FFF, ${EVENT.dates} at ${EVENT.venue}.`,
       "",
       "We look forward to seeing you there.",
       "",

@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     // the client's own domain isn't verified in Resend yet. Once it is,
     // change RESEND_FROM_EMAIL in the environment; no code change needed.
     const textBody = [
-      `Thanks for applying to exhibit at Alt.FFF, ${EVENT.dates} at ${EVENT.venue}, ${EVENT.city}.`,
+      `Thanks for applying to exhibit at Alt.FFF, ${EVENT.dates} at ${EVENT.venue}.`,
       "",
       "Your application has been received and is under review. Our team will be in touch.",
       "",

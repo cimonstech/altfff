@@ -3,7 +3,7 @@ export const EVENT = {
   startDate: "2026-09-17",
   endDate: "2026-09-19",
   dates: "September 17–19, 2026",
-  venue: "Palm Convention Centre, La Palm Royal Beach Hotel",
+  venue: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
   city: "Accra, Ghana",
 } as const;
 

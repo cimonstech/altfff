@@ -9,9 +9,9 @@ import { EVENT } from "@/lib/constants";
 import { useSiteModals } from "@/components/SiteModals";
 
 const DAYS = [
-  { day: "Day 1", date: "Wed, September 17", hours: "10:00 – 18:00 " },
-  { day: "Day 2", date: "Thu, September 18", hours: "10:00 – 18:00 " },
-  { day: "Day 3", date: "Fri, September 19", hours: "10:00 – 16:00 " },
+  { day: "Day 1", date: "Wed, 17th September", hours: "10:00 – 18:00 " },
+  { day: "Day 2", date: "Thu, 18th September", hours: "10:00 – 18:00 " },
+  { day: "Day 3", date: "Fri, 19th September", hours: "10:00 – 16:00 " },
 ];
 
 export default function EventDetails() {
@@ -95,9 +95,7 @@ export default function EventDetails() {
           ))}
         </div>
 
-        <p className="mt-12 text-paper/85">
-          {EVENT.venue}, {EVENT.city}
-        </p>
+        <p className="mt-12 text-paper/85">{EVENT.venue}</p>
 
         <div className="mt-8 flex flex-wrap gap-4">
           {/* Information-seeking CTA - takes the visitor to the full Visit

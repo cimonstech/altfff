@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
-import { MATERIALS } from "@/lib/constants";
+import { MATERIALS, EVENT } from "@/lib/constants";
 import { useSiteModals } from "@/components/SiteModals";
 
 const ROTATE_MS = 6000;
@@ -25,7 +25,7 @@ const BLOB_R = 26; // gooey blob radius (slightly larger than thumb radius)
 // material changes rather than trying to interpolate a gradient string.
 const DEFAULT_SCRIM_OPACITY = 0.15;
 
-const HEADLINE = "BEFORE FASHION, THERE ARE MATERIALS.";
+const HEADLINE = "WHEN MATERIALS SPEAK BEFORE FASHION";
 
 // Giant material word: fixed font-size ceiling. Short words render at this
 // size, left-aligned; long words scale down below it just enough to span
@@ -568,12 +568,11 @@ export default function Hero() {
           <div className="mt-6 flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
             <p className="max-w-[46ch] text-base text-paper md:text-lg">
               Three days of fibres, dyes, weaves and the people behind them.
-              Accra, September 17 to 19, 2026.
             </p>
             <button
               type="button"
               onClick={openExhibitModal}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-sm font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-[0.9625rem] font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
             >
               Apply to exhibit
               <span aria-hidden>&gt;</span>
@@ -598,18 +597,19 @@ export default function Hero() {
             border: "1px solid var(--hairline)",
           }}
         >
-          <p className="text-sm leading-snug text-ink">
-            The fair returns. Sept 17 to 19, 2026.
+          <p className="text-sm font-semibold leading-snug text-ink">
+            Trade fair date: 17 - 19 Sept, 2026
           </p>
           <p className="mt-3 text-xs leading-snug text-ink/70">
-            Palm Convention Centre, La Palm Royal Beach Hotel, Accra
+            {EVENT.venue}
           </p>
-          <a
-            href="#visit"
-            className="mt-2 inline-block text-sm font-semibold text-gold"
+          <button
+            type="button"
+            onClick={openExhibitModal}
+            className="mt-3 inline-block text-[0.9625rem] font-semibold text-gold"
           >
-            Learn more
-          </a>
+            Apply to Exhibit
+          </button>
         </div>
 
         {/* Thumbnail rail - vertical on desktop, horizontal row on mobile.
