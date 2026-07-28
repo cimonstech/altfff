@@ -33,7 +33,7 @@ export default function ExhibitingPage() {
           dark
           ambient3d
           quote="Africa has the talent, the resources, the craftsmanship."
-          attribution="Visiting David Whiteheads Textiles"
+          attribution="Makeba Nana Pokua Boateng, APR, USPAP-ISA"
           image={{
             src: "/materials/kente-craft.jpg",
             alt: "Kente cloth craftsmanship detail",

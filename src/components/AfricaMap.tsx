@@ -114,7 +114,7 @@ export const ISLAND_POSITIONS: Record<
 export const ACCRA_POSITION = { x: 292, y: 441 };
 
 /**
- * Approximate centroids (bounding-box midpoints) of the four textile-detail
+ * Approximate centroids (bounding-box midpoints) of textile-detail
  * countries, for placing the "explorable" pulse marker. Nudge freely - this
  * is a separate, independent tier from the participants system: a country
  * can be in both, neither, or just one.
@@ -123,11 +123,13 @@ export const TEXTILE_MARKER_POSITIONS: Record<string, { x: number; y: number }> 
   GH: { x: 283, y: 408 },
   NG: { x: 401, y: 392 },
   ET: { x: 780, y: 385 },
+  MG: { x: 905, y: 820 },
   KE: { x: 759, y: 512 },
+  ZA: { x: 615, y: 905 },
 };
 
 /**
- * Bounding boxes (SVG user-space units) for the same four countries, used
+ * Bounding boxes (SVG user-space units) for textile-detail countries, used
  * as a stable invisible hit-target. The visible path itself can't double
  * as the pointer target while it's being scaled for the zoom effect -
  * its rendered boundary moves as it grows, which can sweep across a
@@ -139,7 +141,9 @@ const TEXTILE_HIT_BOUNDS: Record<string, { x: number; y: number; width: number; 
   GH: { x: 256.6, y: 363.8, width: 52.5, height: 88.3 },
   NG: { x: 329, y: 325.5, width: 144.1, height: 133.1 },
   ET: { x: 697.7, y: 310.3, width: 180.7, height: 159.7 },
+  MG: { x: 842, y: 698, width: 140, height: 285 },
   KE: { x: 710.4, y: 441.1, width: 96.8, height: 140.9 },
+  ZA: { x: 515, y: 825, width: 205, height: 175 },
 };
 
 function participationLine(p: Participant) {
@@ -189,7 +193,7 @@ function TextileInfo({ t, headingId }: { t: TextileProfile; headingId?: string }
       >
         {t.country}
       </h2>
-      <p className="mt-2 text-sm font-semibold text-gold-deep">{t.headline}</p>
+      <p className="mt-2 text-sm font-semibold uppercase tracking-wide text-gold-deep">{t.headline}</p>
       <ul className="mt-3 flex flex-wrap gap-1.5">
         {t.materials.map((m) => (
           <li
@@ -369,7 +373,7 @@ export default function AfricaMap({
         },
       );
 
-      // Smaller-scale pulse marking the four textile-detail countries as
+      // Smaller-scale pulse marking textile-detail countries as
       // "explorable", independent of the participants tier.
       gsap.fromTo(
         ".textile-pulse",
@@ -582,9 +586,9 @@ export default function AfricaMap({
           );
         })}
 
-        {/* Stable pointer/keyboard targets for the four textile-tier
-            countries - always the topmost hit target within their bounds,
-            regardless of alphabetical paint order among the 50 paths. */}
+        {/* Stable pointer/keyboard targets for textile-tier countries -
+            always the topmost hit target within their bounds, regardless
+            of alphabetical paint order among the 50 paths. */}
         {textileProfiles.map((t) => {
           const b = TEXTILE_HIT_BOUNDS[t.code];
           if (!b) return null;

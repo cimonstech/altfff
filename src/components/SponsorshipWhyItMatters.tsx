@@ -6,9 +6,9 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 const STATS = [
   { value: 3, suffix: "", label: "Days" },
-  { value: 100, suffix: "+", label: "Manufacturers" },
+  { value: 25, suffix: "+", label: "Manufacturers" },
   { value: 54, suffix: "", label: "Countries" },
-  { value: 2000, suffix: "+", label: "Buyers" },
+  { value: 1500, suffix: "+", label: "Visitors" },
 ];
 
 export default function SponsorshipWhyItMatters() {
