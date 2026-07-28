@@ -47,7 +47,7 @@ export const MATERIALS: Material[] = [
     origin: "Ghana",
     description:
       "Strip-woven silk and cotton cloth from Bonwire and the Volta looms, pattern by pattern.",
-    background: "/materials/kente-bg.webp",
+    background: "/materials/kente-bg2.webp",
     thumbnail: "/materials/kente-thumb.webp",
     heroWord: "GHANA'S KENTE",
     // Bright yellow/green/orange geometric weave, busy throughout

@@ -48,16 +48,15 @@ export function PhoneInput({
   const filled = !!value;
 
   useEffect(() => {
-    const up = focused || filled;
     gsap.to(labelRef.current, {
-      y: up ? -20 : 0,
-      scale: up ? 0.78 : 1,
+      y: -20,
+      scale: 0.78,
       color: focused ? "var(--gold-deep)" : "rgba(23,28,38,0.5)",
       duration: 0.25,
       ease: "power2.out",
       transformOrigin: "left top",
     });
-  }, [focused, filled]);
+  }, [focused]);
 
   useEffect(() => {
     gsap.to(underlineRef.current, {
@@ -71,14 +70,15 @@ export function PhoneInput({
     <div className="relative pt-5">
       <span
         ref={labelRef}
-        className="pointer-events-none absolute left-0 top-5 z-10 origin-left text-xs font-semibold uppercase tracking-wide text-ink/50"
+        className="pointer-events-none absolute left-0 top-5 z-10 origin-left scale-[0.78] text-xs font-semibold uppercase tracking-wide text-ink/50 will-change-transform"
+        style={{ transform: "translateY(-20px)" }}
       >
         {label}
         {required && <span className="text-madder"> *</span>}
       </span>
       <RPNInput
         id={id}
-        className="alt-phone-input"
+        className="alt-phone-input mt-1"
         defaultCountry={defaultCountry}
         value={value}
         onChange={(v) => {

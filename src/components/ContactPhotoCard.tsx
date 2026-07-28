@@ -39,8 +39,8 @@ export default function ContactPhotoCard() {
       <div className="relative aspect-[4/5] overflow-hidden">
         <div ref={imageRef} className="absolute inset-x-0" style={{ top: "-6%", height: "112%" }}>
           <Image
-            src="/materials/kente-bg.webp"
-            alt="Hand-woven kente cloth, strip-woven pattern detail"
+            src="/materials/Ewe-Kete.jpeg"
+            alt="Ewe kete cloth, hand-woven strip pattern detail"
             fill
             sizes="(min-width: 768px) 40vw, 100vw"
             className="object-cover"

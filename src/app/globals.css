@@ -195,12 +195,16 @@ html.lenis body {
    above for Tiptap output. */
 .alt-phone-input {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
   width: 100%;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 0.5rem;
 }
 .alt-phone-input .PhoneInputCountry {
   margin-right: 0;
+  align-self: flex-end;
+  margin-bottom: 0.125rem;
 }
 .alt-phone-input .PhoneInputCountrySelect {
   color: var(--ink);
@@ -222,7 +226,7 @@ html.lenis body {
   min-width: 0;
   border: none;
   background: transparent;
-  padding: 0 0 0.5rem 0;
+  padding: 0.25rem 0 0 0;
   font-size: 1rem;
   color: var(--ink);
   outline: none;

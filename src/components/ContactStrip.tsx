@@ -41,6 +41,10 @@ const TILES: Tile[] = [
     label: "Follow Us On",
     links: [
       { text: "Instagram @fashionforumafrica", href: "https://www.instagram.com/fashionforumafrica" },
+      {
+        text: "Facebook · Alt.FFF",
+        href: "https://web.facebook.com/profile.php?id=61592337716845",
+      },
     ],
   },
 ];

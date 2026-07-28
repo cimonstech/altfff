@@ -23,10 +23,7 @@ const ORGANIZATION_SCHEMA = {
   },
   sameAs: [
     "https://www.instagram.com/fashionforumafrica",
-    // LinkedIn omitted: Fashion Forum Africa has no LinkedIn presence.
-    // TODO: add confirmed Facebook profile URL once available, do not
-    // guess a slug. Adding an incorrect or guessed URL here is worse
-    // than omitting it.
+    "https://web.facebook.com/profile.php?id=61592337716845",
   ],
 };
 

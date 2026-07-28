@@ -61,14 +61,14 @@ export default async function NewsArticlePage({
       <Nav />
       <main>
         <article className="bg-paper px-6 pb-20 pt-32 md:px-16 md:pt-40">
-          <div className="mx-auto max-w-[65ch]">
+          <div className="mx-auto max-w-4xl">
             <Link href="/news" className="text-sm font-semibold text-gold-deep hover:opacity-75">
               &larr; Back to News
             </Link>
             <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-deep">
               {formatDate(date)}
             </p>
-            <h1 className="mt-3 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase leading-tight tracking-tight text-ink">
+            <h1 className="mt-3 font-display text-[clamp(1.4rem,3.5vw,2.45rem)] font-extrabold uppercase leading-tight tracking-tight text-ink">
               {article.title}
             </h1>
           </div>
