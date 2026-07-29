@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { SuccessBanner } from "@/components/SuccessBanner";
@@ -179,11 +180,7 @@ export default function SponsorshipForm() {
           onBlurValidate={onBlurValidate}
         />
 
-        <label className="mt-5 flex items-start gap-2.5 text-xs leading-relaxed text-ink/80">
-          <input type="checkbox" name="newsletter" className="mt-0.5 h-4 w-4 shrink-0 rounded border-hairline" />
-          Tick the box if you would like to receive email updates regarding
-          the Alt.FFF event.
-        </label>
+        <NewsletterOptInCheckbox />
 
         <BotProtection />
 

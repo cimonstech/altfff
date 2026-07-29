@@ -6,6 +6,7 @@ import { BrandName } from "@/components/BrandName";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { visitorRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
@@ -140,6 +141,8 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
           error={fieldErrors.heard_about_us}
           onBlurValidate={onBlurValidate}
         />
+
+        <NewsletterOptInCheckbox />
 
         <BotProtection />
 

@@ -7,11 +7,13 @@ import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
 import {
   EXHIBITOR_PACKAGE_MAP,
+  EXHIBITOR_SPACE_VALUES,
   exhibitorApplicationSchema,
   type ExhibitorApplicationInput,
 } from "@/lib/validation/exhibitor";
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
+import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 
 export const runtime = "nodejs";
 
@@ -58,7 +60,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { email, name, phone, company, title, nature, based, country, space, hear } = parsed.data;
+  const { email, name, phone, company, title, nature, based, country, space, hear, newsletter } =
+    parsed.data;
+  const newsletterOptIn = parseNewsletterOptIn(newsletter);
   const packageType =
     space && space in EXHIBITOR_PACKAGE_MAP
       ? EXHIBITOR_PACKAGE_MAP[space as keyof typeof EXHIBITOR_PACKAGE_MAP]
@@ -80,6 +84,7 @@ export async function POST(request: Request) {
     country: country || null,
     package_type: packageType,
     heard_about_us: hear || null,
+    newsletter_opt_in: newsletterOptIn,
   });
 
   if (insertError) {
@@ -93,6 +98,27 @@ export async function POST(request: Request) {
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
+  }
+
+  const exhibitorSpaceForMailchimp =
+    space && (EXHIBITOR_SPACE_VALUES as readonly string[]).includes(space)
+      ? (space as (typeof EXHIBITOR_SPACE_VALUES)[number])
+      : null;
+
+  if (newsletterOptIn) {
+    scheduleMailchimpSync({
+      email,
+      route: "/api/exhibitor-applications",
+      source: "EXHIBITOR",
+      name: name || null,
+      company: company || null,
+      jobTitle: title || null,
+      natureOfBusiness: nature || null,
+      businessLocation: based || null,
+      country: country || null,
+      space: exhibitorSpaceForMailchimp,
+      heardAbout: hear || null,
+    });
   }
 
   const apiKey = process.env.RESEND_API_KEY;

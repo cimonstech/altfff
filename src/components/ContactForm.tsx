@@ -7,6 +7,7 @@ import { FloatingField, FloatingTextarea } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { contactSchema } from "@/lib/validation/contact";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
@@ -164,6 +165,8 @@ export default function ContactForm() {
           error={fieldErrors.message}
           onBlurValidate={onBlurValidate}
         />
+
+        <NewsletterOptInCheckbox />
 
         <BotProtection />
 

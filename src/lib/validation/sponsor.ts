@@ -1,12 +1,12 @@
 import { z } from "zod";
 import {
-  emptyToUndefined,
   optionalShortText,
   requiredEmail,
   requiredMediumText,
   requiredPhone,
   requiredShortText,
 } from "./fields";
+import { optionalNewsletterCheckbox } from "./newsletter";
 
 /**
  * Sponsorship enquiry - required fields match SponsorshipForm.tsx
@@ -22,11 +22,7 @@ export const sponsorInquirySchema = z.object({
   jobTitle: requiredShortText("Job title"),
   country: optionalShortText("Country"),
   businessNature: requiredMediumText("Nature of business"),
-  // Checkbox: FormData includes it as a non-empty string (usually "on") when checked.
-  newsletter: z.preprocess(
-    emptyToUndefined,
-    z.string().max(20, { error: "Invalid newsletter value." }).optional(),
-  ),
+  newsletter: optionalNewsletterCheckbox,
 });
 
 export type SponsorInquiryInput = z.infer<typeof sponsorInquirySchema>;

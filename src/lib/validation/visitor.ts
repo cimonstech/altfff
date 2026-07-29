@@ -7,6 +7,7 @@ import {
   requiredEmail,
   requiredShortText,
 } from "./fields";
+import { optionalNewsletterCheckbox } from "./newsletter";
 
 /** Matches VisitRegisterForm INTEREST_OPTIONS values. */
 export const VISITOR_INTEREST_VALUES = [
@@ -44,6 +45,7 @@ const visitorBaseFields = {
   job_title: optionalShortText("Job title"),
   country: optionalShortText("Country"),
   interest: optionalSelect(VISITOR_INTEREST_VALUES),
+  newsletter: optionalNewsletterCheckbox,
 };
 
 /** API + modal (VisitorRegisterForm) - email required only. */

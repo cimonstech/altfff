@@ -7,6 +7,7 @@ import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { visitPageRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
@@ -186,6 +187,8 @@ export default function VisitRegisterForm() {
           error={fieldErrors.heard_about_us}
           onBlurValidate={onBlurValidate}
         />
+
+        <NewsletterOptInCheckbox />
 
         <BotProtection />
 

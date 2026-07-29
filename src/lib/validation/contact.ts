@@ -6,6 +6,7 @@ import {
   requiredLongText,
   requiredShortText,
 } from "./fields";
+import { optionalNewsletterCheckbox } from "./newsletter";
 
 /** Contact form - matches ContactForm.tsx requiredness exactly. */
 export const contactSchema = z.object({
@@ -14,6 +15,7 @@ export const contactSchema = z.object({
   email: requiredEmail,
   phone: optionalPhone,
   message: requiredLongText("Message"),
+  newsletter: optionalNewsletterCheckbox,
 });
 
 export type ContactInput = z.infer<typeof contactSchema>;

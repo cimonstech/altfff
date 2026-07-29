@@ -11,6 +11,7 @@ import {
 } from "@/lib/validation/visitor";
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
+import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 
 export const runtime = "nodejs";
 
@@ -81,7 +82,9 @@ export async function POST(request: Request) {
     job_title: jobTitle,
     country,
     interest,
+    newsletter,
   } = parsed.data;
+  const newsletterOptIn = parseNewsletterOptIn(newsletter);
 
   // Deliberately the session-less anon client, never the cookie-aware
   // server client - see src/lib/supabase/anon.ts for the PGRST303
@@ -98,6 +101,7 @@ export async function POST(request: Request) {
     job_title: jobTitle || null,
     country: country || null,
     interest: interest || null,
+    newsletter_opt_in: newsletterOptIn,
   });
 
   if (insertError) {
@@ -111,6 +115,20 @@ export async function POST(request: Request) {
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
+  }
+
+  if (newsletterOptIn) {
+    scheduleMailchimpSync({
+      email,
+      route: "/api/visitor-registrations",
+      source: "VISITOR",
+      name: fullName || null,
+      company: companyName || null,
+      jobTitle: jobTitle || null,
+      country: country || null,
+      heardAbout: heardAboutUs || null,
+      interest: interest || null,
+    });
   }
 
   const apiKey = process.env.RESEND_API_KEY;

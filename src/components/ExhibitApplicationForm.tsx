@@ -7,6 +7,7 @@ import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
+import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { exhibitorApplicationSchema } from "@/lib/validation/exhibitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
@@ -223,6 +224,8 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
           onFilledChange={handleFilledChange}
           onBlurValidate={onBlurValidate}
         />
+
+        <NewsletterOptInCheckbox />
 
         <BotProtection />
 

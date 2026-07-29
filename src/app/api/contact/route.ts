@@ -6,6 +6,7 @@ import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLi
 import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
+import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 
 export const runtime = "nodejs";
 
@@ -56,7 +57,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const { firstName, lastName, email, phone, message } = parsed.data;
+  const { firstName, lastName, email, phone, message, newsletter } = parsed.data;
+  const newsletterOptIn = parseNewsletterOptIn(newsletter);
 
   // The database write is the real submission now - a message landing
   // safely in contact_messages matters more than the confirmation email
@@ -75,6 +77,7 @@ export async function POST(request: Request) {
     email,
     phone: phone || null,
     message,
+    newsletter_opt_in: newsletterOptIn,
   });
   if (insertError) {
     console.error("Contact message insert failed:", insertError);
@@ -83,6 +86,17 @@ export async function POST(request: Request) {
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
+  }
+
+  if (newsletterOptIn) {
+    scheduleMailchimpSync({
+      email,
+      route: "/api/contact",
+      source: "CONTACT",
+      firstName,
+      lastName,
+      message,
+    });
   }
 
   const apiKey = process.env.RESEND_API_KEY;

@@ -8,6 +8,7 @@ import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLi
 import { sponsorInquirySchema, type SponsorInquiryInput } from "@/lib/validation/sponsor";
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
+import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
   } = parsed.data;
   // Checkbox: FormData only includes a checked box at all, so its presence
   // (any non-empty string, typically "on") means checked.
-  const newsletterOptIn = typeof newsletter === "string" && newsletter.length > 0;
+  const newsletterOptIn = parseNewsletterOptIn(newsletter);
 
   // Deliberately the session-less anon client, never the cookie-aware
   // server client - see src/lib/supabase/anon.ts for the PGRST303
@@ -95,6 +96,21 @@ export async function POST(request: Request) {
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
+  }
+
+  if (newsletterOptIn) {
+    scheduleMailchimpSync({
+      email,
+      route: "/api/sponsor-inquiries",
+      source: "SPONSOR",
+      name: fullName,
+      company,
+      jobTitle,
+      natureOfBusiness: businessNature,
+      linkedin,
+      country: country || null,
+      heardAbout: hearAbout,
+    });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
