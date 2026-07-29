@@ -128,6 +128,7 @@ export async function POST(request: Request) {
       country: country || null,
       heardAbout: heardAboutUs || null,
       interest: interest || null,
+      phone: phone || null,
     });
   }
 

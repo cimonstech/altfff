@@ -118,6 +118,7 @@ export async function POST(request: Request) {
       country: country || null,
       space: exhibitorSpaceForMailchimp,
       heardAbout: hear || null,
+      phone: phone || null,
     });
   }
 

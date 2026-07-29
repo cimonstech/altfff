@@ -96,6 +96,7 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       message,
+      phone: phone || null,
     });
   }
 

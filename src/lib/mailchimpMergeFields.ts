@@ -16,6 +16,7 @@ export const MAILCHIMP_MERGE_TAGS = {
   exhibitorSpace: "MMERGE13",
   heardAboutText: "WHERE",
   message: "TEXTAREAY",
+  phone: "PHONE",
   /** Dropdown: Exhibiting | Visiting | Sponsoring — not used by Alt.FFF visitor interest select. */
   participationInterest: "MMERGE3",
 } as const;
@@ -40,6 +41,8 @@ export type MailchimpExhibitorFields = {
   country?: string | null;
   space?: (typeof EXHIBITOR_SPACE_VALUES)[number] | null;
   heardAbout?: string | null;
+  /** E.164 from PhoneInput / Zod phone fields (e.g. +233241234567). */
+  phone?: string | null;
 };
 
 export type MailchimpSponsorFields = {
@@ -50,6 +53,7 @@ export type MailchimpSponsorFields = {
   linkedin?: string | null;
   country?: string | null;
   heardAbout?: string | null;
+  phone?: string | null;
 };
 
 export type MailchimpVisitorFields = {
@@ -60,12 +64,14 @@ export type MailchimpVisitorFields = {
   heardAbout?: string | null;
   /** Site value: materials | leaders | learning | business | other — no matching Mailchimp merge field. */
   interest?: string | null;
+  phone?: string | null;
 };
 
 export type MailchimpContactFields = {
   firstName?: string | null;
   lastName?: string | null;
   message?: string | null;
+  phone?: string | null;
 };
 
 export type MailchimpSyncFields =
@@ -85,6 +91,14 @@ function splitMergeName(name: string | null | undefined): { FNAME: string; LNAME
 function setTrimmed(target: Record<string, string>, tag: string, value: string | null | undefined): void {
   const trimmed = value?.trim();
   if (trimmed) target[tag] = trimmed;
+}
+
+/** Mailchimp audience `PHONE` merge field (type: phone) — pass through E.164 from our forms. */
+function setPhoneMergeField(
+  target: Record<string, string>,
+  phone: string | null | undefined,
+): void {
+  setTrimmed(target, MAILCHIMP_MERGE_TAGS.phone, phone);
 }
 
 /**
@@ -110,6 +124,7 @@ export function buildMailchimpMergeFields(
         const choice = EXHIBITOR_SPACE_TO_MAILCHIMP[fields.space];
         if (choice) merge_fields[MAILCHIMP_MERGE_TAGS.exhibitorSpace] = choice;
       }
+      setPhoneMergeField(merge_fields, fields.phone);
       break;
     }
     case "SPONSOR": {
@@ -120,6 +135,7 @@ export function buildMailchimpMergeFields(
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.linkedin, fields.linkedin);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.country, fields.country);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.heardAboutText, fields.heardAbout);
+      setPhoneMergeField(merge_fields, fields.phone);
       break;
     }
     case "VISITOR": {
@@ -128,6 +144,7 @@ export function buildMailchimpMergeFields(
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.jobTitle, fields.jobTitle);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.country, fields.country);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.heardAboutText, fields.heardAbout);
+      setPhoneMergeField(merge_fields, fields.phone);
       if (fields.interest?.trim()) {
         unmapped.push(
           `interest (${fields.interest.trim()}) — no merge field; MMERGE3 is Exhibiting/Visiting/Sponsoring, MMERGE2 is sector dropdown`,
@@ -139,6 +156,7 @@ export function buildMailchimpMergeFields(
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.firstName, fields.firstName);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.lastName, fields.lastName);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.message, fields.message);
+      setPhoneMergeField(merge_fields, fields.phone);
       break;
     }
   }

@@ -110,6 +110,7 @@ export async function POST(request: Request) {
       linkedin,
       country: country || null,
       heardAbout: hearAbout,
+      phone,
     });
   }
 
