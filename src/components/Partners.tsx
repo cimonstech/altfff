@@ -23,6 +23,8 @@ const COLLABORATORS: Supporter[] = [
   { file: "gcf.png", name: "Ghana Culture Forum" },
 ];
 
+const SPONSORS: Supporter[] = [{ file: "dimo.png", name: "DIMO" }];
+
 function LogoStrip({ items, size }: { items: Supporter[]; size: "lg" | "sm" }) {
   const boxClass = size === "lg" ? "h-14 w-40 md:h-16 md:w-48" : "h-9 w-32 md:h-10 md:w-36";
   return (
@@ -67,13 +69,26 @@ function LogoRow({ items, size }: { items: Supporter[]; size: "lg" | "sm" }) {
   );
 }
 
+function StaticLogoRow({ items, size }: { items: Supporter[]; size: "lg" | "sm" }) {
+  const boxClass = size === "lg" ? "h-14 w-40 md:h-16 md:w-48" : "h-9 w-32 md:h-10 md:w-36";
+  return (
+    <div className="sponsor-row flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+      {items.map((s) => (
+        <div key={s.file} className={`relative shrink-0 ${boxClass}`}>
+          <Image src={`/supporters/${s.file}`} alt={s.name} fill sizes="200px" className="object-contain" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Partners() {
   const container = useRef<HTMLElement>(null);
 
   useGSAP(
     () => {
       if (prefersReducedMotion()) return;
-      gsap.from(".partner-row", {
+      gsap.from(".partner-row, .sponsor-row", {
         y: 24,
         autoAlpha: 0,
         duration: 0.8,
@@ -89,7 +104,7 @@ export default function Partners() {
     <section
       ref={container}
       id="sponsorship"
-      aria-label="Partners and collaborators"
+      aria-label="Partners, collaborators, and sponsors"
       className="border-t border-hairline bg-paper px-6 py-16 md:px-16"
     >
       <div className="mx-auto max-w-5xl">
@@ -102,6 +117,11 @@ export default function Partners() {
           Collaborators
         </p>
         <LogoRow items={COLLABORATORS} size="sm" />
+
+        <p className="mb-8 mt-14 text-center text-[11px] uppercase tracking-[0.24em] text-indigo">
+          Sponsor
+        </p>
+        <StaticLogoRow items={SPONSORS} size="sm" />
       </div>
     </section>
   );
