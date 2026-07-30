@@ -8,11 +8,12 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
 // Instagram is confirmed (Fashion Forum Africa, @fashionforumafrica).
-// LinkedIn removed entirely - FFA has no LinkedIn presence.
 const FACEBOOK_URL = "https://web.facebook.com/profile.php?id=61592337716845";
+const LINKEDIN_URL = "https://www.linkedin.com/company/fashionforumafrica";
 const SOCIALS = [
   { label: "Instagram", href: "https://www.instagram.com/fashionforumafrica" },
   { label: "Facebook", href: FACEBOOK_URL },
+  { label: "LinkedIn", href: LINKEDIN_URL },
 ];
 const WORDMARK = "Alt.FFF";
 const PROXIMITY_RADIUS = 140; // px, cursor influence falls off to 0 past this
