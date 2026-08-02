@@ -84,8 +84,8 @@ export default function VisitHero() {
           Plan Your Visit
         </h1>
         <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-indigo md:text-lg">
-          Join us for {EVENT.dates} at {EVENT.venue} - three
-          days of fibres, dyes, weaves, and the people behind them.
+          Join us on {EVENT.tradeFairDateLabel} at {EVENT.venue} — a one-day
+          trade fair of fibres, dyes, weaves, and the people behind them.
         </p>
         <button
           type="button"

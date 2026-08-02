@@ -5,6 +5,8 @@
  * directly into the initial HTML.
  */
 
+import { EVENT } from "@/lib/constants";
+
 const ORGANIZATION_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -32,8 +34,7 @@ const WEBSITE_SCHEMA = {
   "@type": "WebSite",
   name: "Alt.FFF",
   url: "https://www.altfff.com",
-  description:
-    "Where materials speak before fashion. Alt.FFF is Ghana's first alternative fashion fabric fair, taking place 17- 19, Sept 2026 in Accra.",
+  description: `Where materials speak before fashion. Alt.FFF is Ghana's first alternative fashion fabric fair, taking place ${EVENT.dates} in Accra.`,
   inLanguage: "en",
   // No potentialAction/SearchAction - the site has no working search
   // functionality.
@@ -43,13 +44,13 @@ const EVENT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Event",
   name: "Alternative Fashion Fabric Fair 2026",
-  startDate: "2026-09-17",
-  endDate: "2026-09-19",
+  startDate: EVENT.startDate,
+  endDate: EVENT.endDate,
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
   location: {
     "@type": "Place",
-    name: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
+    name: EVENT.venue,
     address: {
       "@type": "PostalAddress",
       streetAddress: "La Palm Royal Beach Hotel",
@@ -58,7 +59,7 @@ const EVENT_SCHEMA = {
     },
   },
   description:
-    "Where materials speak before fashion. A curated gathering repositioning African materials at the centre of fashion thinking, showcasing raw, processed, and semi-processed fibres, fabrics, and textile innovations from across the continent.",
+    "Where materials speak before fashion. A curated one-day trade fair repositioning African materials at the centre of fashion thinking, showcasing raw, processed, and semi-processed fibres, fabrics, and textile innovations from across the continent.",
   organizer: {
     "@type": "Organization",
     name: "Fashion Forum Africa",

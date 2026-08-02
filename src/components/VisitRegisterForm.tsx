@@ -116,7 +116,7 @@ export default function VisitRegisterForm() {
     <div ref={container}>
       {showBanner && (
         <SuccessBanner
-          message="Thank you. Your badge will be emailed to you closer to the event."
+          message="Registration received. We'll review your request and email you once it's confirmed."
           onDismiss={() => setShowBanner(false)}
         />
       )}

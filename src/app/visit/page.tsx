@@ -21,8 +21,8 @@ const VALUE_PROPS = [
   "Reliability You Can Count On",
   "A Focus on Quality",
   "Real Materials, Real Makers",
-  "Three Days in Accra",
-  EVENT.dates,
+  "One Fair Day in Accra",
+  EVENT.tradeFairDateLabel,
 ];
 
 export default function VisitPage() {

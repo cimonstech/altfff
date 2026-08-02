@@ -8,11 +8,11 @@ import ContactPhotoCard from "@/components/ContactPhotoCard";
 import ContactStrip from "@/components/ContactStrip";
 import ContactFAQ from "@/components/ContactFAQ";
 import { buildMetadata } from "@/lib/metadata";
+import { EVENT } from "@/lib/constants";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact Alt.FFF - Get in Touch",
-  description:
-    "Get in touch with Alt.FFF - enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, 17- 19, Sept 2026 in Accra.",
+  description: `Get in touch with Alt.FFF - enquire about exhibiting, sponsoring, or visiting Ghana's first alternative fashion fabric fair, ${EVENT.dates} in Accra.`,
   path: "/contact",
 });
 
@@ -44,7 +44,7 @@ export default function ContactPage() {
         <section aria-label="See you in Accra" className="bg-indigo px-6 py-14 text-paper md:px-16">
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center">
             <p className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-              See you in Accra. 17- 19, Sept 2026.
+              See you in Accra. {EVENT.tradeFairDateLabel}.
             </p>
             <Link
               href="/visit"

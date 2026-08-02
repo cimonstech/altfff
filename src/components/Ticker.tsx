@@ -7,7 +7,7 @@ import { EVENT, MATERIALS } from "@/lib/constants";
 
 const DEFAULT_ITEMS = [
   ...MATERIALS.map((m) => m.name),
-  "Accra · 17- 19, Sept 2026",
+  "Accra · " + EVENT.dates,
   EVENT.venue,
   "54 countries",
   "One space",

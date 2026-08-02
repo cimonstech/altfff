@@ -63,10 +63,11 @@ const AGREEMENT_PARAGRAPHS = [
     the fair.
   </>,
   <>
-    All exhibitors will be required to set up during a{" "}
-    <strong>2-day period</strong> prior to the commencement of the fair. The
-    fee paid for participation includes the construction of a stand, the
-    provision of <strong>one (1) table and two (2) chairs</strong> per
+    All exhibitors will be required to set up on{" "}
+    <strong>Friday 18 September 2026</strong>, the day immediately before the
+    public fair on <strong>Saturday 19 September 2026</strong>. The fee paid
+    for participation includes the construction of a stand, the provision of{" "}
+    <strong>one (1) table and two (2) chairs</strong> per
     stand, and the provision of an electrical point. Exhibitors can also
     bring their own equipment which will be verified by the tech team. It is
     possible for exhibitors to obtain extra facilities upon request, but

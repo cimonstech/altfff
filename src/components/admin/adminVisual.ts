@@ -9,6 +9,7 @@ import {
   Megaphone,
   ScrollText,
   Shield,
+  ScanLine,
 } from "lucide-react";
 import type { AdminCardAccent } from "@/components/admin/AdminCard";
 
@@ -21,6 +22,7 @@ export const ADMIN_SECTION_ICONS: Record<string, LucideIcon> = {
   "/admin/contact": Mail,
   "/admin/news": Newspaper,
   "/admin/communications": Megaphone,
+  "/admin/checkin": ScanLine,
   "/admin/activity": ScrollText,
   "/admin/admins": Shield,
 };

@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { textWithBrandName } from "@/components/BrandName";
+import { EVENT } from "@/lib/constants";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 
 type FAQItem = { question: string; answer: string };
@@ -19,7 +20,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What are the dates and location for the Alternative Fashion Fabric Fair (Alt.FFF) 2026?",
     answer:
-      "Alt.FFF 2026 runs 17- 19, Sept 2026 at The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana.",
+      `Alt.FFF 2026 is a one-day trade fair on ${EVENT.tradeFairDateLabel} (exhibitor set-up Friday 18 September) at ${EVENT.venue}.`,
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",
@@ -50,7 +51,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Are there any platforms that promote collaborations between African artisans and global fashion brands?",
     answer:
-      "Alt.FFF is built for exactly this kind of connection, bringing manufacturers, artisans and material producers face to face with international buyers, designers and brands over three days in one space.",
+      "Alt.FFF is built for exactly this kind of connection, bringing manufacturers, artisans and material producers face to face with international buyers, designers and brands in one concentrated trade-fair day.",
   },
   {
     question:
@@ -61,7 +62,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What are some events in 2026 that highlight African heritage textiles and innovations?",
     answer:
-      "Alt.FFF, 17- 19, Sept 2026 in Accra, is designed as exactly this kind of event - a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.",
+      `Alt.FFF, ${EVENT.tradeFairDateLabel} in Accra, is designed as exactly this kind of event - a dedicated showcase of African heritage textiles, materials and the innovators reworking them for a global market.`,
   },
 ];
 

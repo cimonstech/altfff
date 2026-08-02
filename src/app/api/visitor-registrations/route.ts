@@ -148,9 +148,9 @@ export async function POST(request: Request) {
     // No ticket/confirmation number - no ticketing system exists yet, so no
     // promise of one is made here.
     const textBody = [
-      `Thanks for registering to visit Alt.FFF, ${EVENT.dates} at ${EVENT.venue}.`,
+      `Thanks for registering your interest in visiting Alt.FFF on ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
       "",
-      "We look forward to seeing you there.",
+      "Your registration is pending review. We'll email you once it's been confirmed — if approved, you'll receive a QR code to bring on the day.",
       "",
       "Questions in the meantime? Reach us at enquiries@altfff.com.",
     ].join("\n");
@@ -162,9 +162,9 @@ export async function POST(request: Request) {
       from: `Alt.FFF <${fromEmail}>`,
       to: email,
       replyTo: "enquiries@altfff.com",
-      subject: "You're registered to visit Alt.FFF",
+      subject: "Alt.FFF visit registration received",
       text: textBody,
-      html: buildEmailHtml({ heading: "You're Registered", bodyHtml: textToHtml(textBody) }),
+      html: buildEmailHtml({ heading: "Registration Received", bodyHtml: textToHtml(textBody) }),
     });
     if (sendError) {
       console.error("Resend error (visitor registration):", sendError);

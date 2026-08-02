@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import Modal from "@/components/Modal";
 import { storePreloadedRecipients, type CustomRecipient } from "@/lib/communications";
 import { adminStatusPillClass, formatAdminStatusLabel } from "@/components/admin/adminVisual";
+import VisitorDetailPanel from "@/components/admin/VisitorDetailPanel";
 
 export type AdminColumn = {
   label: string;
@@ -115,6 +116,17 @@ function applyListFilters<T extends FilterableQuery>(query: T, opts: FilterOpts)
   return next as T;
 }
 
+function vettingDropdownStatuses(allStatuses: string[], currentStatus: string): string[] {
+  const manual = allStatuses.filter((s) => s !== "confirmed" && s !== "declined");
+  if (
+    (currentStatus === "confirmed" || currentStatus === "declined") &&
+    !manual.includes(currentStatus)
+  ) {
+    return [...manual, currentStatus];
+  }
+  return manual;
+}
+
 export default function AdminDataTable({
   table,
   entityLabel,
@@ -124,6 +136,7 @@ export default function AdminDataTable({
   searchFields,
   titleField,
   getTitle,
+  visitorVetting = false,
 }: {
   /** Real Supabase table name. */
   table: string;
@@ -146,6 +159,8 @@ export default function AdminDataTable({
   titleField: string;
   /** Overrides titleField for entities with no single "name" column. */
   getTitle?: (row: Record<string, unknown>) => React.ReactNode;
+  /** Visitor registrations: Approve/Decline actions; status dropdown excludes confirmed/declined. */
+  visitorVetting?: boolean;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
@@ -359,6 +374,21 @@ export default function AdminDataTable({
 
   const rowTitle = (row: Record<string, unknown>) =>
     getTitle ? getTitle(row) : toDisplayValue(row, titleField);
+
+  const rowDropdownStatuses = (currentStatus: string) =>
+    visitorVetting ? vettingDropdownStatuses(statuses, currentStatus) : statuses;
+
+  const applyRowUpdate = (data: Record<string, unknown>) => {
+    const id = data.id as string;
+    setRows((prev) => prev.map((r) => (r.id === id ? data : r)));
+    setSelected((prev) => (prev && prev.id === id ? data : prev));
+    setSelectedRows((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Map(prev);
+      next.set(id, data);
+      return next;
+    });
+  };
 
   /** Secondary fields for expanded mobile cards — skip title/status/created. */
   const cardSecondaryColumns = columns.filter(
@@ -576,8 +606,12 @@ export default function AdminDataTable({
                         }}
                         className="mt-1 min-h-11 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
                       >
-                        {statuses.map((s) => (
-                          <option key={s} value={s}>
+                        {rowDropdownStatuses(status).map((s) => (
+                          <option
+                            key={s}
+                            value={s}
+                            disabled={visitorVetting && (s === "confirmed" || s === "declined") && s !== status}
+                          >
                             {formatAdminStatusLabel(s)}
                           </option>
                         ))}
@@ -593,6 +627,17 @@ export default function AdminDataTable({
                     >
                       Full details &amp; notes
                     </button>
+
+                    {visitorVetting && (
+                      <VisitorDetailPanel
+                        compact
+                        row={row}
+                        onRowUpdated={(data) => {
+                          applyRowUpdate(data);
+                          setExpandedId(id);
+                        }}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -678,12 +723,15 @@ export default function AdminDataTable({
             entityLabel={entityLabel}
             detailFields={detailFields}
             statuses={statuses}
+            rowDropdownStatuses={rowDropdownStatuses}
             titleField={titleField}
             getTitle={getTitle}
             table={table}
             supabase={supabase}
             currentAdmin={currentAdmin}
             onStatusChange={(newStatus) => handleStatusChange(selected, newStatus)}
+            visitorVetting={visitorVetting}
+            onRowUpdated={applyRowUpdate}
           />
         )}
       </Modal>
@@ -696,23 +744,29 @@ function RowDetail({
   entityLabel,
   detailFields,
   statuses,
+  rowDropdownStatuses,
   titleField,
   getTitle,
   table,
   supabase,
   currentAdmin,
   onStatusChange,
+  visitorVetting = false,
+  onRowUpdated,
 }: {
   row: Record<string, unknown>;
   entityLabel: string;
   detailFields: AdminColumn[];
   statuses: string[];
+  rowDropdownStatuses: (current: string) => string[];
   titleField: string;
   getTitle?: (row: Record<string, unknown>) => React.ReactNode;
   table: string;
   supabase: ReturnType<typeof createClient>;
   currentAdmin: CurrentAdmin | null;
   onStatusChange: (status: string) => void;
+  visitorVetting?: boolean;
+  onRowUpdated?: (row: Record<string, unknown>) => void;
 }) {
   const [notes, setNotes] = useState<EntityNote[]>([]);
   const [notesLoading, setNotesLoading] = useState(true);
@@ -720,6 +774,8 @@ function RowDetail({
   const [submitting, setSubmitting] = useState(false);
 
   const rowId = row.id as string;
+  const currentStatus = String(row.status ?? "");
+  const statusOptions = rowDropdownStatuses(currentStatus);
 
   useEffect(() => {
     let cancelled = false;
@@ -786,17 +842,21 @@ function RowDetail({
         </label>
         <select
           id="detail-status"
-          value={String(row.status ?? "")}
+          value={currentStatus}
           onChange={(e) => onStatusChange(e.target.value)}
           className="mt-1 min-h-11 w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
         >
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
+          {statusOptions.map((s) => (
+            <option key={s} value={s} disabled={visitorVetting && (s === "confirmed" || s === "declined") && s !== currentStatus}>
+              {formatAdminStatusLabel(s)}
             </option>
           ))}
         </select>
       </div>
+
+      {visitorVetting && onRowUpdated && (
+        <VisitorDetailPanel row={row} onRowUpdated={onRowUpdated} />
+      )}
 
       <dl className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {detailFields.map((f) => (

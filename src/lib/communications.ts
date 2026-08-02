@@ -34,7 +34,7 @@ export const AUDIENCE_CONFIG: Record<AudienceType, AudienceConfig> = {
   visitor: {
     table: "visitor_registrations",
     label: "Visitors",
-    statuses: ["registered", "confirmed", "cancelled"],
+    statuses: ["registered", "confirmed", "declined", "cancelled"],
     mergeFields: ["name"],
     selectColumns: "id, email, phone, full_name",
   },

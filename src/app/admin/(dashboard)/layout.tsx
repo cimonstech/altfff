@@ -27,6 +27,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   },
   { label: "News", href: "/admin/news" },
   { label: "Communications", href: "/admin/communications" },
+  { label: "Check-in", href: "/admin/checkin" },
 ];
 
 const SUPER_ADMIN_NAV_ITEMS: AdminNavItem[] = [

@@ -5,7 +5,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import { SiteModalsProvider } from "@/components/SiteModals";
 import BackToTop from "@/components/BackToTop";
 import { GlobalStructuredData } from "@/components/structured-data";
-import { SITE } from "@/lib/constants";
+import { SITE, EVENT } from "@/lib/constants";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: "Alt.FFF: A Fabric Spree of African Descent",
   description:
-    "Ghana's first alternative fashion fabric fair. Three days of fibres, dyes, weaves and the people behind them. The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana, 17- 19, Sept 2026.",
+    `Ghana's first alternative fashion fabric fair. A day of fibres, dyes, weaves and the people behind them. ${EVENT.venue}, ${EVENT.dates}.`,
   icons: {
     icon: "/Afff_icon.png",
     shortcut: "/Afff_icon.png",

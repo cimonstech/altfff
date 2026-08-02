@@ -33,7 +33,7 @@ const ENTITIES: Entity[] = [
   {
     label: "Visitor Registrations",
     table: "visitor_registrations",
-    statuses: ["registered", "confirmed", "cancelled"],
+    statuses: ["registered", "confirmed", "declined", "cancelled"],
     href: "/admin/visitors",
     accent: OVERVIEW_ACCENTS.visitor_registrations,
   },
@@ -61,12 +61,37 @@ async function getCounts(entity: Entity) {
   return { total, perStatus };
 }
 
+async function getCheckInStats() {
+  const supabase = await createClient();
+  const [{ count: approved }, { count: checkedIn }] = await Promise.all([
+    supabase
+      .from("visitor_registrations")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "confirmed"),
+    supabase
+      .from("visitor_registrations")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "confirmed")
+      .not("checked_in_at", "is", null),
+  ]);
+  return { approved: approved ?? 0, checkedIn: checkedIn ?? 0 };
+}
+
 export default async function AdminOverviewPage() {
-  const results = await Promise.all(ENTITIES.map((e) => getCounts(e)));
+  const [results, checkIn] = await Promise.all([
+    Promise.all(ENTITIES.map((e) => getCounts(e))),
+    getCheckInStats(),
+  ]);
 
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Overview</h1>
+
+      {checkIn.approved > 0 && (
+        <p className="mt-3 inline-flex rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink">
+          Day-of check-in: {checkIn.checkedIn} of {checkIn.approved} approved visitors
+        </p>
+      )}
 
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {ENTITIES.map((entity, i) => {

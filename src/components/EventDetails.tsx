@@ -8,10 +8,19 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 import { useSiteModals } from "@/components/SiteModals";
 
-const DAYS = [
-  { day: "Day 1", date: "Wed, 17th September", hours: "10:00 – 18:00 " },
-  { day: "Day 2", date: "Thu, 18th September", hours: "10:00 – 18:00 " },
-  { day: "Day 3", date: "Fri, 19th September", hours: "10:00 – 16:00 " },
+const SCHEDULE = [
+  {
+    label: "Exhibitor set-up",
+    date: "Friday 18 September 2026",
+    detail: "Exhibitors prepare their stands ahead of the public fair. Not open to visitors.",
+  },
+  {
+    label: "The Fair",
+    date: "Saturday 19 September 2026",
+    detail:
+      "One-day trade fair — fibres, dyes, weaves, makers, buyers, and the full Alt.FFF programme. The launch is incorporated into the opening of the day.",
+    hours: "10:00 – 18:00",
+  },
 ];
 
 export default function EventDetails() {
@@ -44,7 +53,8 @@ export default function EventDetails() {
       aria-label="Event details"
       className="relative overflow-x-hidden bg-ink px-6 py-24 text-paper md:px-16 md:py-32"
       style={{
-        backgroundImage: "linear-gradient(0deg, rgba(1, 83, 71, 0.78), rgba(1, 83, 71, 0.78)), url('/materials/exhibition-bg.webp')",
+        backgroundImage:
+          "linear-gradient(0deg, rgba(1, 83, 71, 0.78), rgba(1, 83, 71, 0.78)), url('/materials/exhibition-bg.webp')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -79,18 +89,21 @@ export default function EventDetails() {
 
       <div className="relative mx-auto max-w-6xl">
         <h2 className="mb-12 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight">
-          Three Days in Accra
+          Set-up &amp; Fair Day
         </h2>
 
-        <div className="grid gap-5 md:grid-cols-3">
-          {DAYS.map((d) => (
+        <div className="grid gap-5 md:grid-cols-2">
+          {SCHEDULE.map((item) => (
             <div
-              key={d.day}
+              key={item.label}
               className="day-card rounded-xl border border-paper/15 bg-paper/5 p-7"
             >
-              <p className="font-display text-3xl font-extrabold uppercase">{d.day}</p>
-              <p className="mt-3 text-paper/85">{d.date}</p>
-              <p className="mt-1 text-sm text-paper/60">{d.hours}</p>
+              <p className="font-display text-3xl font-extrabold uppercase">{item.label}</p>
+              <p className="mt-3 text-paper/85">{item.date}</p>
+              {item.hours ? (
+                <p className="mt-1 text-sm text-paper/60">{item.hours}</p>
+              ) : null}
+              <p className="mt-4 text-sm leading-relaxed text-paper/75">{item.detail}</p>
             </div>
           ))}
         </div>
@@ -119,5 +132,3 @@ export default function EventDetails() {
     </section>
   );
 }
-
-

@@ -8,6 +8,7 @@ import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { EVENT } from "@/lib/constants";
 import { visitorRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
@@ -88,11 +89,11 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       <h2 id={headingId} className="pr-8 font-display text-lg font-extrabold uppercase tracking-tight text-ink">
         Register to Visit <BrandName />
       </h2>
-      <p className="mt-2 text-sm text-indigo">Join us 17- 19, Sept 2026 in Accra.</p>
+      <p className="mt-2 text-sm text-indigo">Join us {EVENT.tradeFairDateLabel} in Accra.</p>
 
       {showBanner && (
         <SuccessBanner
-          message="You're registered. Thanks for registering to visit Alt.FFF - we look forward to seeing you there."
+          message="Registration received. We'll review your request and email you once it's confirmed."
           onDismiss={() => setShowBanner(false)}
         />
       )}
