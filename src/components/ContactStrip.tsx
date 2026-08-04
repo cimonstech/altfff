@@ -41,8 +41,7 @@ const TILES: Tile[] = [
     label: "Follow Us On",
     links: [
       { text: "Instagram @fashionforumafrica", href: "https://www.instagram.com/fashionforumafrica" },
-      // TODO: replace with real Alt.FFF Facebook URL once confirmed.
-      { text: "Facebook · Alt.FFF", href: "#" },
+      { text: "Facebook · Alt.FFF", href: "https://www.facebook.com/share/1D3VYeEFrR/" },
     ],
   },
 ];
@@ -58,17 +57,11 @@ export default function ContactStrip() {
             </span>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-forest">{t.label}</p>
             <div className="flex flex-col gap-1">
-              {t.links.map((l) =>
-                l.href === "#" ? (
-                  <span key={l.text} className="text-sm font-semibold text-ink/50">
-                    {l.text}
-                  </span>
-                ) : (
-                  <a key={l.text} href={l.href} className="text-sm font-semibold text-gold-deep hover:opacity-75">
-                    {l.text}
-                  </a>
-                ),
-              )}
+              {t.links.map((l) => (
+                <a key={l.text} href={l.href} className="text-sm font-semibold text-gold-deep hover:opacity-75">
+                  {l.text}
+                </a>
+              ))}
             </div>
           </div>
         ))}
