@@ -472,7 +472,7 @@ export default function AboutHero() {
                 ))}
               </div>
               <span className="rounded-full border border-hairline px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-ink/70">
-                +25 MFRS
+                +25 Manufacturers
               </span>
             </div>
           </div>

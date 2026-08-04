@@ -5,7 +5,6 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
-import { EVENT } from "@/lib/constants";
 import HeroArtifacts from "@/components/HeroArtifacts";
 
 /**
@@ -90,12 +89,12 @@ export default function SponsorshipHero() {
 
       <div className="relative mx-auto max-w-4xl">
         <h1 className="sponsor-hero-in font-display text-[clamp(2.4rem,6.5vw,5rem)] font-extrabold uppercase leading-[1.02] tracking-tight">
-          Back the Future of African Materials
+          Support the Future of African Materials
         </h1>
         <p className="sponsor-hero-in mt-6 max-w-[60ch] text-base leading-relaxed text-paper/80 md:text-lg">
           Alt.FFF is a catalyst, not just an event. Sponsorship puts your
           brand behind the platform bridging African creativity with global
-          commerce. {EVENT.dates}, {EVENT.city}.
+          commerce. Saturday, September 19, 2026.
         </p>
         <button
           type="button"

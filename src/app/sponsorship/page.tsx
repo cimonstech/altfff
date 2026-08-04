@@ -10,9 +10,9 @@ import SponsorshipSidebar from "@/components/SponsorshipSidebar";
 import { buildMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Sponsor Alt.FFF 2026 - Back the Future of African Materials",
+  title: "Sponsor Alt.FFF 2026 - Support the Future of African Materials",
   description:
-    "Back Africa's first alternative fashion fabric fair. Partner with Alt.FFF to support African creatives, drive industry conversations, and align your brand with the future of fashion and manufacturing across the continent.",
+    "Support Africa's first alternative fashion fabric fair. Partner with Alt.FFF to support African creatives, drive industry conversations, and align your brand with the future of fashion and manufacturing across the continent.",
   path: "/sponsorship",
 });
 

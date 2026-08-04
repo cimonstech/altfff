@@ -25,7 +25,8 @@ const ORGANIZATION_SCHEMA = {
   },
   sameAs: [
     "https://www.instagram.com/fashionforumafrica",
-    "https://web.facebook.com/profile.php?id=61592337716845",
+    // TODO: add real Alt.FFF Facebook URL to sameAs once confirmed — omitted
+    // until then (previous URL pointed at an unrelated business).
   ],
 };
 

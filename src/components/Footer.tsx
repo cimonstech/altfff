@@ -8,11 +8,13 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 
 // Instagram is confirmed (Fashion Forum Africa, @fashionforumafrica).
-const FACEBOOK_URL = "https://web.facebook.com/profile.php?id=61592337716845";
+// TODO: replace with real Alt.FFF Facebook URL once confirmed — currently
+// placeholder only (previous URL pointed at an unrelated business).
+const FACEBOOK_URL = "#";
 const LINKEDIN_URL = "https://www.linkedin.com/company/fashionforumafrica";
 const SOCIALS = [
   { label: "Instagram", href: "https://www.instagram.com/fashionforumafrica" },
-  { label: "Facebook", href: FACEBOOK_URL },
+  { label: "Facebook", href: FACEBOOK_URL, placeholder: true },
   { label: "LinkedIn", href: LINKEDIN_URL },
 ];
 const WORDMARK = "Alt.FFF";
@@ -131,6 +133,11 @@ export default function Footer() {
                     enquiries@altfff.com
                   </a>
                 </li>
+                <li>
+                  <a href="tel:+233541177573" className="hover:opacity-60">
+                    +233 541 177 573
+                  </a>
+                </li>
                 <li>{EVENT.venue}</li>
               </ul>
             </div>
@@ -141,9 +148,13 @@ export default function Footer() {
               <ul className="mt-4 flex flex-col gap-2 text-sm text-ink">
                 {SOCIALS.map((s) => (
                   <li key={s.label}>
-                    <a href={s.href} className="hover:opacity-60">
-                      {s.label}
-                    </a>
+                    {"placeholder" in s && s.placeholder ? (
+                      <span className="text-ink/50">{s.label}</span>
+                    ) : (
+                      <a href={s.href} className="hover:opacity-60">
+                        {s.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

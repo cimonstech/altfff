@@ -14,10 +14,6 @@ const INTRO_PARAGRAPH =
 
 const GARMENTS = [
   {
-    src: "/materials/hero-garments/croc-jacket.png",
-    alt: "Embossed crocodile-pattern leather jacket",
-  },
-  {
     src: "/materials/hero-garments/raffia-dress.png",
     alt: "Raffia fibre dress with a fringed trim",
   },

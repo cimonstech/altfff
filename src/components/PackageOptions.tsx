@@ -90,7 +90,7 @@ export default function PackageOptions() {
     >
       <div className="mx-auto max-w-6xl">
         <h2 className="package-in mb-10 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight text-ink">
-          Package Options
+          Package Options (2027)
         </h2>
 
         {/* Mobile: one card per package, label/value pairs stacked. Desktop
@@ -181,6 +181,9 @@ export default function PackageOptions() {
         </div>
 
         <div className="package-in mt-8 flex flex-col gap-2 text-sm text-ink/70">
+          <p>
+            Please note that the rates shown are indicative for the 2027 event and may be revised prior to confirmation of booking.
+          </p>
           <p>
             All packages include a listing in the official Alt.FFF Trade Show Guide and exhibitor
             promotion on Fashion Forum Africa platforms.

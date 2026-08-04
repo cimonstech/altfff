@@ -579,7 +579,7 @@ export default function Hero() {
               width for both to sit comfortably in one row. */}
           <div className="mt-6 flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
             <p className="max-w-[46ch] text-base text-paper md:text-lg">
-              A day of fibres, dyes, weaves and the people behind them.
+              A day of fibres, dyes, weaves and the people behind them
             </p>
             <button
               type="button"
@@ -610,7 +610,7 @@ export default function Hero() {
           }}
         >
           <p className="text-sm font-semibold leading-snug text-ink">
-            Trade Fair Date: {EVENT.tradeFairDateLabel}
+            Alt.FFF Launch Edition Date: {EVENT.tradeFairDateLabel}
           </p>
           <p className="mt-3 text-xs leading-snug text-ink/70">
             {EVENT.venue}
