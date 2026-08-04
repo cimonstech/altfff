@@ -610,7 +610,10 @@ export default function Hero() {
           }}
         >
           <p className="text-sm font-semibold leading-snug text-ink">
-            Alt.FFF Launch Edition Date: {EVENT.tradeFairDateLabel}
+            Alt.FFF Launch Edition Date
+          </p>
+          <p className="mt-1.5 text-sm font-semibold leading-snug text-ink">
+            {EVENT.tradeFairDateLabel}
           </p>
           <p className="mt-3 text-xs leading-snug text-ink/70">
             {EVENT.venue}
