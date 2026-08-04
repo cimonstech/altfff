@@ -1,4 +1,4 @@
-import { Mail, Phone, Globe, AtSign } from "lucide-react";
+import { Mail, Phone, AtSign } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Tile = {
@@ -25,16 +25,6 @@ const TILES: Tile[] = [
     links: [{ text: "+233 54 117 7573", href: "tel:+233541177573" }],
   },
   {
-    icon: Globe,
-    circleClass: "bg-ink",
-    iconClass: "text-surface",
-    label: "Visit Us At",
-    links: [{ text: "www.altfff.com", href: "https://www.altfff.com" }],
-  },
-  {
-    // lucide-react dropped brand/logo icons (no Instagram glyph in this
-    // version) - AtSign is a neutral stand-in for "social handle" rather
-    // than a literal platform logo. LinkedIn omitted: FFA has no presence.
     icon: AtSign,
     circleClass: "bg-ink",
     iconClass: "text-paper",
@@ -42,6 +32,7 @@ const TILES: Tile[] = [
     links: [
       { text: "Instagram @fashionforumafrica", href: "https://www.instagram.com/fashionforumafrica" },
       { text: "Facebook · Alt.FFF", href: "https://www.facebook.com/share/1D3VYeEFrR/" },
+      { text: "LinkedIn · Fashion Forum Africa", href: "https://www.linkedin.com/company/fashionforumafrica" },
     ],
   },
 ];
@@ -49,7 +40,7 @@ const TILES: Tile[] = [
 export default function ContactStrip() {
   return (
     <section aria-label="Direct contact" className="bg-paper px-6 py-16 md:px-16">
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-5 md:grid-cols-4">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
         {TILES.map((t) => (
           <div key={t.label} className="flex flex-col items-start gap-3 rounded-xl border border-hairline bg-surface p-5">
             <span className={`flex h-10 w-10 items-center justify-center rounded-full ${t.circleClass}`}>
