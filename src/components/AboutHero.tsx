@@ -16,9 +16,9 @@ import { useSiteModals } from "@/components/SiteModals";
 // "staircase" visual rhythm itself.
 const HEADLINE_LINES: { text: string; accent?: string; indent: number; size: string }[] = [
   { text: "WHERE", indent: 0, size: "clamp(2.2rem,5.6vw,5.2rem)" },
-  { text: "MATERIALS", accent: "-", indent: 1, size: "clamp(1.8rem,4.4vw,3.9rem)" },
+  { text: "MATERIALS", indent: 1, size: "clamp(1.8rem,4.4vw,3.9rem)" },
   { text: "SPEAK BEFORE", indent: 2, size: "clamp(1.5rem,3.7vw,3.2rem)" },
-  { text: "FASHION", accent: "+", indent: 3, size: "clamp(1.9rem,4.8vw,4.4rem)" },
+  { text: "FASHION", indent: 3, size: "clamp(1.9rem,4.8vw,4.4rem)" },
 ];
 
 // Real people, not material crops - same treatment the reference composition
@@ -159,29 +159,47 @@ function RotatingCredits() {
  * "-" / "+" accent glyphs render in gold via a separate span. */
 function StaircaseHeadline() {
   return (
-    <h1 className="font-display uppercase leading-[0.95] tracking-tight text-ink">
-      {HEADLINE_LINES.map((line, li) => (
-        <span
-          key={li}
-          className="block overflow-hidden text-right"
-          style={{ paddingRight: `${line.indent * 0.9}rem` }}
-        >
-          <span className="inline-block whitespace-nowrap" style={{ fontSize: line.size }}>
-            {line.text.split("").map((ch, ci) => (
-              <span key={ci} className="about-hchar inline-block will-change-transform">
-                {ch === " " ? " " : ch}
-              </span>
-            ))}
-            {line.accent && (
-              <span className="about-hchar inline-block text-gold will-change-transform">
-                {" "}
-                {line.accent}
-              </span>
-            )}
+    <>
+      {/* Mobile - plain right-aligned lines beside the FFA metadata block */}
+      <h1 className="font-display text-right text-[clamp(0.95rem,3.6vw,1.2rem)] font-extrabold uppercase leading-[1.08] tracking-tight text-ink md:hidden">
+        {HEADLINE_LINES.map((line) => (
+          <span key={line.text} className="block overflow-hidden">
+            <span className="inline-block whitespace-nowrap">
+              {line.text.split("").map((ch, ci) => (
+                <span key={ci} className="about-hchar inline-block will-change-transform">
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+            </span>
           </span>
-        </span>
-      ))}
-    </h1>
+        ))}
+      </h1>
+
+      {/* Desktop - indented staircase on the right */}
+      <h1 className="hidden font-display uppercase leading-[0.95] tracking-tight text-ink md:block">
+        {HEADLINE_LINES.map((line, li) => (
+          <span
+            key={li}
+            className="about-headline-line block overflow-hidden"
+            style={{ ["--line-indent" as string]: `${line.indent * 0.9}rem` }}
+          >
+            <span className="inline-block whitespace-nowrap" style={{ fontSize: line.size }}>
+              {line.text.split("").map((ch, ci) => (
+                <span key={ci} className="about-hchar inline-block will-change-transform">
+                  {ch === " " ? " " : ch}
+                </span>
+              ))}
+              {line.accent && (
+                <span className="about-hchar inline-block text-gold will-change-transform">
+                  {" "}
+                  {line.accent}
+                </span>
+              )}
+            </span>
+          </span>
+        ))}
+      </h1>
+    </>
   );
 }
 
@@ -348,35 +366,43 @@ export default function AboutHero() {
         reordering the source doesn't touch the desktop layout.
       */}
       <div className="relative mx-auto max-w-7xl md:grid md:grid-cols-12 md:gap-x-6 md:gap-y-16">
-        {/* "+54 countries" metadata label - top row, right side on desktop */}
-        <div className="about-hero-in flex items-center gap-2 md:col-start-9 md:col-span-4 md:row-start-1 md:justify-end">
-          <TwoToneCircle />
-          <span className="text-sm font-semibold uppercase tracking-[0.22em] text-ink">
-            +54 African Countries
-          </span>
-        </div>
-
-        {/* Small stacked metadata block - top row, left side on desktop */}
-        <div className="about-hero-in mt-10 flex flex-col gap-4 md:col-start-1 md:col-span-3 md:row-start-1 md:mt-0">
-          <div>
+        {/* Top metadata row - balanced left/right on mobile; grid cells on desktop */}
+        <div className="flex items-start justify-between gap-4 md:contents">
+          <div className="about-hero-in md:col-start-1 md:col-span-3 md:row-start-1">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
-              Take a look +
+              Take a look
             </p>
             <p className="text-xs font-semibold normal-case tracking-[0.2em] text-ink/70">
               Alt.FFF 2026
             </p>
+            <div className="mt-4 hidden md:block">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">FFA</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
+                Fashion Forum Africa
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">FFA</p>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
-              Fashion Forum Africa +
-            </p>
+
+          <div className="about-hero-in flex shrink-0 items-center gap-2 md:col-start-9 md:col-span-4 md:row-start-1 md:justify-end">
+            <TwoToneCircle />
+            <span className="text-right text-sm font-semibold uppercase tracking-[0.22em] text-ink">
+              54 African Countries
+            </span>
           </div>
         </div>
 
-        {/* Headline - dominant right-side element */}
-        <div className="mt-10 md:col-start-8 md:col-span-5 md:row-start-2 md:row-span-2 md:mt-0 md:self-start">
-          <StaircaseHeadline />
+        {/* FFA metadata + headline side by side on mobile; separate grid cells on desktop */}
+        <div className="mt-6 flex items-start justify-between gap-3 md:contents">
+          <div className="about-hero-in shrink-0 md:hidden">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">FFA</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink/70">
+              Fashion Forum Africa
+            </p>
+          </div>
+
+          <div className="min-w-0 flex-1 md:col-start-8 md:col-span-5 md:row-start-2 md:row-span-2 md:flex-none md:self-start">
+            <StaircaseHeadline />
+          </div>
         </div>
 
         {/* Image band + floating cards - left/center element. Wide and
@@ -445,7 +471,7 @@ export default function AboutHero() {
           {/* Floating glass card - overlaps top-left corner on desktop,
               sits below the image in normal flow on mobile (no overlap). */}
           <div
-            className="relative mt-6 w-full max-w-[15rem] rounded-2xl border border-hairline p-4 md:absolute md:-left-6 md:-top-8 md:mt-0"
+            className="relative mt-6 w-full rounded-2xl border border-hairline p-4 md:absolute md:-left-6 md:-top-8 md:mt-0 md:max-w-[15rem]"
             style={{
               backgroundColor: "color-mix(in srgb, var(--paper) 72%, transparent)",
               backdropFilter: "blur(10px)",
@@ -479,7 +505,7 @@ export default function AboutHero() {
 
           {/* Small sourcing card - overlaps bottom-right corner on desktop,
               sits below the glass card in flow on mobile (no overlap). */}
-          <div className="relative mt-4 w-full max-w-[16rem] rounded-2xl border border-hairline bg-surface p-4 md:absolute md:-bottom-8 md:-right-6 md:mt-0 md:ml-auto">
+          <div className="relative mt-4 w-full rounded-2xl border border-hairline bg-surface p-4 md:absolute md:-bottom-8 md:-right-6 md:mt-0 md:ml-auto md:max-w-[16rem]">
             <SpoolIcon />
             <p className="mt-2 font-display text-sm font-extrabold uppercase tracking-tight text-ink">
               Sourcing in Africa

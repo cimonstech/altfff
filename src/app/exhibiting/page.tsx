@@ -10,7 +10,7 @@ import Partners from "@/components/Partners";
 import Footer from "@/components/Footer";
 import { buildMetadata } from "@/lib/metadata";
 
-const TICKER_ITEMS = ["Exhibition", "Trade", "Commercial Design", "Africa", "Exhibit"];
+const TICKER_ITEMS = ["Exhibition", "Trade", "Commercial Design", "Africa"];
 
 export const metadata: Metadata = buildMetadata({
   title: "Exhibit at Alt.FFF 2026 - Why Exhibit",
@@ -33,7 +33,7 @@ export default function ExhibitingPage() {
           dark
           ambient3d
           quote="Africa has the talent, the resources, the craftsmanship."
-          attribution="Makeba Nana Pokua Boateng, APR, USPAP-ISA"
+          attribution="Makeba Nana Boateng, APR, USPAP-ISA"
           image={{
             src: "/materials/kente-craft.jpg",
             alt: "Kente cloth craftsmanship detail",

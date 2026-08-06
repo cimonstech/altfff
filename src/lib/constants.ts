@@ -1,16 +1,16 @@
 export const EVENT = {
   name: "Alt.FFF",
-  /** Exhibitor set-up - Friday 18th September, 2026 (not a public visitor day). */
+  /** Exhibitor set-up - Friday 18th September. 2026 (not a public visitor day). */
   setupDate: "2026-09-18",
-  /** Public trade fair - Saturday 19th September, 2026 (one-day event). */
+  /** Public trade fair - Saturday 19th September. 2026 (one-day event). */
   startDate: "2026-09-19",
   endDate: "2026-09-19",
   /** Short display dates used site-wide (emails, tickers, meta, etc.). */
-  dates: "19th September, 2026",
+  dates: "Saturday 19th September. 2026",
   /** Exhibitor set-up day label for schedule copy and FAQs. */
-  setupDateLabel: "Friday 18th September, 2026",
+  setupDateLabel: "Friday 18th September. 2026",
   /** Longer label for hero cards and schedule headings. */
-  tradeFairDateLabel: "Saturday 19th September, 2026",
+  tradeFairDateLabel: "Saturday 19th September. 2026",
   venue: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
   city: "Accra, Ghana",
 } as const;

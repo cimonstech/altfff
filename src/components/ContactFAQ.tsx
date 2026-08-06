@@ -25,7 +25,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",
     answer:
-      "Alt.FFF was founded by Makeba Nana Pokua Boateng, APR, USPAP-ISA, a celebrated cultural strategist and appraiser with more than three decades of experience championing African fashion and textile heritage.",
+      "Alt.FFF was founded by Makeba Nana Boateng, APR, USPAP-ISA, a celebrated cultural strategist and appraiser with more than three decades of experience championing African fashion and textile heritage.",
   },
   {
     question: "How can I register as an exhibitor for Alt.FFF 2026?",
@@ -46,7 +46,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Which organisations are supporting the Alternative Fashion Fabric Fair?",
     answer:
-      "Alt.FFF is backed by a mix of partners and collaborators, including Fashion Forum Africa, MCPR Africa and Black Star Experience as partners, alongside collaborators such as the Association of Ghana Industries, the National Commission on Culture, the Institute of Textiles & Fashion Professionals Ghana, and Ghana Culture Forum.",
+      "Alt.FFF is backed by a mix of partners, sponsors and collaborators, including Fashion Forum Africa, MCPR Africa and Black Star Experience as partners, DIMO as a sponsor, alongside collaborators such as the Association of Ghana Industries, the National Commission on Culture, the Institute of Textiles & Fashion Professionals Ghana, and Ghana Culture Forum.",
   },
   {
     question: "Are there any platforms that promote collaborations between African artisans and global fashion brands?",

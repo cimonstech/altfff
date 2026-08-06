@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT, MATERIALS } from "@/lib/constants";
@@ -67,35 +67,76 @@ export default function Ticker({
    * as a decorative accent rather than the default dark marquee strip. */
   variant?: "ink" | "gold";
 }) {
-  const container = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [loopItems, setLoopItems] = useState(items);
+
+  // Reset and re-expand when the source list or density changes.
+  useLayoutEffect(() => {
+    setLoopItems(items);
+  }, [items, dense]);
+
+  // Repeat the item list until one segment spans at least the viewport
+  // width, so wide screens never show empty space between loop cycles.
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const track = trackRef.current;
+    if (!container || !track || track.children.length === 0) return;
+
+    const segment = track.children[0] as HTMLElement;
+    if (segment.offsetWidth >= container.clientWidth) return;
+    if (loopItems.length >= items.length * 40) return;
+
+    setLoopItems((prev) => [...prev, ...items]);
+  }, [loopItems, items, dense]);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resetLoop = () => setLoopItems(items);
+    const ro = new ResizeObserver(resetLoop);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [items]);
 
   useGSAP(
     () => {
-      if (prefersReducedMotion() || !trackRef.current) return;
+      const track = trackRef.current;
+      if (prefersReducedMotion() || !track || track.children.length === 0) return;
+
+      const segment = track.children[0] as HTMLElement;
+      const segmentWidth = segment.offsetWidth;
+      if (!segmentWidth) return;
+
       const isMobile = window.matchMedia("(max-width: 767px)").matches;
-      gsap.to(trackRef.current, {
-        xPercent: -50,
-        duration: isMobile ? 42 : 32,
+      const baseDuration = isMobile ? 42 : 32;
+      const duration = baseDuration * (loopItems.length / DEFAULT_ITEMS.length);
+
+      const tween = gsap.to(track, {
+        x: -segmentWidth,
+        duration,
         ease: "none",
         repeat: -1,
       });
+
+      return () => {
+        tween.kill();
+      };
     },
-    { scope: container },
+    { scope: containerRef, dependencies: [loopItems, dense] },
   );
 
   return (
     <div
-      ref={container}
+      ref={containerRef}
       aria-hidden
       className={`overflow-hidden ${variant === "gold" ? "bg-gold" : "bg-ink"} ${dense ? "py-2" : "py-4"} ${className}`}
     >
-      <div ref={trackRef} className="flex w-max">
-        <Row items={items} dense={dense} variant={variant} />
-        <Row items={items} dense={dense} variant={variant} />
+      <div ref={trackRef} className="flex w-max will-change-transform">
+        <Row items={loopItems} dense={dense} variant={variant} />
+        <Row items={loopItems} dense={dense} variant={variant} />
       </div>
     </div>
   );
 }
-
-

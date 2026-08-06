@@ -19,7 +19,7 @@ const SCHEDULE = [
     date: EVENT.tradeFairDateLabel,
     detail:
       "One-day trade fair - fibres, dyes, weaves, makers, buyers, and the full Alt.FFF programme. The launch is incorporated into the opening of the day.",
-    hours: "10:00 - 18:00",
+    hours: "9am - 8pm",
   },
 ];
 

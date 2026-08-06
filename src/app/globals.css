@@ -237,3 +237,16 @@ html.lenis body {
   }
 }
 
+/* About hero headline - left staircase on mobile, right on desktop */
+.about-headline-line {
+  text-align: left;
+  padding-left: var(--line-indent);
+}
+@media (min-width: 768px) {
+  .about-headline-line {
+    text-align: right;
+    padding-left: 0;
+    padding-right: var(--line-indent);
+  }
+}
+
