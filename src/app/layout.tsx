@@ -4,6 +4,7 @@ import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import { SiteModalsProvider } from "@/components/SiteModals";
 import BackToTop from "@/components/BackToTop";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { GlobalStructuredData } from "@/components/structured-data";
 import { SITE, EVENT } from "@/lib/constants";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable} antialiased`}>
       <body className="bg-paper font-body text-ink" suppressHydrationWarning>
+        <GoogleAnalytics />
         <GlobalStructuredData />
         <SmoothScroll>
           <SiteModalsProvider>{children}</SiteModalsProvider>
