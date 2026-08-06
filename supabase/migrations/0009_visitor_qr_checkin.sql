@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0009: visitor vetting, QR issuance, check-in tracking
+-- Alt.FFF - Migration 0009: visitor vetting, QR issuance, check-in tracking
 
 alter table public.visitor_registrations
   drop constraint if exists visitor_registrations_status_check;

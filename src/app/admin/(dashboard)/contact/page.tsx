@@ -5,12 +5,12 @@ import AdminDataTable from "@/components/admin/AdminDataTable";
 const STATUSES = ["new", "read", "responded", "archived"];
 
 function fullName(row: Record<string, unknown>) {
-  return [row.first_name, row.last_name].filter(Boolean).join(" ") || "—";
+  return [row.first_name, row.last_name].filter(Boolean).join(" ") || "-";
 }
 
 function truncate(value: unknown, length: number) {
   const str = value ? String(value) : "";
-  return str.length > length ? `${str.slice(0, length)}…` : str || "—";
+  return str.length > length ? `${str.slice(0, length)}…` : str || "-";
 }
 
 export default function AdminContactMessagesPage() {

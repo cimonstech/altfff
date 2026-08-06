@@ -68,7 +68,7 @@ export default function AdminCheckInPage() {
           setResult({ kind: "error", name, message });
         }
       } catch {
-        setResult({ kind: "error", message: "Network error — try again." });
+        setResult({ kind: "error", message: "Network error - try again." });
       } finally {
         processingRef.current = false;
         window.setTimeout(() => setResult({ kind: "idle" }), 8000);
@@ -97,7 +97,7 @@ export default function AdminCheckInPage() {
             void handleToken(decoded);
           },
           () => {
-            /* scan frame miss — ignore */
+            /* scan frame miss - ignore */
           },
         );
         if (!cancelled) setCameraReady(true);
@@ -176,7 +176,7 @@ export default function AdminCheckInPage() {
 
       <details className="mt-8 rounded-md border border-hairline bg-surface p-4">
         <summary className="cursor-pointer text-sm font-semibold text-ink">Manual code entry (fallback)</summary>
-        <p className="mt-2 text-xs text-ink/55">Type only the code from the visitor&apos;s email — the prefix is added automatically.</p>
+        <p className="mt-2 text-xs text-ink/55">Type only the code from the visitor&apos;s email - the prefix is added automatically.</p>
         <form
           className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-stretch"
           onSubmit={(e) => {

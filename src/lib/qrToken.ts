@@ -1,9 +1,9 @@
 import { randomBytes } from "crypto";
 
-/** UX/organizational prefix — not a security boundary. */
+/** UX/organizational prefix - not a security boundary. */
 export const QR_TOKEN_PREFIX = "ALTEVT-" as const;
 
-/** Random code length (8–10 range; fixed at 9 for readability). */
+/** Random code length (8-10 range; fixed at 9 for readability). */
 export const QR_TOKEN_CODE_LENGTH = 9;
 
 /** Excludes 0/O, 1/I/l and lowercase to avoid visual ambiguity when typed. */

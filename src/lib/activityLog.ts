@@ -35,7 +35,7 @@ export function formatActivitySummary(
   action: string,
   details: Record<string, unknown> | null,
 ): string {
-  if (!details) return "—";
+  if (!details) return "-";
 
   switch (action) {
     case "status_change": {
@@ -79,12 +79,12 @@ export function formatActivitySummary(
     }
   }
 
-  return "—";
+  return "-";
 }
 
 export function formatActivityTarget(table: string | null, id: string | null): string {
-  if (!table && !id) return "—";
-  const label = table ? (TABLE_LABELS[table] ?? table.replace(/_/g, " ")) : "—";
+  if (!table && !id) return "-";
+  const label = table ? (TABLE_LABELS[table] ?? table.replace(/_/g, " ")) : "-";
   if (!id) return label;
   return `${label} · ${id.slice(0, 8)}…`;
 }
@@ -95,6 +95,6 @@ export function formatActivityAction(action: string): string {
 
 /** Pretty-printed JSON for expandable detail panels. */
 export function formatActivityDetailsJson(details: Record<string, unknown> | null): string {
-  if (!details || Object.keys(details).length === 0) return "—";
+  if (!details || Object.keys(details).length === 0) return "-";
   return JSON.stringify(details, null, 2);
 }

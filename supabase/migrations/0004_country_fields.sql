@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0004: add country to exhibitor_applications and sponsor_inquiries
+-- Alt.FFF - Migration 0004: add country to exhibitor_applications and sponsor_inquiries
 -- Save as supabase/migrations/0004_country_fields.sql
 -- Apply to BOTH Supabase projects.
 --

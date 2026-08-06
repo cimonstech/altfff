@@ -122,7 +122,7 @@ export default function PackageOptions() {
             Extras available on request at additional cost: extra furniture, custom branding,
             audio-visual equipment.
           </p>
-          <p className="text-xs text-paper/60">
+          <p className="text-sm font-semibold leading-relaxed text-gold">
             Storage facilities are not provided. Stands should be kept tidy and free of clutter.
             Backstage access is limited.
           </p>

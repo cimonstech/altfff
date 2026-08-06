@@ -48,12 +48,12 @@ function formatMailchimpErrorBody(raw: string): string {
       for (const err of parsed.errors) {
         const field = err.field ?? "(unknown field)";
         const message = err.message ?? "(no message)";
-        lines.push(`field_error: ${field} — ${message}`);
+        lines.push(`field_error: ${field} - ${message}`);
       }
     }
     if (lines.length > 0) return lines.join(" | ");
   } catch {
-    // Not JSON — log a bounded raw snippet.
+    // Not JSON - log a bounded raw snippet.
   }
   return trimmed.length > 800 ? `${trimmed.slice(0, 800)}…` : trimmed;
 }
@@ -90,7 +90,7 @@ function logMailchimpFailure(
 /**
  * Upserts a consenting subscriber into FFA's existing Mailchimp audience.
  * Uses PUT /lists/{list_id}/members/{subscriber_hash} (stable v3 endpoint).
- * Never throws — failures are logged to Sentry and do not affect form success.
+ * Never throws - failures are logged to Sentry and do not affect form success.
  */
 export async function syncToMailchimp(
   params: {
@@ -110,7 +110,7 @@ export async function syncToMailchimp(
   const config = getMailchimpConfig();
   if (!config) {
     console.warn(
-      "[mailchimp] sync skipped — MAILCHIMP_API_KEY, MAILCHIMP_SERVER_PREFIX, or MAILCHIMP_AUDIENCE_ID is not set.",
+      "[mailchimp] sync skipped - MAILCHIMP_API_KEY, MAILCHIMP_SERVER_PREFIX, or MAILCHIMP_AUDIENCE_ID is not set.",
     );
     return;
   }
@@ -168,7 +168,7 @@ export async function syncToMailchimp(
 }
 
 /**
- * Non-blocking Mailchimp mirror — form routes must not await the sync.
+ * Non-blocking Mailchimp mirror - form routes must not await the sync.
  * Runs independently after DB insert; only logs/Sentry on failure.
  */
 export function scheduleMailchimpSync(

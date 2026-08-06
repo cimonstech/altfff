@@ -2,7 +2,7 @@ import { EXHIBITOR_SPACE_VALUES } from "@/lib/validation/exhibitor";
 
 /**
  * Confirmed via GET /lists/{list_id}/merge-fields (FFA audience, 2026-07-28).
- * Do not guess tags — update this file only after re-running discovery.
+ * Do not guess tags - update this file only after re-running discovery.
  */
 export const MAILCHIMP_MERGE_TAGS = {
   company: "CNAME",
@@ -17,7 +17,7 @@ export const MAILCHIMP_MERGE_TAGS = {
   heardAboutText: "WHERE",
   message: "TEXTAREAY",
   phone: "PHONE",
-  /** Dropdown: Exhibiting | Visiting | Sponsoring — not used by Alt.FFF visitor interest select. */
+  /** Dropdown: Exhibiting | Visiting | Sponsoring - not used by Alt.FFF visitor interest select. */
   participationInterest: "MMERGE3",
 } as const;
 
@@ -62,7 +62,7 @@ export type MailchimpVisitorFields = {
   jobTitle?: string | null;
   country?: string | null;
   heardAbout?: string | null;
-  /** Site value: materials | leaders | learning | business | other — no matching Mailchimp merge field. */
+  /** Site value: materials | leaders | learning | business | other - no matching Mailchimp merge field. */
   interest?: string | null;
   phone?: string | null;
 };
@@ -93,7 +93,7 @@ function setTrimmed(target: Record<string, string>, tag: string, value: string |
   if (trimmed) target[tag] = trimmed;
 }
 
-/** Mailchimp audience `PHONE` merge field (type: phone) — pass through E.164 from our forms. */
+/** Mailchimp audience `PHONE` merge field (type: phone) - pass through E.164 from our forms. */
 function setPhoneMergeField(
   target: Record<string, string>,
   phone: string | null | undefined,
@@ -147,7 +147,7 @@ export function buildMailchimpMergeFields(
       setPhoneMergeField(merge_fields, fields.phone);
       if (fields.interest?.trim()) {
         unmapped.push(
-          `interest (${fields.interest.trim()}) — no merge field; MMERGE3 is Exhibiting/Visiting/Sponsoring, MMERGE2 is sector dropdown`,
+          `interest (${fields.interest.trim()}) - no merge field; MMERGE3 is Exhibiting/Visiting/Sponsoring, MMERGE2 is sector dropdown`,
         );
       }
       break;

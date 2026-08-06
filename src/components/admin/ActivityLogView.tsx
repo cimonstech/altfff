@@ -24,7 +24,7 @@ const ROW_LIMIT = 500;
 
 function formatDateTime(value: string): string {
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
@@ -98,7 +98,7 @@ export default function ActivityLogView() {
 
       <p className="mt-3 text-xs text-ink/50">
         {loading ? "Loading…" : `${rows.length} entr${rows.length === 1 ? "y" : "ies"}`}
-        {rows.length === ROW_LIMIT && " (showing the most recent 500 — narrow your filters for more)"}
+        {rows.length === ROW_LIMIT && " (showing the most recent 500 - narrow your filters for more)"}
       </p>
 
       {loadError && (
@@ -115,14 +115,14 @@ export default function ActivityLogView() {
         {rows.map((row) => {
           const summary = formatActivitySummary(row.action, row.details);
           const hasRawDetails = row.details && Object.keys(row.details).length > 0;
-          const showFallbackJson = summary === "—" && hasRawDetails;
+          const showFallbackJson = summary === "-" && hasRawDetails;
           const isExpanded = expandedId === row.id;
 
           return (
             <li key={row.id} className="rounded-md border border-hairline bg-surface p-4">
               <p className="text-sm font-medium text-ink">{formatActivityAction(row.action)}</p>
               <p className="mt-1 text-xs text-ink/50">{formatDateTime(row.created_at)}</p>
-              <p className="mt-2 text-sm text-ink">{row.actor_email || "—"}</p>
+              <p className="mt-2 text-sm text-ink">{row.actor_email || "-"}</p>
               <p className="mt-1 text-xs text-ink/60">{formatActivityTarget(row.target_table, row.target_id)}</p>
               <div className="mt-3 border-t border-hairline pt-3 text-sm text-ink">
                 <p>{showFallbackJson ? formatActivityDetailsJson(row.details) : summary}</p>
@@ -179,13 +179,13 @@ export default function ActivityLogView() {
             {rows.map((row) => {
               const summary = formatActivitySummary(row.action, row.details);
               const hasRawDetails = row.details && Object.keys(row.details).length > 0;
-              const showFallbackJson = summary === "—" && hasRawDetails;
+              const showFallbackJson = summary === "-" && hasRawDetails;
               const isExpanded = expandedId === row.id;
 
               return (
                 <tr key={row.id} className="border-t border-hairline align-top">
                   <td className="p-3 whitespace-nowrap text-ink">{formatDateTime(row.created_at)}</td>
-                  <td className="p-3 text-ink">{row.actor_email || "—"}</td>
+                  <td className="p-3 text-ink">{row.actor_email || "-"}</td>
                   <td className="p-3 text-ink">{formatActivityAction(row.action)}</td>
                   <td className="p-3 text-ink">{formatActivityTarget(row.target_table, row.target_id)}</td>
                   <td className="p-3 text-ink">

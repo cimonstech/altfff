@@ -47,7 +47,7 @@ export default function VisitPage() {
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-indigo md:text-base">
               Fill in the form below to visit Alt.FFF. We look forward to
-              meeting you — your badge will be emailed to you closer to the
+              meeting you - your badge will be emailed to you closer to the
               event.
             </p>
             <div className="mt-10">

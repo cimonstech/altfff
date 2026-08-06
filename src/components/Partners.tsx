@@ -40,7 +40,7 @@ function LogoStrip({ items, size }: { items: Supporter[]; size: "lg" | "sm" }) {
 
 /** Infinite one-direction marquee, same mechanics as Ticker.tsx: the strip
  * is duplicated back-to-back and translated by exactly one copy's width
- * (xPercent: -50), looping (`repeat: -1`) rather than yoyo-ing — it never
+ * (xPercent: -50), looping (`repeat: -1`) rather than yoyo-ing - it never
  * reverses direction once it reaches the "end", because there effectively
  * isn't one; the duplicate seam is what makes the loop read as continuous. */
 function LogoRow({ items, size }: { items: Supporter[]; size: "lg" | "sm" }) {

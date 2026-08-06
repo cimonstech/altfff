@@ -9,7 +9,7 @@ const DEFAULT_ITEMS = [
   ...MATERIALS.map((m) => m.name),
   "Accra · " + EVENT.dates,
   EVENT.venue,
-  "54 countries",
+  "54 African Countries",
   "One space",
 ];
 

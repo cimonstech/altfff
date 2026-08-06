@@ -41,21 +41,21 @@ function isUnreadRow(table: string, row: Record<string, unknown>): boolean {
 
 function toDisplayValue(row: Record<string, unknown>, field: string): React.ReactNode {
   const value = row[field];
-  if (value === null || value === undefined || value === "") return "—";
+  if (value === null || value === undefined || value === "") return "-";
   return String(value);
 }
 
 function formatDateTime(value: unknown): string {
-  if (!value || typeof value !== "string") return "—";
+  if (!value || typeof value !== "string") return "-";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
 function formatDateShort(value: unknown): string {
-  if (!value || typeof value !== "string") return "—";
+  if (!value || typeof value !== "string") return "-";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleDateString("en-GB", { dateStyle: "medium" });
 }
 
@@ -358,7 +358,7 @@ export default function AdminDataTable({
    * source here rather than adding a new prop just for this. */
   const extractRecipient = (row: Record<string, unknown>): CustomRecipient => {
     const rawName = getTitle ? getTitle(row) : toDisplayValue(row, titleField);
-    const name = typeof rawName === "string" && rawName && rawName !== "—" ? rawName : null;
+    const name = typeof rawName === "string" && rawName && rawName !== "-" ? rawName : null;
     return {
       email: typeof row.email === "string" && row.email ? row.email : null,
       phone: typeof row.phone === "string" && row.phone ? row.phone : null,
@@ -390,7 +390,7 @@ export default function AdminDataTable({
     });
   };
 
-  /** Secondary fields for expanded mobile cards — skip title/status/created. */
+  /** Secondary fields for expanded mobile cards - skip title/status/created. */
   const cardSecondaryColumns = columns.filter(
     (c) =>
       c.field !== titleField &&
@@ -411,7 +411,7 @@ export default function AdminDataTable({
           ? "Loading…"
           : totalCount === 0
             ? "0 results"
-            : `Showing ${pageFrom}–${pageTo} of ${totalCount}`}
+            : `Showing ${pageFrom}-${pageTo} of ${totalCount}`}
       </p>
       <div className="flex items-center gap-2">
         <button
@@ -423,7 +423,7 @@ export default function AdminDataTable({
           Previous
         </button>
         <span className="min-w-[4.5rem] text-center text-xs text-ink/60">
-          {totalCount === 0 ? "—" : `${page + 1} / ${totalPages}`}
+          {totalCount === 0 ? "-" : `${page + 1} / ${totalPages}`}
         </span>
         <button
           type="button"
@@ -498,9 +498,9 @@ export default function AdminDataTable({
               ? "Loading…"
               : totalCount === 0
                 ? "0 results"
-                : `Showing ${pageFrom}–${pageTo} of ${totalCount}`}
+                : `Showing ${pageFrom}-${pageTo} of ${totalCount}`}
           </p>
-          {/* Select all on the current page only — selection Map still
+          {/* Select all on the current page only - selection Map still
               accumulates across pages for Message Selected. */}
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs font-medium text-ink/60 md:hidden">
             <input
@@ -523,7 +523,7 @@ export default function AdminDataTable({
         </p>
       )}
 
-      {/* Mobile card list — collapsed by default (title / status / date). */}
+      {/* Mobile card list - collapsed by default (title / status / date). */}
       <ul className="mt-4 flex flex-col gap-2 md:hidden">
         {!loading && rows.length === 0 && (
           <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">

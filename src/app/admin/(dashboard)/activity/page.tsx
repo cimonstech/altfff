@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ActivityLogView from "@/components/admin/ActivityLogView";
 
 /**
- * super_admin only. Same server-side guard as /admin/admins — nav hiding
+ * super_admin only. Same server-side guard as /admin/admins - nav hiding
  * alone is not sufficient.
  */
 export default async function AdminActivityLogPage() {

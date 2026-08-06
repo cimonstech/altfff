@@ -12,7 +12,7 @@ export default function AdminVisitorsPage() {
       </h1>
       <p className="mt-2 text-sm text-ink/60">
         New registrations start as <span className="font-medium">registered</span> (pending review). Use Approve or
-        Decline in the detail view — do not set confirmed/declined from the status dropdown.
+        Decline in the detail view - do not set confirmed/declined from the status dropdown.
       </p>
       <div className="mt-6">
         <AdminDataTable
@@ -35,7 +35,7 @@ export default function AdminVisitorsPage() {
             { label: "Number Attending", field: "number_attending" },
             { label: "Heard About Us Via", field: "heard_about_us" },
             // From migration 0002 - only ever populated by the fuller
-            // inline /visit form, not the quick modal. Shown empty ("—")
+            // inline /visit form, not the quick modal. Shown empty ("-")
             // rather than hidden when a row came from the modal instead.
             { label: "Company", field: "company_name" },
             { label: "Job Title", field: "job_title" },

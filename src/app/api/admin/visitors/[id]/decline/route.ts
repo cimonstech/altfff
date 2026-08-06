@@ -26,7 +26,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
   if (existing.status !== "registered") {
     return NextResponse.json(
-      { ok: false, error: `Cannot decline — current status is "${existing.status}".` },
+      { ok: false, error: `Cannot decline - current status is "${existing.status}".` },
       { status: 409 },
     );
   }
@@ -55,6 +55,6 @@ export async function POST(_request: Request, context: RouteContext) {
     ok: true,
     row: updated,
     emailSent,
-    warning: emailSent ? undefined : "Declined, but the notification email could not be sent — check Resend logs.",
+    warning: emailSent ? undefined : "Declined, but the notification email could not be sent - check Resend logs.",
   });
 }

@@ -77,12 +77,12 @@ export default function AdminList({
         )}
         {admins.map((admin) => (
           <li key={admin.id} className="rounded-md border border-hairline bg-surface p-4">
-            <p className="font-medium text-ink">{admin.full_name || "—"}</p>
-            <p className="mt-1 truncate text-sm text-ink/70">{admin.email || "—"}</p>
+            <p className="font-medium text-ink">{admin.full_name || "-"}</p>
+            <p className="mt-1 truncate text-sm text-ink/70">{admin.email || "-"}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-ink/50">
               <span className="capitalize">{admin.role.replace(/_/g, " ")}</span>
               <span>·</span>
-              <span>Invited {admin.invited_at ? new Date(admin.invited_at).toLocaleDateString() : "—"}</span>
+              <span>Invited {admin.invited_at ? new Date(admin.invited_at).toLocaleDateString() : "-"}</span>
             </div>
             <div className="mt-2">
               {admin.id === currentUserId ? (
@@ -102,7 +102,7 @@ export default function AdminList({
                 </button>
               ) : (
                 <span className="text-xs text-ink/50" title="No email on file">
-                  —
+                  -
                 </span>
               )}
             </div>
@@ -135,11 +135,11 @@ export default function AdminList({
           <tbody>
             {admins.map((admin) => (
               <tr key={admin.id} className="border-t border-hairline">
-                <td className="p-3 text-ink">{admin.full_name || "—"}</td>
-                <td className="p-3 text-ink">{admin.email || "—"}</td>
+                <td className="p-3 text-ink">{admin.full_name || "-"}</td>
+                <td className="p-3 text-ink">{admin.email || "-"}</td>
                 <td className="p-3 text-ink">{admin.role}</td>
                 <td className="p-3 text-ink">
-                  {admin.invited_at ? new Date(admin.invited_at).toLocaleDateString() : "—"}
+                  {admin.invited_at ? new Date(admin.invited_at).toLocaleDateString() : "-"}
                 </td>
                 <td className="p-3 text-ink">
                   {admin.id === currentUserId ? (
@@ -159,7 +159,7 @@ export default function AdminList({
                     </button>
                   ) : (
                     <span className="text-xs text-ink/50" title="No email on file">
-                      —
+                      -
                     </span>
                   )}
                 </td>

@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0007: viewed_at tracking for unread/bold row styling
+-- Alt.FFF - Migration 0007: viewed_at tracking for unread/bold row styling
 -- Purely a UI-state marker (has this row been opened), fully independent
 -- from the real business `status` column and from badge counts, which
 -- must continue to reflect only genuine status transitions. Contact

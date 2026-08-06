@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: false,
       result: "pending",
-      message: "Not approved yet — pending admin review.",
+      message: "Not approved yet - pending admin review.",
       name,
     });
   }
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     .single();
 
   if (updateError || !updated) {
-    // Race: another scan may have won — re-fetch for already-checked-in message.
+    // Race: another scan may have won - re-fetch for already-checked-in message.
     const { data: again } = await supabase
       .from("visitor_registrations")
       .select("full_name, email, checked_in_at, checked_in_by_email")

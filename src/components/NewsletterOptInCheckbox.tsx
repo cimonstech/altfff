@@ -1,4 +1,4 @@
-/** Matches SponsorshipForm.tsx — shared across all opt-in forms. */
+/** Matches SponsorshipForm.tsx - shared across all opt-in forms. */
 export default function NewsletterOptInCheckbox() {
   return (
     <label className="mt-5 flex items-start gap-2.5 text-xs leading-relaxed text-ink/80">

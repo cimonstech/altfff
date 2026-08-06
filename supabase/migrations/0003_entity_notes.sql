@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0003: entity_notes (append-only, multiple notes per record)
+-- Alt.FFF - Migration 0003: entity_notes (append-only, multiple notes per record)
 -- Save as supabase/migrations/0003_entity_notes.sql
 -- Apply to BOTH Supabase projects.
 --

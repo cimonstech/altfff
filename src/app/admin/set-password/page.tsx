@@ -25,7 +25,7 @@ function urlLooksLikeAuthCallback(): boolean {
  * Invite emails use the implicit flow: tokens arrive in the URL hash
  * (`#access_token=…&refresh_token=…&type=invite`). @supabase/ssr's
  * createBrowserClient defaults to PKCE (`?code=`), so hash tokens are not
- * auto-consumed — this page must call setSession explicitly.
+ * auto-consumed - this page must call setSession explicitly.
  *
  * PKCE (`?code=`) is still handled for password-recovery / other flows.
  */

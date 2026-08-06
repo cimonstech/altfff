@@ -15,9 +15,9 @@ type NewsPostRow = {
 };
 
 function formatDate(value: string | null): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleDateString("en-GB", { dateStyle: "medium" });
 }
 
@@ -173,7 +173,7 @@ export default function AdminNewsListPage() {
                     <StatusPill published={post.published} />
                   </td>
                   <td className="p-3 text-ink">{formatDate(post.created_at)}</td>
-                  <td className="p-3 text-ink">{post.published ? formatDate(post.published_at) : "—"}</td>
+                  <td className="p-3 text-ink">{post.published ? formatDate(post.published_at) : "-"}</td>
                   <td className="p-3">
                     <PostActions post={post} deletingId={deletingId} onDelete={handleDelete} />
                   </td>

@@ -36,7 +36,7 @@ export async function qrCodePngForToken(token: string): Promise<Buffer> {
 export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: string): Promise<boolean> {
   const client = resendClient();
   if (!client) {
-    console.error("RESEND is not configured — visitor approval QR email was not sent.");
+    console.error("RESEND is not configured - visitor approval QR email was not sent.");
     return false;
   }
 
@@ -54,7 +54,7 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
     bodyIntro,
     entryCodeLine,
     "",
-    "Your QR code is below and attached as a printable PDF ticket. Please bring it with you on the day — a screenshot on your phone or a printed copy both work.",
+    "Your QR code is below and attached as a printable PDF ticket. Please bring it with you on the day - a screenshot on your phone or a printed copy both work.",
     "",
     "We look forward to seeing you there.",
     "",
@@ -72,7 +72,7 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
       from: `Alt.FFF <${client.fromEmail}>`,
       to: visitor.email,
       replyTo: "enquiries@altfff.com",
-      subject: "Your Alt.FFF visit is confirmed — QR code inside",
+      subject: "Your Alt.FFF visit is confirmed - QR code inside",
       text: textBody,
       html: buildEmailHtml({
         heading: "Visit Confirmed",
@@ -114,7 +114,7 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
 export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boolean> {
   const client = resendClient();
   if (!client) {
-    console.error("RESEND is not configured — visitor decline email was not sent.");
+    console.error("RESEND is not configured - visitor decline email was not sent.");
     return false;
   }
 
@@ -162,7 +162,7 @@ export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boo
   }
 }
 
-/** Safe display name for scanner UI — never echoes raw token. */
+/** Safe display name for scanner UI - never echoes raw token. */
 export function visitorDisplayName(row: Pick<VisitorRow, "full_name" | "email">): string {
   const name = row.full_name?.trim();
   if (name) return name;

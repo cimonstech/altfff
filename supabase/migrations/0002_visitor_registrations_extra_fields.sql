@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0002: extend visitor_registrations
+-- Alt.FFF - Migration 0002: extend visitor_registrations
 -- Save as supabase/migrations/0002_visitor_registrations_extra_fields.sql
 -- Apply to BOTH Supabase projects (staging and production) to keep them identical.
 --

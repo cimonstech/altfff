@@ -112,7 +112,7 @@ function Toolbar({ editor }: { editor: Editor }) {
         active={editor.isActive("bulletList")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
-        •—
+        •-
       </ToolbarButton>
       <ToolbarButton
         label="Ordered list"

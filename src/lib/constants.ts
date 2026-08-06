@@ -1,8 +1,8 @@
 export const EVENT = {
   name: "Alt.FFF",
-  /** Exhibitor set-up — Friday 18th September, 2026 (not a public visitor day). */
+  /** Exhibitor set-up - Friday 18th September, 2026 (not a public visitor day). */
   setupDate: "2026-09-18",
-  /** Public trade fair — Saturday 19th September, 2026 (one-day event). */
+  /** Public trade fair - Saturday 19th September, 2026 (one-day event). */
   startDate: "2026-09-19",
   endDate: "2026-09-19",
   /** Short display dates used site-wide (emails, tickers, meta, etc.). */
@@ -39,7 +39,7 @@ export type Material = {
   /** Giant cropped word shown at the bottom of the hero. */
   heroWord: string;
   /**
-   * Left-side scrim peak opacity (0–1) for this material's hero background,
+   * Left-side scrim peak opacity (0-1) for this material's hero background,
    * behind the white headline text. Photos vary a lot in how light/busy
    * their left-hand crop is, so one flat value doesn't hold up across all
    * of them - tuned per material by eye. Falls back to

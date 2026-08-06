@@ -19,14 +19,14 @@ export type PublicFormRoute =
   | "visitor-registrations";
 
 /**
- * Lazy construction — same build-safety pattern as qstash/r2/supabase
+ * Lazy construction - same build-safety pattern as qstash/r2/supabase
  * admin clients. A missing env var must not throw during Next's build-time
  * page-data collection.
  *
  * FAIL OPEN (deliberate): if Redis env vars are missing, or the Redis/
  * Ratelimit call itself throws, we log a warning and allow the request.
  * Blocking real form submissions over a rate-limiter outage or incomplete
- * local env would be worse than briefly going unprotected — tonight's
+ * local env would be worse than briefly going unprotected - tonight's
  * pattern of hard failures taught that lesson. Rate limiting is a
  * safety net, not a hard dependency of the submit path.
  */
@@ -40,7 +40,7 @@ function getLimiter(): Ratelimit | null {
     if (!missingEnvWarned) {
       missingEnvWarned = true;
       console.warn(
-        "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN not set — rate limiting disabled (fail open).",
+        "[rateLimit] UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN not set - rate limiting disabled (fail open).",
       );
     }
     return null;
@@ -57,7 +57,7 @@ function getLimiter(): Ratelimit | null {
   return cachedLimiter;
 }
 
-/** First address in x-forwarded-for, or a stable fallback — never throws. */
+/** First address in x-forwarded-for, or a stable fallback - never throws. */
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
@@ -92,7 +92,7 @@ export async function checkPublicFormRateLimit(
     // Genuine Redis/network failure after env was present - fail open for
     // the user, but report so we know the safety net is down. The "env not
     // configured" path above stays console-only (working as designed).
-    console.warn("[rateLimit] Redis/Ratelimit call failed — allowing request (fail open):", err);
+    console.warn("[rateLimit] Redis/Ratelimit call failed - allowing request (fail open):", err);
     reportServerError(err, {
       route: `rateLimit:${route}`,
       kind: "redis",

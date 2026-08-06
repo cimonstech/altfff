@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0005: denormalized snapshots for communication history
+-- Alt.FFF - Migration 0005: denormalized snapshots for communication history
 -- Reason: communication_log.sent_by is a FK to admin_profiles that goes null
 -- if that admin is ever deleted, permanently losing who actually sent it.
 -- communication_recipients has no name at all, only email/phone, even though

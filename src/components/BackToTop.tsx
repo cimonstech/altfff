@@ -12,7 +12,7 @@ const IDLE_DELAY = 400; // ms of no scroll activity before it reappears
 /**
  * Floating "back to top" button. Visible at rest once the page is scrolled
  * past SHOW_AFTER; vanishes the instant scrolling resumes and reappears
- * IDLE_DELAY after it stops — same activity-based show/hide mechanic as
+ * IDLE_DELAY after it stops - same activity-based show/hide mechanic as
  * Nav's hide-on-scroll bar (Lenis's own "scroll" event, not the native
  * window one, for the same reason documented there: Lenis coalesces native
  * scroll events during its animated scroll, so its own per-frame event is

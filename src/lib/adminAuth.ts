@@ -6,7 +6,7 @@ export type AdminUser = {
   email: string;
 };
 
-/** Any authenticated admin_profiles row — not super_admin-only. */
+/** Any authenticated admin_profiles row - not super_admin-only. */
 export async function requireAdmin():
   Promise<{ user: AdminUser } | { error: NextResponse }> {
   const supabase = await createClient();

@@ -11,8 +11,8 @@ async function walk(dir) {
     if (e.isDirectory()) await walk(full);
     else if (exts.includes(path.extname(e.name))) {
       let txt = await fs.readFile(full, 'utf8');
-      if (txt.includes('\u2014') || txt.includes('—')) {
-        const newTxt = txt.replace(/\u2014|—/g, '-');
+      if (txt.includes('\u2014') || txt.includes('-')) {
+        const newTxt = txt.replace(/\u2014|-/g, '-');
         await fs.writeFile(full, newTxt, 'utf8');
         console.log('Replaced em-dash in', full);
       }

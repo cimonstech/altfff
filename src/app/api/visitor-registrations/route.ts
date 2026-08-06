@@ -150,7 +150,7 @@ export async function POST(request: Request) {
     const textBody = [
       `Thanks for registering your interest in visiting Alt.FFF on ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
       "",
-      "Your registration is pending review. We'll email you once it's been confirmed — if approved, you'll receive a QR code to bring on the day.",
+      "Your registration is pending review. We'll email you once it's been confirmed - if approved, you'll receive a QR code to bring on the day.",
       "",
       "Questions in the meantime? Reach us at enquiries@altfff.com.",
     ].join("\n");
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
     const internalBody = [
-      `Name: ${fullName || "—"}`,
+      `Name: ${fullName || "-"}`,
       companyName ? `Company: ${companyName}` : null,
       `Email: ${email}`,
       phone ? `Phone: ${phone}` : null,

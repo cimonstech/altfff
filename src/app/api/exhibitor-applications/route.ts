@@ -169,7 +169,7 @@ export async function POST(request: Request) {
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
     const internalBody = [
-      `Name: ${name || "—"}`,
+      `Name: ${name || "-"}`,
       company ? `Company: ${company}` : null,
       `Email: ${email}`,
       phone ? `Phone: ${phone}` : null,

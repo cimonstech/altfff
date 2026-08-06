@@ -18,9 +18,9 @@ type ChannelOption = "email" | "sms" | "both";
 type ComposeAudience = AudienceType | "custom";
 
 function formatDateTime(value: unknown): string {
-  if (!value || typeof value !== "string") return "—";
+  if (!value || typeof value !== "string") return "-";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
@@ -275,7 +275,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
           <div className="flex flex-col justify-end">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink/60">Recipients</p>
             <p className="mt-1 text-sm text-ink">
-              {countLoading ? "Counting…" : recipientCount === null ? "—" : `${recipientCount} match${recipientCount === 1 ? "" : "es"}`}
+              {countLoading ? "Counting…" : recipientCount === null ? "-" : `${recipientCount} match${recipientCount === 1 ? "" : "es"}`}
             </p>
             <button
               type="button"
@@ -299,7 +299,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
               <ul className="space-y-1">
                 {preloadedRecipients.map((r, i) => (
                   <li key={i}>
-                    {r.name || "(unnamed)"} — {r.email || r.phone}
+                    {r.name || "(unnamed)"} - {r.email || r.phone}
                   </li>
                 ))}
               </ul>
@@ -395,7 +395,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
             {countLoading && !isCustom
               ? "Counting recipients…"
               : recipientCount === null
-                ? "—"
+                ? "-"
                 : `${recipientCount} recipient${recipientCount === 1 ? "" : "s"}`}
           </p>
           <button

@@ -1,4 +1,4 @@
--- Alt.FFF — Migration 0008: newsletter opt-in on the three forms that lack it
+-- Alt.FFF - Migration 0008: newsletter opt-in on the three forms that lack it
 -- sponsor_inquiries already has newsletter_opt_in from migration 0001.
 
 alter table public.exhibitor_applications

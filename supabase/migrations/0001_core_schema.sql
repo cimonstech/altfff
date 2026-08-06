@@ -1,4 +1,4 @@
--- Alt.FFF — Core schema migration 0001
+-- Alt.FFF - Core schema migration 0001
 -- Save this file as supabase/migrations/0001_core_schema.sql in the project repo.
 -- Designed to be run identically against two separate Supabase projects (staging + production).
 -- Apply via: supabase db push  (or paste directly into the SQL Editor on each project)
@@ -343,7 +343,7 @@ create trigger touch_updated_at before update on public.admin_profiles
 -- 9. ROW LEVEL SECURITY
 -- Rule of thumb applied throughout:
 --   - Public/anon can INSERT into the four form tables (submit a form) but
---     can never SELECT, UPDATE, or DELETE — they can't read anyone's data back.
+--     can never SELECT, UPDATE, or DELETE - they can't read anyone's data back.
 --   - Only authenticated admins (present in admin_profiles) can SELECT/UPDATE
 --     the form tables, and fully manage news_posts and communications.
 --   - Public/anon can SELECT news_posts only where published = true.

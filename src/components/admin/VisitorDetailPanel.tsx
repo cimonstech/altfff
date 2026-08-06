@@ -3,9 +3,9 @@
 import { useState } from "react";
 
 function formatDateTime(value: unknown): string {
-  if (!value || typeof value !== "string") return "—";
+  if (!value || typeof value !== "string") return "-";
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
@@ -51,11 +51,11 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
       } else {
         setActionMessage({
           tone: "ok",
-          text: action === "approve" ? "Approved — QR email sent." : "Declined — notification email sent.",
+          text: action === "approve" ? "Approved - QR email sent." : "Declined - notification email sent.",
         });
       }
     } catch {
-      setActionMessage({ tone: "error", text: `${label} failed — network error.` });
+      setActionMessage({ tone: "error", text: `${label} failed - network error.` });
     } finally {
       setBusy(null);
     }
@@ -105,7 +105,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
             <div>
               <dt className="text-xs font-semibold uppercase tracking-wide text-ink/50">QR issued</dt>
               <dd className="mt-0.5 text-ink">
-                {qrIssuedAt ? formatDateTime(qrIssuedAt) : status === "confirmed" ? "—" : "Not yet"}
+                {qrIssuedAt ? formatDateTime(qrIssuedAt) : status === "confirmed" ? "-" : "Not yet"}
               </dd>
             </div>
             <div>
@@ -117,7 +117,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
             {checkedInAt && (
               <div className="sm:col-span-2">
                 <dt className="text-xs font-semibold uppercase tracking-wide text-ink/50">Checked in by</dt>
-                <dd className="mt-0.5 text-ink">{checkedInBy || "—"}</dd>
+                <dd className="mt-0.5 text-ink">{checkedInBy || "-"}</dd>
               </div>
             )}
           </dl>

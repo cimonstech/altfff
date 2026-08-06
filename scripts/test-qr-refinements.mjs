@@ -40,7 +40,7 @@ async function main() {
       assert(token.startsWith(PREFIX), `token ${i} has ALTEVT- prefix`);
       assert(isQrTokenFormat(token), `token ${i} matches format: ${token}`);
       const code = token.slice(PREFIX.length);
-      assert(code.length >= 8 && code.length <= 10, `code length 8–10: ${code.length}`);
+      assert(code.length >= 8 && code.length <= 10, `code length 8-10: ${code.length}`);
       assert(![..."01IOl"].some((c) => code.includes(c)), `no ambiguous chars in ${code}`);
     }
     assert(normalize("abcdefgh") === `${PREFIX}ABCDEFGH`, "normalize short code prepends prefix");

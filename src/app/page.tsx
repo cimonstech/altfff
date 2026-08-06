@@ -17,7 +17,7 @@ import { EVENT } from "@/lib/constants";
 // metadata pass, per instruction.
 export const metadata: Metadata = buildMetadata({
   title: "Before Fashion, There are Materials",
-  description: `Where materials speak before fashion. A day of fibres, dyes, weaves and the people behind them — Accra, ${EVENT.dates}.`,
+  description: `Where materials speak before fashion. A day of fibres, dyes, weaves and the people behind them - Accra, ${EVENT.dates}.`,
   path: "/",
 });
 
