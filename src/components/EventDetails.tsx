@@ -11,12 +11,12 @@ import { useSiteModals } from "@/components/SiteModals";
 const SCHEDULE = [
   {
     label: "Exhibitor set-up",
-    date: "Friday 18 September 2026",
+    date: EVENT.setupDateLabel,
     detail: "Exhibitors prepare their stands ahead of the public fair. Not open to visitors.",
   },
   {
     label: "The Fair",
-    date: "Saturday 19 September 2026",
+    date: EVENT.tradeFairDateLabel,
     detail:
       "One-day trade fair — fibres, dyes, weaves, makers, buyers, and the full Alt.FFF programme. The launch is incorporated into the opening of the day.",
     hours: "10:00 – 18:00",

@@ -352,7 +352,7 @@ export default function AboutHero() {
         <div className="about-hero-in flex items-center gap-2 md:col-start-9 md:col-span-4 md:row-start-1 md:justify-end">
           <TwoToneCircle />
           <span className="text-sm font-semibold uppercase tracking-[0.22em] text-ink">
-            +54 Countries
+            +54 African Countries
           </span>
         </div>
 

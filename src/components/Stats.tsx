@@ -7,7 +7,7 @@ import AfricaMap from "@/components/AfricaMap";
 import AmbientAtmosphere from "@/components/AmbientAtmosphere";
 
 const STATS = [
-  { value: 54, suffix: "", label: "Countries" },
+  { value: 54, suffix: "", label: "African Countries" },
   { value: 25, suffix: "+", label: "Manufacturers" },
   { value: 1500, suffix: "+", label: "Visitors" },
 ];

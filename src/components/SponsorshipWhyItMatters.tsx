@@ -7,7 +7,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 const STATS = [
   { value: 1, suffix: "", label: "Day" },
   { value: 25, suffix: "+", label: "Manufacturers" },
-  { value: 54, suffix: "", label: "Countries" },
+  { value: 54, suffix: "", label: "African Countries" },
   { value: 1500, suffix: "+", label: "Visitors" },
 ];
 

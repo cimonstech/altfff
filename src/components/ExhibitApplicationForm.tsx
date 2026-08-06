@@ -181,7 +181,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         />
         <FloatingField
           id="based"
-          label="Where is your business based"
+          label="Where is your business based (City/Town)"
           error={fieldErrors.based}
           onFilledChange={handleFilledChange}
           onBlurValidate={onBlurValidate}
@@ -254,8 +254,8 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         <div className="mt-4 flex flex-col gap-2.5 text-sm leading-relaxed text-ink/80">
           <p>All payments are made via bank transfer. Bank charges and transfer fees are covered by the payer.</p>
           <p>
-            Deposits are non-refundable. Cancellations after full payment received after February
-            28, 2026 are non-refundable.
+            Deposits are non-refundable. Cancellations after full payment received after 28th
+            February, 2026 are non-refundable.
           </p>
           <p>
             Participation may be transferred to another party with prior written approval from

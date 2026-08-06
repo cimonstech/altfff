@@ -4,6 +4,7 @@ import { useRef, type ReactNode } from "react";
 import { Landmark, CalendarClock, FileSignature } from "lucide-react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
+import { EVENT } from "@/lib/constants";
 
 const PAYMENTS = [
   <>
@@ -32,7 +33,7 @@ const CANCELLATIONS = [
   </>,
   <>
     Cancellations after full payment, received{" "}
-    <strong>after February 28, 2026</strong> are non-refundable.
+    <strong>after 28th February, 2026</strong> are non-refundable.
   </>,
   <>
     Participation may be <strong>transferred to another party</strong> with
@@ -64,8 +65,8 @@ const AGREEMENT_PARAGRAPHS = [
   </>,
   <>
     All exhibitors will be required to set up on{" "}
-    <strong>Friday 18 September 2026</strong>, the day immediately before the
-    public fair on <strong>Saturday 19 September 2026</strong>. The fee paid
+    <strong>{EVENT.setupDateLabel}</strong>, the day immediately before the
+    public fair on <strong>{EVENT.tradeFairDateLabel}</strong>. The fee paid
     for participation includes the construction of a stand, the provision of{" "}
     <strong>one (1) table and two (2) chairs</strong> per
     stand, and the provision of an electrical point. Exhibitors can also
@@ -73,7 +74,7 @@ const AGREEMENT_PARAGRAPHS = [
     possible for exhibitors to obtain extra facilities upon request, but
     these extras are at an additional cost and subject to the
     exhibitor&apos;s own request. Requests for additional services must be
-    made by <strong>August 18, 2026</strong>.
+    made by <strong>18th August, 2026</strong>.
   </>,
   <>
     As part of the fee for exhibiting, <strong>Fashion Forum Africa</strong>{" "}

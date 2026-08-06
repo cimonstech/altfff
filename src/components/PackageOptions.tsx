@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 
+/*
 type Package = {
   name: string;
   size: string;
@@ -63,6 +65,7 @@ const ROWS: { label: string; key: keyof Package }[] = [
   { label: "Chairs", key: "chairs" },
   { label: "Cost", key: "cost" },
 ];
+*/
 
 export default function PackageOptions() {
   const container = useRef<HTMLElement>(null);
@@ -85,124 +88,66 @@ export default function PackageOptions() {
   return (
     <section
       ref={container}
-      aria-label="Package options"
-      className="bg-paper px-6 py-20 md:px-16 md:py-28"
+      aria-label="Registration fee"
+      className="relative overflow-hidden px-6 py-20 md:px-16 md:py-28"
     >
-      <div className="mx-auto max-w-6xl">
-        <h2 className="package-in mb-10 font-display text-[clamp(2rem,5vw,3.5rem)] font-extrabold uppercase tracking-tight text-ink">
-          Package Options (2027)
+      <div aria-hidden="true" className="absolute inset-0">
+        <Image src="/materials/exhibition-bg.webp" alt="" fill sizes="100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-ink/75 backdrop-blur-[2px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-3xl text-center">
+        <p className="package-in inline-flex rounded-full bg-forest/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-paper">
+          Pricing
+        </p>
+        <h2 className="package-in mt-5 font-display text-[clamp(2rem,5vw,3.25rem)] font-extrabold uppercase tracking-tight text-paper">
+          Registration Fee
         </h2>
 
-        {/* Mobile: one card per package, label/value pairs stacked. Desktop
-            (md+): the comparison table below, unchanged - a card layout at
-            that width would lose the side-by-side compare that's the whole
-            point of a pricing table. */}
-        <div className="package-in flex flex-col gap-4 md:hidden">
-          {PACKAGES.map((p) => (
-            <div
-              key={p.name}
-              className={`rounded-xl border p-5 ${
-                p.highlight ? "border-gold bg-gold/10" : "border-hairline"
-              }`}
-            >
-              {p.highlight && (
-                <span className="mb-2 inline-block rounded-full bg-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ink">
-                  Recommended
-                </span>
-              )}
-              <h3
-                className={`font-display text-lg font-extrabold uppercase tracking-tight ${
-                  p.highlight ? "text-gold-deep" : "text-ink"
-                }`}
-              >
-                {p.name}
-              </h3>
-              <dl className="mt-3 flex flex-col gap-2">
-                {ROWS.map((row) => (
-                  <div key={row.label} className="flex items-baseline justify-between gap-4 text-sm">
-                    <dt className="text-xs font-semibold uppercase tracking-wide text-ink/50">
-                      {row.label}
-                    </dt>
-                    <dd className={`text-right text-ink ${row.key === "cost" ? "font-semibold" : ""}`}>
-                      {p[row.key]}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ))}
+        <div
+          className="package-in mx-auto mt-8 max-w-2xl rounded-2xl border border-hairline/40 p-8 md:p-10"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--paper) 94%, transparent)",
+          }}
+        >
+          <p className="text-base leading-relaxed text-ink md:text-lg">
+            Exhibition space is provided free of charge.{" "}
+            <span className="font-semibold text-gold-deep">A GHS 1,000 registration fee</span> secures
+            your booking and confirms your participation.
+          </p>
         </div>
 
-        <div className="package-in hidden overflow-x-auto rounded-xl border border-hairline md:block">
-          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="bg-surface">
-                <th scope="col" className="w-40 p-4 text-xs font-semibold uppercase tracking-wide text-ink/50">
-                  &nbsp;
-                </th>
-                {PACKAGES.map((p) => (
-                  <th
-                    key={p.name}
-                    scope="col"
-                    className={`p-4 align-bottom font-display text-base font-extrabold uppercase tracking-tight ${
-                      p.highlight ? "bg-gold/10 text-gold-deep" : "text-ink"
-                    }`}
-                  >
-                    {p.highlight && (
-                      <span className="mb-2 inline-block rounded-full bg-gold px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-ink">
-                        Recommended
-                      </span>
-                    )}
-                    <div>{p.name}</div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {ROWS.map((row, i) => (
-                <tr key={row.label} className={i % 2 === 1 ? "bg-surface/50" : undefined}>
-                  <th scope="row" className="p-4 text-xs font-semibold uppercase tracking-wide text-ink/50">
-                    {row.label}
-                  </th>
-                  {PACKAGES.map((p) => (
-                    <td
-                      key={p.name}
-                      className={`p-4 text-ink ${p.highlight ? "bg-gold/10 font-semibold" : ""} ${
-                        row.key === "cost" ? "font-semibold" : ""
-                      }`}
-                    >
-                      {p[row.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="package-in mt-8 flex flex-col gap-2 text-sm text-ink/70">
-          <p>
-            Please note that the rates shown are indicative for the 2027 event and may be revised prior to confirmation of booking.
-          </p>
-          <p>
-            All packages include a listing in the official Alt.FFF Trade Show Guide and exhibitor
-            promotion on Fashion Forum Africa platforms.
-          </p>
+        <div className="package-in mx-auto mt-8 max-w-2xl space-y-2 text-left text-sm text-paper/80">
           <p>
             Extras available on request at additional cost: extra furniture, custom branding,
             audio-visual equipment.
           </p>
-          <p className="text-xs text-ink/50">
+          <p className="text-xs text-paper/60">
             Storage facilities are not provided. Stands should be kept tidy and free of clutter.
             Backstage access is limited.
           </p>
         </div>
 
-        <div className="package-in mt-10 rounded-xl border border-hairline bg-surface p-6 md:p-7">
-          <h3 className="font-display text-sm font-bold uppercase tracking-tight text-gold-deep">
+        {/*
+        <div className="package-in flex flex-col gap-4 md:hidden">
+          {PACKAGES.map((p) => (
+            ...
+          ))}
+        </div>
+
+        <div className="package-in hidden overflow-x-auto rounded-xl border border-hairline md:block">
+          <table>...</table>
+        </div>
+        */}
+
+        <div
+          className="package-in mx-auto mt-10 max-w-2xl rounded-xl border border-paper/15 p-6 text-left md:p-7"
+          style={{ backgroundColor: "color-mix(in srgb, var(--paper) 8%, transparent)" }}
+        >
+          <h3 className="font-display text-sm font-bold uppercase tracking-tight text-gold">
             Eligibility
           </h3>
-          <p className="mt-2 text-sm leading-relaxed text-ink">
+          <p className="mt-2 text-sm leading-relaxed text-paper/85">
             Exhibiting is open to companies manufacturing across Africa, including producers of
             textiles, fabrics, accessories, and businesses involved in raw or semi-processed
             material production. Retail-only organisations are not eligible to exhibit but may
@@ -213,5 +158,3 @@ export default function PackageOptions() {
     </section>
   );
 }
-
-
