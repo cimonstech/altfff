@@ -12,8 +12,9 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 const QuoteWireframe = dynamic(() => import("@/components/QuoteWireframe"), { ssr: false });
 
 const DEFAULT_QUOTE =
-  "Fashion Forum Africa rightly seeks to bring to the wider African consciousness the achievements of designers in Ghana, to re-invigorate and spur creativity, and to preserve our culture and heritage through fashion.";
-const DEFAULT_ATTRIBUTION = "Akwasi Awua-Ababio, Former Director, Diaspora Affairs Office";
+  "Africa's fashion story begins with our fabrics, our craftsmanship, and our people. The Alternative Fashion Fabric Fair is a platform that celebrates these strengths while creating opportunities for trade, innovation, and continental collaboration. Through the Black Star Experience, we are connecting African creativity to global markets and positioning Ghana as the home of fashion-led cultural and economic transformation.";
+const DEFAULT_ATTRIBUTION =
+  "Mr. Rex Owusu Marfo, Presidential Staffer & Coordinator, Black Star Experience";
 
 /** Full-width pull quote, giant madder quotation mark, fade-up reveal.
  * `dark` swaps the homepage's paper/ink treatment for ink/paper (used by
@@ -65,16 +66,16 @@ export default function Quote({
           image ? "md:grid md:grid-cols-12 md:items-center md:gap-12" : ""
         }`}
       >
-        <figure className={`relative ${image ? "md:col-span-7" : "max-w-3xl"}`}>
+        <figure className={`relative ${image ? "md:col-span-7" : "max-w-4xl"}`}>
           {ambient3d && <QuoteWireframe />}
           <span
             aria-hidden
-            className="pointer-events-none absolute -left-4 -top-16 font-display text-[10rem] font-extrabold leading-none text-madder md:-left-16"
+            className="pointer-events-none absolute -left-4 -top-16 font-display text-[8rem] font-extrabold leading-none text-madder md:-left-16 md:text-[10rem]"
           >
             &ldquo;
           </span>
           <blockquote
-            className={`relative font-display text-[clamp(1.5rem,3.2vw,2.4rem)] font-semibold leading-snug ${
+            className={`relative font-display text-[clamp(1.125rem,2.2vw,1.5rem)] font-semibold leading-relaxed md:leading-snug ${
               dark ? "text-paper" : "text-ink"
             }`}
           >
