@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/adminAuth";
 import { formatCheckInTime, normalizeCheckInToken, visitorDisplayName } from "@/lib/visitorVetting";
+import { ADMIN_RATE_LIMITS, checkAdminRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,16 @@ type CheckInBody = { token?: unknown };
 export async function POST(request: Request) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
+
+  const rate = await checkAdminRateLimit(
+    request,
+    auth.user.id,
+    ADMIN_RATE_LIMITS.checkin,
+    "admin/checkin",
+  );
+  if (!rate.success) {
+    return NextResponse.json({ ok: false, result: "error", message: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });
+  }
 
   let body: CheckInBody;
   try {

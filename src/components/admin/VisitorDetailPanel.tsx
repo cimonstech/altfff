@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import InlineErrorMessage from "@/components/ui/states/InlineErrorMessage";
 
 function formatDateTime(value: unknown): string {
   if (!value || typeof value !== "string") return "-";
@@ -17,6 +18,7 @@ type Props = {
 
 export default function VisitorDetailPanel({ row, onRowUpdated, compact = false }: Props) {
   const [busy, setBusy] = useState<"approve" | "decline" | null>(null);
+  const [lastFailedAction, setLastFailedAction] = useState<"approve" | "decline" | null>(null);
   const [actionMessage, setActionMessage] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(
     null,
   );
@@ -33,6 +35,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
 
     setBusy(action);
     setActionMessage(null);
+    setLastFailedAction(null);
     try {
       const res = await fetch(`/api/admin/visitors/${id}/${action}`, { method: "POST" });
       const data = (await res.json()) as {
@@ -42,6 +45,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
         warning?: string;
       };
       if (!res.ok || !data.ok || !data.row) {
+        setLastFailedAction(action);
         setActionMessage({ tone: "error", text: data.error || `${label} failed.` });
         return;
       }
@@ -55,6 +59,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
         });
       }
     } catch {
+      setLastFailedAction(action);
       setActionMessage({ tone: "error", text: `${label} failed - network error.` });
     } finally {
       setBusy(null);
@@ -94,7 +99,16 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
               {busy === "decline" ? "Declining…" : "Decline"}
             </button>
           </div>
-          {actionMessage && <p className={`mt-2 text-sm ${messageClass}`}>{actionMessage.text}</p>}
+          {actionMessage?.tone === "error" && lastFailedAction && (
+            <InlineErrorMessage
+              className="mt-2"
+              message={actionMessage.text}
+              onRetry={() => void runAction(lastFailedAction)}
+            />
+          )}
+          {actionMessage && actionMessage.tone !== "error" && (
+            <p className={`mt-2 text-sm ${messageClass}`}>{actionMessage.text}</p>
+          )}
         </div>
       )}
 

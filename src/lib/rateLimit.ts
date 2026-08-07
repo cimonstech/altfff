@@ -1,4 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { reportServerError } from "@/lib/sentryReport";
@@ -12,6 +12,14 @@ export { RATE_LIMIT_ERROR_MESSAGE };
  */
 export const RATE_LIMIT_MAX_REQUESTS = 5;
 export const RATE_LIMIT_WINDOW = "10 m" as const;
+
+/** Admin routes — authenticated but still capped against scripted abuse. */
+export const ADMIN_RATE_LIMITS = {
+  communicationsSend: { max: 10, window: "10 m" as const, prefix: "altfff:admin:comms" },
+  uploadUrl: { max: 30, window: "10 m" as const, prefix: "altfff:admin:upload" },
+  checkin: { max: 120, window: "10 m" as const, prefix: "altfff:admin:checkin" },
+} as const;
+
 export type PublicFormRoute =
   | "contact"
   | "exhibitor-applications"
@@ -32,6 +40,7 @@ export type PublicFormRoute =
  */
 let cachedLimiter: Ratelimit | null = null;
 let missingEnvWarned = false;
+const adminLimiterCache = new Map<string, Ratelimit>();
 
 function getLimiter(): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
@@ -55,6 +64,45 @@ function getLimiter(): Ratelimit | null {
     });
   }
   return cachedLimiter;
+}
+
+function getAdminLimiter(max: number, window: Duration, prefix: string): Ratelimit | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  const cacheKey = `${prefix}:${max}:${window}`;
+  if (!adminLimiterCache.has(cacheKey)) {
+    adminLimiterCache.set(
+      cacheKey,
+      new Ratelimit({
+        redis: new Redis({ url, token }),
+        limiter: Ratelimit.slidingWindow(max, window),
+        prefix,
+        analytics: false,
+      }),
+    );
+  }
+  return adminLimiterCache.get(cacheKey)!;
+}
+
+async function runLimitCheck(
+  limiter: Ratelimit,
+  identifier: string,
+  routeLabel: string,
+): Promise<{ success: boolean }> {
+  try {
+    const result = await limiter.limit(identifier);
+    return { success: result.success };
+  } catch (err) {
+    console.warn(`[rateLimit] Redis/Ratelimit call failed (${routeLabel}) - allowing (fail open):`, err);
+    reportServerError(err, {
+      route: `rateLimit:${routeLabel}`,
+      kind: "redis",
+      extra: { failOpen: true },
+    });
+    return { success: true };
+  }
 }
 
 /** First address in x-forwarded-for, or a stable fallback - never throws. */
@@ -84,20 +132,20 @@ export async function checkPublicFormRateLimit(
   const ip = getClientIp(request);
   // Route prefix keeps exhibitor attempts from counting against visitor, etc.
   const identifier = `${route}:${ip}`;
+  return runLimitCheck(limiter, identifier, route);
+}
 
-  try {
-    const result = await limiter.limit(identifier);
-    return { success: result.success };
-  } catch (err) {
-    // Genuine Redis/network failure after env was present - fail open for
-    // the user, but report so we know the safety net is down. The "env not
-    // configured" path above stays console-only (working as designed).
-    console.warn("[rateLimit] Redis/Ratelimit call failed - allowing request (fail open):", err);
-    reportServerError(err, {
-      route: `rateLimit:${route}`,
-      kind: "redis",
-      extra: { failOpen: true },
-    });
-    return { success: true };
-  }
+/** Per-admin-user rate limit for authenticated admin API routes. */
+export async function checkAdminRateLimit(
+  request: Request,
+  adminUserId: string,
+  config: (typeof ADMIN_RATE_LIMITS)[keyof typeof ADMIN_RATE_LIMITS],
+  routeLabel: string,
+): Promise<{ success: boolean }> {
+  const limiter = getAdminLimiter(config.max, config.window, config.prefix);
+  if (!limiter) return { success: true };
+
+  const ip = getClientIp(request);
+  const identifier = `${adminUserId}:${ip}`;
+  return runLimitCheck(limiter, identifier, routeLabel);
 }

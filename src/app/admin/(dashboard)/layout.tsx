@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminSidebar, { type AdminNavItem } from "@/components/admin/AdminSidebar";
+import AdminLayoutExtras from "@/components/admin/AdminLayoutExtras";
 
 const NAV_ITEMS: AdminNavItem[] = [
   { label: "Overview", href: "/admin" },
@@ -96,7 +97,10 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
         initialBadges={badgesByHref}
         userLabel={userLabel}
       />
-      <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <AdminLayoutExtras />
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-10">{children}</main>
+      </div>
     </div>
   );
 }

@@ -2,8 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Newspaper } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import AdminCard from "@/components/admin/AdminCard";
+import EmptyState from "@/components/ui/states/EmptyState";
+import ErrorState from "@/components/ui/states/ErrorState";
+import LoadingSkeleton from "@/components/ui/states/LoadingSkeleton";
 
 type NewsPostRow = {
   id: string;
@@ -66,16 +70,20 @@ export default function AdminNewsListPage() {
   const supabase = useMemo(() => createClient(), []);
   const [posts, setPosts] = useState<NewsPostRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
+    setLoadError("");
     const { data, error } = await supabase
       .from("news_posts")
       .select("id, title, slug, published, created_at, published_at")
       .order("created_at", { ascending: false });
     if (error) {
       console.error("Failed to load news posts:", error);
+      setLoadError("Failed to load news posts. Please try again.");
+      setPosts([]);
     } else {
       setPosts((data ?? []) as NewsPostRow[]);
     }
@@ -111,13 +119,46 @@ export default function AdminNewsListPage() {
         </Link>
       </div>
 
-      <p className="mt-3 text-xs text-ink/50">{loading ? "Loading…" : `${posts.length} post${posts.length === 1 ? "" : "s"}`}</p>
+      <p className="mt-3 text-xs text-ink/50">
+        {loading ? "Loading…" : loadError ? "—" : `${posts.length} post${posts.length === 1 ? "" : "s"}`}
+      </p>
+
+      {loadError && (
+        <ErrorState
+          compact
+          title="Could not load news"
+          description={loadError}
+          onRetry={() => void fetchPosts()}
+          className="mt-4 rounded-xl border border-hairline bg-surface"
+        />
+      )}
+
+      {loading && (
+        <>
+          <LoadingSkeleton variant="cards" className="mt-4 md:hidden" />
+          <LoadingSkeleton variant="table" className="mt-4 hidden md:block" />
+        </>
+      )}
+
+      {!loading && !loadError && posts.length === 0 && (
+        <EmptyState
+          icon={Newspaper}
+          title="No news posts yet"
+          description="Create your first post to publish updates on the public news page."
+          className="mt-4"
+          action={
+            <Link
+              href="/admin/news/new"
+              className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
+            >
+              New Post
+            </Link>
+          }
+        />
+      )}
 
       {/* Mobile cards */}
-      <ul className="mt-4 flex flex-col gap-3 md:hidden">
-        {!loading && posts.length === 0 && (
-          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">No news posts yet.</li>
-        )}
+      <ul className={`mt-4 flex flex-col gap-3 md:hidden ${loading || loadError ? "hidden" : ""}`}>
         {posts.map((post) => (
           <li key={post.id} className="rounded-md border border-hairline bg-surface p-4">
             <p className="font-medium text-ink">{post.title}</p>
@@ -136,7 +177,7 @@ export default function AdminNewsListPage() {
       </ul>
 
       {/* Desktop table */}
-      <AdminCard className="mt-4 hidden overflow-hidden md:block" padding="none">
+      <AdminCard className={`mt-4 hidden overflow-hidden md:block ${loading || loadError ? "!hidden" : ""}`} padding="none">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead>
@@ -159,13 +200,6 @@ export default function AdminNewsListPage() {
               </tr>
             </thead>
             <tbody>
-              {!loading && posts.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="p-3 text-ink/60">
-                    No news posts yet.
-                  </td>
-                </tr>
-              )}
               {posts.map((post) => (
                 <tr key={post.id} className="border-t border-hairline">
                   <td className="p-3 text-ink">{post.title}</td>

@@ -12,6 +12,7 @@ import {
   type CustomRecipient,
 } from "@/lib/communications";
 import { reportServerError } from "@/lib/sentryReport";
+import { ADMIN_RATE_LIMITS, checkAdminRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ export const runtime = "nodejs";
 // real pagination limit (matches AdminDataTable's own 500-row cap logic).
 const RECIPIENT_CAP = 2000;
 
-async function requireAdmin() {
+async function requireAdmin(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,6 +29,16 @@ async function requireAdmin() {
 
   const { data: profile } = await supabase.from("admin_profiles").select("id").eq("id", user.id).single();
   if (!profile) return { error: NextResponse.json({ ok: false, error: "Forbidden." }, { status: 403 }) };
+
+  const rate = await checkAdminRateLimit(
+    request,
+    user.id,
+    ADMIN_RATE_LIMITS.communicationsSend,
+    "admin/communications/send",
+  );
+  if (!rate.success) {
+    return { error: NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 }) };
+  }
 
   return { user, supabase };
 }
@@ -60,7 +71,7 @@ type ResolvedRecipient = {
 };
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(request);
   if ("error" in auth) return auth.error;
   const { user, supabase } = auth;
 

@@ -9,6 +9,7 @@
  */
 const FISH_AFRICA_ENDPOINT = "https://api.letsfish.africa/v1/sms";
 const RETRY_DELAY_MS = 800;
+const FISH_AFRICA_TIMEOUT_MS = 8_000;
 
 type FishAfricaRecipientResult = {
   status?: string;
@@ -60,9 +61,12 @@ async function callFishAfrica(
   }
 
   let response: Response;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FISH_AFRICA_TIMEOUT_MS);
   try {
     response = await fetch(FISH_AFRICA_ENDPOINT, {
       method: "POST",
+      signal: controller.signal,
       headers: {
         Authorization: `Bearer ${appId}.${appSecret}`,
         "Content-Type": "application/json",
@@ -75,7 +79,12 @@ async function callFishAfrica(
       }),
     });
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, retryable: true, error: "Fish Africa SMS request timed out." };
+    }
     return { ok: false, retryable: true, error: err instanceof Error ? err.message : "Network error." };
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (response.status >= 500) {

@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Modal from "@/components/Modal";
 import { storePreloadedRecipients, type CustomRecipient } from "@/lib/communications";
-import { adminStatusPillClass, formatAdminStatusLabel } from "@/components/admin/adminVisual";
+import { adminStatusPillClass, formatAdminStatusLabel, ADMIN_TABLE_LIST_ICONS, ADMIN_LIST_EMPTY } from "@/components/admin/adminVisual";
 import VisitorDetailPanel from "@/components/admin/VisitorDetailPanel";
+import EmptyState from "@/components/ui/states/EmptyState";
+import NoSearchResults from "@/components/ui/states/NoSearchResults";
+import ErrorState from "@/components/ui/states/ErrorState";
+import LoadingSkeleton from "@/components/ui/states/LoadingSkeleton";
+import InlineErrorMessage from "@/components/ui/states/InlineErrorMessage";
+import { hasActiveListFilters } from "@/lib/listFilters";
 
 export type AdminColumn = {
   label: string;
@@ -179,6 +185,7 @@ export default function AdminDataTable({
   // Keyed by row id - persists across pages so "Message Selected" works
   // for rows chosen on page 1 and page 3 together.
   const [selectedRows, setSelectedRows] = useState<Map<string, Record<string, unknown>>>(new Map());
+  const [statusErrors, setStatusErrors] = useState<Map<string, string>>(new Map());
 
   const filterOpts = useMemo(
     () => ({ statusFilter, search, searchFields }),
@@ -246,7 +253,7 @@ export default function AdminDataTable({
     const { data, error } = await supabase.from(table).update(patch).eq("id", id).select().single();
     if (error) {
       console.error(`Failed to update ${table} row ${id}:`, error);
-      return null;
+      return { data: null, error: "Update failed. Please try again." };
     }
     setRows((prev) => prev.map((r) => (r.id === id ? data : r)));
     setSelected((prev) => (prev && prev.id === id ? data : prev));
@@ -256,13 +263,16 @@ export default function AdminDataTable({
       next.set(id, data);
       return next;
     });
-    return data;
+    return { data, error: null };
   };
 
-  const handleStatusChange = async (row: Record<string, unknown>, newStatus: string) => {
-    // The migration's log_status_change trigger auto-logs this to
-    // activity_logs - no duplicate application-level logging here.
-    await updateRow(row.id as string, { status: newStatus });
+  const handleStatusChange = async (
+    row: Record<string, unknown>,
+    newStatus: string,
+  ): Promise<string | null> => {
+    const { data, error } = await updateRow(row.id as string, { status: newStatus });
+    if (error || !data) return error ?? "Failed to update status. Please try again.";
+    return null;
   };
 
   /**
@@ -280,7 +290,8 @@ export default function AdminDataTable({
       return;
     }
     if (VIEWED_AT_TABLES.has(table) && row.viewed_at == null) {
-      await updateRow(row.id as string, { viewed_at: new Date().toISOString() });
+      const { error } = await updateRow(row.id as string, { viewed_at: new Date().toISOString() });
+      if (error) console.error("Failed to mark row viewed:", error);
     }
   };
 
@@ -398,6 +409,51 @@ export default function AdminDataTable({
       c.field !== "created_at" &&
       c.field !== "name",
   );
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setPage(0);
+    setExpandedId(null);
+  };
+
+  const hasActiveFilters = hasActiveListFilters(search, statusFilter);
+  const listIcon = ADMIN_TABLE_LIST_ICONS[table];
+  const emptyCopy = ADMIN_LIST_EMPTY[table] ?? {
+    title: `No ${entityLabel.toLowerCase()} records yet`,
+    description: "New submissions will appear here.",
+  };
+
+  const listEmptyState =
+    !loading && !loadError && rows.length === 0 ? (
+      hasActiveFilters ? (
+        <NoSearchResults onClear={clearFilters} className="mt-4" />
+      ) : listIcon ? (
+        <EmptyState
+          icon={listIcon}
+          title={emptyCopy.title}
+          description={emptyCopy.description}
+          className="mt-4"
+        />
+      ) : null
+    ) : null;
+
+  const setRowStatusError = (id: string, message: string | null) => {
+    setStatusErrors((prev) => {
+      const next = new Map(prev);
+      if (message) next.set(id, message);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const runStatusChange = async (row: Record<string, unknown>, newStatus: string): Promise<string | null> => {
+    const id = row.id as string;
+    setRowStatusError(id, null);
+    const err = await handleStatusChange(row, newStatus);
+    if (err) setRowStatusError(id, err);
+    return err;
+  };
 
   const goToPage = (next: number) => {
     setExpandedId(null);
@@ -518,18 +574,26 @@ export default function AdminDataTable({
       <div className="mt-3 hidden md:block">{pagination}</div>
 
       {loadError && (
-        <p className="mt-2 text-sm text-madder" role="alert">
-          {loadError}
-        </p>
+        <ErrorState
+          compact
+          title="Could not load records"
+          description={loadError}
+          onRetry={() => void fetchRows()}
+          className="mt-4 rounded-xl border border-hairline bg-surface"
+        />
       )}
 
+      {loading && (
+        <>
+          <LoadingSkeleton variant="cards" className="mt-4 md:hidden" />
+          <LoadingSkeleton variant="table" className="mt-4 hidden md:block" />
+        </>
+      )}
+
+      {!loading && listEmptyState}
+
       {/* Mobile card list - collapsed by default (title / status / date). */}
-      <ul className="mt-4 flex flex-col gap-2 md:hidden">
-        {!loading && rows.length === 0 && (
-          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">
-            No {entityLabel.toLowerCase()} records found.
-          </li>
-        )}
+      <ul className={`mt-4 flex flex-col gap-2 md:hidden ${loading ? "hidden" : ""}`}>
         {rows.map((row) => {
           const unread = isUnreadRow(table, row);
           const status = typeof row.status === "string" ? row.status : "";
@@ -602,7 +666,7 @@ export default function AdminDataTable({
                         id={`mobile-status-${id}`}
                         value={status}
                         onChange={(e) => {
-                          void handleStatusChange(row, e.target.value);
+                          void runStatusChange(row, e.target.value);
                         }}
                         className="mt-1 min-h-11 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
                       >
@@ -616,6 +680,13 @@ export default function AdminDataTable({
                           </option>
                         ))}
                       </select>
+                      {statusErrors.get(id) && (
+                        <InlineErrorMessage
+                          className="mt-2"
+                          message={statusErrors.get(id)!}
+                          onRetry={() => void runStatusChange(row, status)}
+                        />
+                      )}
                     </div>
 
                     <button
@@ -647,7 +718,7 @@ export default function AdminDataTable({
       </ul>
 
       {/* Desktop table */}
-      <div className="mt-4 hidden overflow-x-auto rounded-md border border-hairline md:block">
+      <div className={`mt-4 hidden overflow-x-auto rounded-md border border-hairline md:block ${loading ? "!hidden" : ""}`}>
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-surface">
@@ -670,13 +741,6 @@ export default function AdminDataTable({
             </tr>
           </thead>
           <tbody>
-            {!loading && rows.length === 0 && (
-              <tr>
-                <td colSpan={columns.length + 1} className="p-3 text-ink/60">
-                  No {entityLabel.toLowerCase()} records found.
-                </td>
-              </tr>
-            )}
             {rows.map((row) => {
               const unread = isUnreadRow(table, row);
               return (
@@ -729,7 +793,7 @@ export default function AdminDataTable({
             table={table}
             supabase={supabase}
             currentAdmin={currentAdmin}
-            onStatusChange={(newStatus) => handleStatusChange(selected, newStatus)}
+            onStatusChange={(newStatus) => runStatusChange(selected, newStatus)}
             visitorVetting={visitorVetting}
             onRowUpdated={applyRowUpdate}
           />
@@ -764,7 +828,7 @@ function RowDetail({
   table: string;
   supabase: ReturnType<typeof createClient>;
   currentAdmin: CurrentAdmin | null;
-  onStatusChange: (status: string) => void;
+  onStatusChange: (status: string) => Promise<string | null>;
   visitorVetting?: boolean;
   onRowUpdated?: (row: Record<string, unknown>) => void;
 }) {
@@ -772,6 +836,8 @@ function RowDetail({
   const [notesLoading, setNotesLoading] = useState(true);
   const [newNote, setNewNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [statusError, setStatusError] = useState("");
+  const [noteError, setNoteError] = useState("");
 
   const rowId = row.id as string;
   const currentStatus = String(row.status ?? "");
@@ -804,6 +870,7 @@ function RowDetail({
     const trimmed = newNote.trim();
     if (!trimmed || !currentAdmin) return;
     setSubmitting(true);
+    setNoteError("");
     const { data, error } = await supabase
       .from("entity_notes")
       .insert({
@@ -817,11 +884,18 @@ function RowDetail({
       .single();
     if (error) {
       console.error("Failed to add note:", error);
+      setNoteError("Failed to add note. Please try again.");
     } else if (data) {
       setNotes((prev) => [...prev, data as EntityNote]);
       setNewNote("");
     }
     setSubmitting(false);
+  };
+
+  const handleStatusSelect = async (newStatus: string) => {
+    setStatusError("");
+    const err = await onStatusChange(newStatus);
+    if (err) setStatusError(err);
   };
 
   return (
@@ -843,7 +917,9 @@ function RowDetail({
         <select
           id="detail-status"
           value={currentStatus}
-          onChange={(e) => onStatusChange(e.target.value)}
+          onChange={(e) => {
+            void handleStatusSelect(e.target.value);
+          }}
           className="mt-1 min-h-11 w-full max-w-xs rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
         >
           {statusOptions.map((s) => (
@@ -852,6 +928,13 @@ function RowDetail({
             </option>
           ))}
         </select>
+        {statusError && (
+          <InlineErrorMessage
+            className="mt-2 max-w-xs"
+            message={statusError}
+            onRetry={() => void handleStatusSelect(currentStatus)}
+          />
+        )}
       </div>
 
       {visitorVetting && onRowUpdated && (
@@ -899,12 +982,15 @@ function RowDetail({
           />
           <button
             type="button"
-            onClick={handleAddNote}
+            onClick={() => void handleAddNote()}
             disabled={submitting || !newNote.trim()}
             className="inline-flex min-h-11 w-fit items-center justify-center rounded-full bg-ink px-5 py-2 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-50"
           >
             {submitting ? "Adding…" : "Add Note"}
           </button>
+          {noteError && (
+            <InlineErrorMessage message={noteError} onRetry={() => void handleAddNote()} />
+          )}
         </div>
       </div>
     </div>

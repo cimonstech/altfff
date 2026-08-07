@@ -23,7 +23,7 @@ export default async function AdminActivityLogPage() {
     .single();
 
   if (profile?.role !== "super_admin") {
-    redirect("/admin");
+    redirect("/admin/forbidden");
   }
 
   return (

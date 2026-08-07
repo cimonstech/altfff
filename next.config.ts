@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import { buildContentSecurityPolicy, SECURITY_HEADERS } from "@/lib/securityHeaders";
 
 /**
  * Derived from R2_PUBLIC_URL rather than hardcoded - next.config.ts runs in
@@ -10,25 +11,38 @@ import { withSentryConfig } from "@sentry/nextjs";
  * never crashes - uploaded/rendered images would just fail to load until
  * the env var is actually configured, which is the correct failure mode.
  */
-function getR2Hostname(): string {
+function getR2Hostname(): string | null {
   const url = process.env.R2_PUBLIC_URL;
-  if (!url) return "pub-REPLACE-WITH-BUCKET-ID.r2.dev";
+  if (!url) return null;
   try {
     return new URL(url).hostname;
   } catch {
-    return "pub-REPLACE-WITH-BUCKET-ID.r2.dev";
+    return null;
   }
 }
 
+const r2Hostname = getR2Hostname();
+
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
+    remotePatterns: r2Hostname
+      ? [
+          {
+            protocol: "https",
+            hostname: r2Hostname,
+            pathname: "/**",
+          },
+        ]
+      : [],
+  },
+  async headers() {
+    const csp = buildContentSecurityPolicy(r2Hostname);
+    return [
       {
-        protocol: "https",
-        hostname: getR2Hostname(),
-        pathname: "/**",
+        source: "/(.*)",
+        headers: [...SECURITY_HEADERS, { key: "Content-Security-Policy", value: csp }],
       },
-    ],
+    ];
   },
 };
 

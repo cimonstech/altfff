@@ -34,6 +34,33 @@ export const OVERVIEW_ACCENTS: Record<string, AdminCardAccent> = {
   contact_messages: "indigo",
 };
 
+/** Icons for AdminDataTable empty / no-results states (aligned with sidebar). */
+export const ADMIN_TABLE_LIST_ICONS: Record<string, LucideIcon> = {
+  exhibitor_applications: BriefcaseBusiness,
+  sponsor_inquiries: Handshake,
+  visitor_registrations: Users,
+  contact_messages: Mail,
+};
+
+export const ADMIN_LIST_EMPTY: Record<string, { title: string; description: string }> = {
+  exhibitor_applications: {
+    title: "No exhibitor applications yet",
+    description: "Applications from the public exhibit form will appear here once submitted.",
+  },
+  sponsor_inquiries: {
+    title: "No sponsor inquiries yet",
+    description: "Sponsorship form submissions will appear here once received.",
+  },
+  visitor_registrations: {
+    title: "No visitor registrations yet",
+    description: "Visitor sign-ups from the registration form will appear here.",
+  },
+  contact_messages: {
+    title: "No contact messages yet",
+    description: "Messages from the public contact form will appear here.",
+  },
+};
+
 /**
  * Status → pill tone for Overview breakdowns.
  * Attention (gold), in-progress (indigo), resolved (forest), closed (muted / madder).

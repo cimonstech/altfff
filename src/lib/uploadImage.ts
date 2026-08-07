@@ -18,19 +18,35 @@ export async function uploadImage(file: File): Promise<string> {
   const validationError = validateImageFile(file);
   if (validationError) throw new Error(validationError);
 
+  const headerSlice = file.slice(0, Math.min(file.size, 4100));
+  const headerBuffer = await headerSlice.arrayBuffer();
+  const headerBytes = new Uint8Array(headerBuffer);
+  let binary = "";
+  for (let i = 0; i < headerBytes.length; i++) {
+    binary += String.fromCharCode(headerBytes[i]!);
+  }
+  const fileHeaderBase64 = btoa(binary);
+
   const presignRes = await fetch("/api/admin/upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ filename: file.name, contentType: file.type, fileSize: file.size }),
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type,
+      fileSize: file.size,
+      fileHeaderBase64,
+    }),
   });
   const presignBody = await presignRes.json();
   if (!presignRes.ok || !presignBody.ok) {
     throw new Error(presignBody.error || "Failed to prepare upload.");
   }
 
+  const verifiedContentType = (presignBody.contentType as string) || file.type;
+
   const putRes = await fetch(presignBody.uploadUrl, {
     method: "PUT",
-    headers: { "Content-Type": file.type },
+    headers: { "Content-Type": verifiedContentType },
     body: file,
   });
   if (!putRes.ok) {

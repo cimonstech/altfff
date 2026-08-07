@@ -13,6 +13,10 @@ import {
   type CustomRecipient,
 } from "@/lib/communications";
 import AdminCard from "@/components/admin/AdminCard";
+import EmptyState from "@/components/ui/states/EmptyState";
+import ErrorState from "@/components/ui/states/ErrorState";
+import LoadingSkeleton from "@/components/ui/states/LoadingSkeleton";
+import { MessageSquare } from "lucide-react";
 
 type ChannelOption = "email" | "sms" | "both";
 type ComposeAudience = AudienceType | "custom";
@@ -510,12 +514,32 @@ function History({ refreshToken }: { refreshToken: number }) {
       <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/60">History</h2>
 
       {loadError && (
-        <p className="mt-2 text-sm text-madder" role="alert">
-          {loadError}
-        </p>
+        <ErrorState
+          compact
+          title="Could not load history"
+          description={loadError}
+          onRetry={() => void fetchHistory()}
+          className="mt-4 rounded-xl border border-hairline bg-surface"
+        />
       )}
 
-      <div className="mt-3 hidden overflow-x-auto rounded-md border border-hairline md:block">
+      {loading && (
+        <>
+          <LoadingSkeleton variant="cards" className="mt-3 md:hidden" />
+          <LoadingSkeleton variant="table" className="mt-3 hidden md:block" />
+        </>
+      )}
+
+      {!loading && !loadError && rows.length === 0 && (
+        <EmptyState
+          icon={MessageSquare}
+          title="No communications sent yet"
+          description="Messages you send from the compose form above will appear here with delivery status."
+          className="mt-4"
+        />
+      )}
+
+      <div className={`mt-3 hidden overflow-x-auto rounded-md border border-hairline md:block ${loading || loadError ? "!hidden" : ""}`}>
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
             <tr className="bg-paper">
@@ -527,15 +551,6 @@ function History({ refreshToken }: { refreshToken: number }) {
             </tr>
           </thead>
           <tbody>
-            {/* Only a genuinely empty result shows this - a failed query
-                shows the loadError message above instead, never this. */}
-            {!loading && !loadError && rows.length === 0 && (
-              <tr>
-                <td colSpan={6} className="p-3 text-ink/60">
-                  No communications sent yet.
-                </td>
-              </tr>
-            )}
             {rows.map((row) => (
               <tr
                 key={row.id}
@@ -555,12 +570,7 @@ function History({ refreshToken }: { refreshToken: number }) {
       </div>
 
       {/* Mobile card list */}
-      <ul className="mt-3 flex flex-col gap-3 md:hidden">
-        {!loading && !loadError && rows.length === 0 && (
-          <li className="rounded-md border border-hairline bg-surface p-4 text-sm text-ink/60">
-            No communications sent yet.
-          </li>
-        )}
+      <ul className={`mt-3 flex flex-col gap-3 md:hidden ${loading || loadError ? "hidden" : ""}`}>
         {rows.map((row) => (
           <li key={row.id}>
             <button

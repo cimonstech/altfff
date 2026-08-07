@@ -6,28 +6,37 @@ import { createClient } from "@/lib/supabase/client";
 
 const MIN_PASSWORD_LENGTH = 8;
 
-function urlLooksLikeAuthCallback(): boolean {
-  if (typeof window === "undefined") return false;
-  const hash = window.location.hash;
-  const search = window.location.search;
-  return (
-    hash.includes("access_token=") ||
-    hash.includes("type=invite") ||
-    hash.includes("type=recovery") ||
-    hash.includes("error=") ||
-    search.includes("code=")
-  );
+type PendingAuth =
+  | { kind: "pkce"; code: string }
+  | { kind: "implicit"; accessToken: string; refreshToken: string };
+
+function parsePendingAuth(): PendingAuth | null {
+  if (typeof window === "undefined") return null;
+
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  if (code) return { kind: "pkce", code };
+
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const hashError = hashParams.get("error_description") ?? hashParams.get("error");
+  if (hashError) {
+    throw new Error(decodeURIComponent(hashError.replace(/\+/g, " ")));
+  }
+
+  const accessToken = hashParams.get("access_token");
+  const refreshToken = hashParams.get("refresh_token");
+  if (accessToken && refreshToken) {
+    return { kind: "implicit", accessToken, refreshToken };
+  }
+
+  return null;
 }
 
 /**
- * The page Supabase's invite (and password-recovery) email link lands on.
- *
- * Invite emails use the implicit flow: tokens arrive in the URL hash
- * (`#access_token=…&refresh_token=…&type=invite`). @supabase/ssr's
- * createBrowserClient defaults to PKCE (`?code=`), so hash tokens are not
- * auto-consumed - this page must call setSession explicitly.
- *
- * PKCE (`?code=`) is still handled for password-recovery / other flows.
+ * Invite / recovery landing page. Deliberately does NOT auto-consume auth
+ * tokens on page load — corporate email scanners can pre-fetch invite links
+ * and burn one-time tokens before the real admin clicks (Aaero Xpress incident
+ * class). The admin must click "Confirm invite" first.
  */
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -35,105 +44,104 @@ export default function SetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [sessionState, setSessionState] = useState<"loading" | "ready" | "invalid">("loading");
+  const [confirming, setConfirming] = useState(false);
+  const [sessionState, setSessionState] = useState<
+    "loading" | "awaiting_confirm" | "ready" | "invalid"
+  >("loading");
+  const [pendingAuth, setPendingAuth] = useState<PendingAuth | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-    let settled = false;
+    let cancelled = false;
 
-    const markReady = () => {
-      if (!settled) {
-        settled = true;
-        setSessionState("ready");
-      }
-    };
+    const init = async () => {
+      try {
+        const supabase = createClient();
 
-    const markInvalid = (message: string) => {
-      if (!settled) {
-        settled = true;
-        setSessionState("invalid");
-        setError(message);
-      }
-    };
-
-    const bootstrap = async () => {
-      // PKCE: ?code= in the query string
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) {
-          markInvalid(exchangeError.message);
+        let pending: PendingAuth | null = null;
+        try {
+          pending = parsePendingAuth();
+        } catch (parseErr) {
+          if (!cancelled) {
+            setSessionState("invalid");
+            setError(parseErr instanceof Error ? parseErr.message : "Invalid invite link.");
+          }
           return;
         }
-        markReady();
-        return;
-      }
 
-      // Implicit invite/recovery: tokens in the hash fragment
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-      const hashError = hashParams.get("error_description") ?? hashParams.get("error");
-      if (hashError) {
-        markInvalid(decodeURIComponent(hashError.replace(/\+/g, " ")));
-        return;
-      }
-
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-      if (accessToken && refreshToken) {
-        const { error: setError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (setError) {
-          markInvalid(
-            setError.message ||
-              "This invite link is invalid or has expired. Ask a super admin to send a new invite.",
-          );
+        if (pending) {
+          if (!cancelled) {
+            setPendingAuth(pending);
+            setSessionState("awaiting_confirm");
+          }
           return;
         }
-        markReady();
-        return;
-      }
 
-      // Already signed in (e.g. revisited the page after setting a password)
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) markReady();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!cancelled) {
+          setSessionState(session ? "ready" : "invalid");
+          if (!session) {
+            setError(
+              "No active invite session. Open the link from your invite email, or sign in if you already have a password.",
+            );
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setSessionState("invalid");
+          setError(err instanceof Error ? err.message : "Could not verify your invite link.");
+        }
+      }
     };
 
-    void bootstrap();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) markReady();
-    });
-
-    const timeoutMs = urlLooksLikeAuthCallback() ? 12_000 : 4_000;
-    const timeout = window.setTimeout(() => {
-      if (!settled) {
-        markInvalid(
-          urlLooksLikeAuthCallback()
-            ? "This invite link is invalid or has expired. Ask a super admin to send a new invite."
-            : "No active invite session. Open the link from your invite email, or sign in if you already have a password.",
-        );
-      }
-    }, timeoutMs);
-
+    void init();
     return () => {
-      subscription.unsubscribe();
-      window.clearTimeout(timeout);
+      cancelled = true;
     };
   }, []);
+
+  const handleConfirmInvite = async () => {
+    if (!pendingAuth) return;
+    setConfirming(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+
+      if (pendingAuth.kind === "pkce") {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(pendingAuth.code);
+        if (exchangeError) throw exchangeError;
+      } else {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: pendingAuth.accessToken,
+          refresh_token: pendingAuth.refreshToken,
+        });
+        if (setSessionError) throw setSessionError;
+      }
+
+      setPendingAuth(null);
+      setSessionState("ready");
+      // Strip tokens from the URL so refresh doesn't re-prompt.
+      window.history.replaceState({}, "", "/admin/set-password");
+    } catch (err) {
+      setSessionState("invalid");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "This invite link is invalid or has expired. Ask a super admin to send a new invite.",
+      );
+    } finally {
+      setConfirming(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     if (sessionState !== "ready") {
-      setError("Your session is not ready yet. Wait a moment and try again.");
+      setError("Your session is not ready yet. Confirm your invite link first.");
       return;
     }
 
@@ -147,36 +155,38 @@ export default function SetPasswordPage() {
     }
 
     setSubmitting(true);
-    const supabase = createClient();
 
-    const {
-      data: { session: sessionBefore },
-    } = await supabase.auth.getSession();
-    if (!sessionBefore) {
-      setError("Your session expired. Open the invite link again.");
+    try {
+      const supabase = createClient();
+      const {
+        data: { session: sessionBefore },
+      } = await supabase.auth.getSession();
+      if (!sessionBefore) {
+        setError("Your session expired. Open the invite link again.");
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+
+      const {
+        data: { session: sessionAfter },
+      } = await supabase.auth.getSession();
+      if (!sessionAfter) {
+        setError("Password saved but the session could not be confirmed. Try signing in.");
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save your password. Try again.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-
-    if (updateError) {
-      setError(updateError.message);
-      setSubmitting(false);
-      return;
-    }
-
-    const {
-      data: { session: sessionAfter },
-    } = await supabase.auth.getSession();
-    if (!sessionAfter) {
-      setError("Password saved but the session could not be confirmed. Try signing in.");
-      setSubmitting(false);
-      return;
-    }
-
-    router.push("/admin");
-    router.refresh();
   };
 
   return (
@@ -191,8 +201,25 @@ export default function SetPasswordPage() {
 
         {sessionState === "loading" && (
           <p className="mt-6 text-sm text-indigo" aria-live="polite">
-            Verifying your invite link…
+            Checking invite link…
           </p>
+        )}
+
+        {sessionState === "awaiting_confirm" && (
+          <div className="mt-8">
+            <p className="text-sm text-indigo">
+              Click below to confirm this invite is for you. This step prevents automated email
+              scanners from consuming your one-time link before you can set a password.
+            </p>
+            <button
+              type="button"
+              onClick={handleConfirmInvite}
+              disabled={confirming}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-60"
+            >
+              {confirming ? "Confirming…" : "Confirm invite"}
+            </button>
+          </div>
         )}
 
         {sessionState === "invalid" && error && (

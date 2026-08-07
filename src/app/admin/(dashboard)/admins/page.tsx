@@ -26,7 +26,7 @@ export default async function AdminAdminsPage() {
     .single();
 
   if (profile?.role !== "super_admin") {
-    redirect("/admin");
+    redirect("/admin/forbidden");
   }
 
   const { data: admins } = await supabase

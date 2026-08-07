@@ -1,4 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
+import { NodeHttpHandler } from "@smithy/node-http-handler";
+
+const R2_REQUEST_TIMEOUT_MS = 10_000;
 
 /**
  * SERVER-ONLY. Never import this in a client component - R2_ACCESS_KEY_ID/
@@ -25,6 +28,10 @@ export function getR2Client(): S3Client {
         accessKeyId: process.env.R2_ACCESS_KEY_ID!,
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
       },
+      requestHandler: new NodeHttpHandler({
+        connectionTimeout: R2_REQUEST_TIMEOUT_MS,
+        requestTimeout: R2_REQUEST_TIMEOUT_MS,
+      }),
       // Without this, aws-sdk v3 defaults to virtual-hosted-style addressing
       // (bucket name as a subdomain: `${bucket}.${accountId}.r2.cloudflarestorage.com`)
       // for any DNS-compliant bucket name. R2 needs path-style addressing
