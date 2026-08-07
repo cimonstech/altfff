@@ -13,6 +13,26 @@ const DEFAULT_ITEMS = [
   "One space",
 ];
 
+/** Estimate one marquee segment width (matches Row typography in CSS). */
+function estimatedSegmentWidth(labels: string[], dense: boolean): number {
+  if (typeof document === "undefined") {
+    const charPx = dense ? 8 : 10;
+    const pad = dense ? 32 : 48;
+    return labels.reduce((sum, label) => sum + label.length * charPx + pad, 0);
+  }
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return labels.length * (dense ? 80 : 100);
+  ctx.font = dense
+    ? '600 14px var(--font-bricolage), "Arial Black", sans-serif'
+    : '600 20px var(--font-bricolage), "Arial Black", sans-serif';
+  const pad = dense ? 32 : 48;
+  return labels.reduce(
+    (sum, label) => sum + ctx.measureText(label.toUpperCase()).width + pad,
+    0,
+  );
+}
+
 function Row({
   items,
   dense,
@@ -111,7 +131,11 @@ export default function Ticker({
 
       const isMobile = window.matchMedia("(max-width: 767px)").matches;
       const baseDuration = isMobile ? 42 : 32;
-      const duration = baseDuration * (loopItems.length / DEFAULT_ITEMS.length);
+      const referenceWidth = estimatedSegmentWidth(DEFAULT_ITEMS, dense);
+      // Scale duration to measured strip width so perceived speed stays
+      // constant regardless of item count or label length (News titles vs
+      // homepage materials). Calibrated against the homepage default strip.
+      const duration = baseDuration * (segmentWidth / referenceWidth);
 
       const tween = gsap.to(track, {
         x: -segmentWidth,

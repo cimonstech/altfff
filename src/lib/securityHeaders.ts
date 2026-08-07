@@ -45,7 +45,15 @@ export function buildContentSecurityPolicy(r2Hostname: string | null): string {
     connectSrc.push(`https://${r2Hostname}`);
   }
 
-  const imgSrc = ["'self'", "data:", "blob:", "https://www.google-analytics.com", "https://www.googletagmanager.com"];
+  const imgSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://www.google-analytics.com",
+    "https://www.googletagmanager.com",
+    // react-phone-number-input default flagUrl (CountryIcon.js → GH.svg etc.)
+    "https://purecatamphetamine.github.io",
+  ];
   if (r2Hostname) imgSrc.push(`https://${r2Hostname}`);
 
   const directives = [
