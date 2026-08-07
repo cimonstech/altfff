@@ -182,7 +182,7 @@ export default function ExhibitingReasons() {
         </div>
 
         <a
-          href="/Exhibitors+Pack+ALT.FFF_June+2026.pdf"
+          href="/Exhibitors_Pack_ALT.FFF.pdf"
           target="_blank"
           rel="noopener noreferrer"
           download
