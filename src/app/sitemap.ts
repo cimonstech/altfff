@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { SITE } from "@/lib/constants";
 
+/** Keep published news URLs in sync with /news (ISR revalidate = 60). */
+export const revalidate = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
   const { data, error } = await supabase
