@@ -9,10 +9,11 @@ import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
+import { EXHIBITOR_2026_TERMS } from "@/lib/constants";
 import { exhibitorApplicationSchema } from "@/lib/validation/exhibitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 
-const TOTAL_FIELDS = 10; // 8 text/tel/email inputs + 2 selects
+const TOTAL_FIELDS = 9; // 8 text/tel/email inputs + 1 select
 
 type Status = "idle" | "submitting" | "error";
 
@@ -134,7 +135,11 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         </span>
       </div>
 
-      <form key={formKey} ref={formRef} noValidate className="flex flex-col gap-1" onSubmit={handleSubmit}>
+      <p className="mt-4 rounded-xl border border-hairline bg-surface px-4 py-3 text-sm leading-relaxed text-ink/85">
+        {EXHIBITOR_2026_TERMS}
+      </p>
+
+      <form key={formKey} ref={formRef} noValidate className="mt-4 flex flex-col gap-1" onSubmit={handleSubmit}>
         <FloatingField
           id="email"
           label="Email Address"
@@ -198,23 +203,6 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
           options={COUNTRY_OPTIONS}
           error={fieldErrors.country}
           onBlurValidate={onBlurValidate}
-        />
-
-        <FloatingSelect
-          id="space"
-          label="We would like a space"
-          onFilledChange={handleFilledChange}
-          error={fieldErrors.space}
-          onBlurValidate={onBlurValidate}
-          options={[
-            { value: "standard", text: "Standard Booth (3m x 3m) - GHS 8,400" },
-            { value: "medium", text: "Medium Booth (3m x 4m) - GHS 11,500" },
-            { value: "premium", text: "Premium Booth (3m x 6m) - GHS 16,500" },
-            {
-              value: "innovation",
-              text: "Innovation Start-up Pod (shared pod) - GHS 3,000 per company",
-            },
-          ]}
         />
 
         <FloatingField
