@@ -8,7 +8,7 @@ import {
 } from "./fields";
 import { optionalNewsletterCheckbox } from "./newsletter";
 
-/** Matches ExhibitApplicationForm FloatingSelect "space" option values. */
+/** Legacy booth preference values — kept for API/admin/Mailchimp on older submissions. */
 export const EXHIBITOR_SPACE_VALUES = ["standard", "medium", "premium", "innovation"] as const;
 
 export const EXHIBITOR_PACKAGE_MAP: Record<(typeof EXHIBITOR_SPACE_VALUES)[number], string> = {

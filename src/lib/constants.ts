@@ -15,6 +15,10 @@ export const EVENT = {
   city: "Accra, Ghana",
 } as const;
 
+/** Confirmed exhibitor terms for the 2026 fair — use verbatim wherever shown. */
+export const EXHIBITOR_2026_TERMS =
+  "Exhibition space is provided free of charge. A GHS 1,000 registration fee secures your booking and confirms your participation. Extras available on request at additional cost: extra furniture, custom branding, audio-visual equipment. Storage facilities are not provided. Stands should be kept tidy and free of clutter. Backstage access is limited.";
+
 // Site-wide sharing metadata. No dedicated OG image has been supplied yet -
 // reusing the site icon is a reasonable placeholder until a proper 1200x630
 // social-share image exists.
