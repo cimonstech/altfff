@@ -11,10 +11,10 @@ type Supporter = { file: string; name: string };
 const PARTNERS: Supporter[] = [
   { file: "blackStarExperience.png", name: "Black Star Experience" },
   { file: "MCPR-Africa.png", name: "MCPR Africa" },
+  { file: "fashionForumAfrica.png", name: "Fashion Forum Africa" },
 ];
 
 const SUPPORTERS: Supporter[] = [
-  { file: "fashionForumAfrica.png", name: "Fashion Forum Africa" },
   { file: "agi.png", name: "Association of Ghana Industries (AGI)" },
   {
     file: "itfpg.png",
