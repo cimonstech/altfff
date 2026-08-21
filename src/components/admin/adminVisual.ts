@@ -93,3 +93,11 @@ export function adminStatusPillClass(status: string): string {
 export function formatAdminStatusLabel(status: string): string {
   return status.replace(/_/g, " ");
 }
+
+export function formatVisitorSourceLabel(source: unknown): string {
+  return source === "walk_in" ? "Walk-in" : "Pre-registered";
+}
+
+export function visitorSourcePillClass(source: unknown): string {
+  return source === "walk_in" ? "bg-forest/15 text-forest" : "bg-indigo/15 text-indigo";
+}

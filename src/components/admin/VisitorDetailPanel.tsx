@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import InlineErrorMessage from "@/components/ui/states/InlineErrorMessage";
+import { formatVisitorSourceLabel, visitorSourcePillClass } from "@/components/admin/adminVisual";
 
 function formatDateTime(value: unknown): string {
   if (!value || typeof value !== "string") return "-";
@@ -24,6 +25,8 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
   );
 
   const status = typeof row.status === "string" ? row.status : "";
+  const source = typeof row.source === "string" ? row.source : "pre_registered";
+  const isWalkIn = source === "walk_in";
   const id = row.id as string;
   const qrIssuedAt = typeof row.qr_issued_at === "string" ? row.qr_issued_at : null;
   const checkedInAt = typeof row.checked_in_at === "string" ? row.checked_in_at : null;
@@ -75,7 +78,23 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
 
   return (
     <div className={compact ? "space-y-3" : "mt-5 space-y-4"}>
-      {status === "registered" && (
+      {isWalkIn && (
+        <div className="rounded-md border border-forest/30 bg-forest/10 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium text-ink">Walk-in registration</p>
+            <span
+              className={`inline-flex min-h-6 items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${visitorSourcePillClass(source)}`}
+            >
+              {formatVisitorSourceLabel(source)}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-ink/60">
+            Registered on-site and confirmed automatically. No QR code and no admin review step.
+          </p>
+        </div>
+      )}
+
+      {status === "registered" && !isWalkIn && (
         <div className="rounded-md border border-gold/30 bg-gold/10 p-4">
           <p className="text-sm font-medium text-ink">Pending review</p>
           <p className="mt-1 text-xs text-ink/60">
@@ -112,7 +131,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
         </div>
       )}
 
-      {!compact && (
+      {!compact && !isWalkIn && (
         <div className="rounded-md border border-hairline bg-surface p-4">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-ink/60">QR &amp; check-in</h3>
           <dl className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">

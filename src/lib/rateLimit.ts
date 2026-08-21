@@ -24,7 +24,8 @@ export type PublicFormRoute =
   | "contact"
   | "exhibitor-applications"
   | "sponsor-inquiries"
-  | "visitor-registrations";
+  | "visitor-registrations"
+  | "walk-in-registrations";
 
 /**
  * Lazy construction - same build-safety pattern as qstash/r2/supabase

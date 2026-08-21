@@ -13,6 +13,7 @@ export {
   type VisitorRegistrationInput,
   type VisitPageRegistrationInput,
 } from "./visitor";
+export { walkInRegistrationSchema, type WalkInRegistrationInput } from "./walkIn";
 export {
   parseWithSchema,
   fieldErrorsFromZod,

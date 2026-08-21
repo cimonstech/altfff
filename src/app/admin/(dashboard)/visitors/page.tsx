@@ -1,8 +1,22 @@
 "use client";
 
 import AdminDataTable from "@/components/admin/AdminDataTable";
+import {
+  formatVisitorSourceLabel,
+  visitorSourcePillClass,
+} from "@/components/admin/adminVisual";
 
 const STATUSES = ["registered", "confirmed", "declined", "cancelled"];
+
+function visitorSourceBadge(source: unknown) {
+  return (
+    <span
+      className={`inline-flex min-h-7 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${visitorSourcePillClass(source)}`}
+    >
+      {formatVisitorSourceLabel(source)}
+    </span>
+  );
+}
 
 export default function AdminVisitorsPage() {
   return (
@@ -11,8 +25,9 @@ export default function AdminVisitorsPage() {
         Visitor Registrations
       </h1>
       <p className="mt-2 text-sm text-ink/60">
-        New registrations start as <span className="font-medium">registered</span> (pending review). Use Approve or
-        Decline in the detail view - do not set confirmed/declined from the status dropdown.
+        Pre-registered visitors start as <span className="font-medium">registered</span> (pending review) — use
+        Approve or Decline in the detail view. Walk-in registrations from{" "}
+        <span className="font-medium">/walk-in</span> are confirmed immediately with no QR code.
       </p>
       <div className="mt-6">
         <AdminDataTable
@@ -22,21 +37,21 @@ export default function AdminVisitorsPage() {
           visitorVetting
           searchFields={["full_name", "email", "company_name"]}
           titleField="full_name"
+          rowHeaderExtra={(row) => visitorSourceBadge(row.source)}
           columns={[
             { label: "Name", field: "full_name" },
             { label: "Email", field: "email" },
+            { label: "Type", field: "source", format: (row) => visitorSourceBadge(row.source) },
             { label: "Attending", field: "number_attending" },
             { label: "Status", field: "status" },
             { label: "Created", field: "created_at", format: (row) => new Date(String(row.created_at)).toLocaleDateString() },
           ]}
           detailFields={[
+            { label: "Registration type", field: "source", format: (row) => visitorSourceBadge(row.source) },
             { label: "Email", field: "email" },
             { label: "Phone", field: "phone" },
             { label: "Number Attending", field: "number_attending" },
             { label: "Heard About Us Via", field: "heard_about_us" },
-            // From migration 0002 - only ever populated by the fuller
-            // inline /visit form, not the quick modal. Shown empty ("-")
-            // rather than hidden when a row came from the modal instead.
             { label: "Company", field: "company_name" },
             { label: "Job Title", field: "job_title" },
             { label: "Country", field: "country" },

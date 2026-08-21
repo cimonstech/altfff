@@ -143,6 +143,7 @@ export default function AdminDataTable({
   titleField,
   getTitle,
   visitorVetting = false,
+  rowHeaderExtra,
 }: {
   /** Real Supabase table name. */
   table: string;
@@ -167,6 +168,8 @@ export default function AdminDataTable({
   getTitle?: (row: Record<string, unknown>) => React.ReactNode;
   /** Visitor registrations: Approve/Decline actions; status dropdown excludes confirmed/declined. */
   visitorVetting?: boolean;
+  /** Extra badge(s) beside status on mobile list cards (e.g. walk-in vs pre-registered). */
+  rowHeaderExtra?: (row: Record<string, unknown>) => React.ReactNode;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
@@ -635,6 +638,7 @@ export default function AdminDataTable({
                           {formatAdminStatusLabel(status)}
                         </span>
                       )}
+                      {rowHeaderExtra?.(row)}
                       <span className="text-xs text-ink/50">{formatDateShort(row.created_at)}</span>
                       <span className="text-xs font-medium text-ink/35" aria-hidden="true">
                         {expanded ? "▴" : "▾"}

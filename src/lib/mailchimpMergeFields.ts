@@ -67,6 +67,12 @@ export type MailchimpVisitorFields = {
   phone?: string | null;
 };
 
+export type MailchimpWalkInFields = {
+  name?: string | null;
+  company?: string | null;
+  phone?: string | null;
+};
+
 export type MailchimpContactFields = {
   firstName?: string | null;
   lastName?: string | null;
@@ -78,6 +84,7 @@ export type MailchimpSyncFields =
   | ({ source: "EXHIBITOR" } & MailchimpExhibitorFields)
   | ({ source: "SPONSOR" } & MailchimpSponsorFields)
   | ({ source: "VISITOR" } & MailchimpVisitorFields)
+  | ({ source: "WALKIN" } & MailchimpWalkInFields)
   | ({ source: "CONTACT" } & MailchimpContactFields);
 
 function splitMergeName(name: string | null | undefined): { FNAME: string; LNAME: string } {
@@ -150,6 +157,12 @@ export function buildMailchimpMergeFields(
           `interest (${fields.interest.trim()}) - no merge field; MMERGE3 is Exhibiting/Visiting/Sponsoring, MMERGE2 is sector dropdown`,
         );
       }
+      break;
+    }
+    case "WALKIN": {
+      Object.assign(merge_fields, splitMergeName(fields.name));
+      setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.company, fields.company);
+      setPhoneMergeField(merge_fields, fields.phone);
       break;
     }
     case "CONTACT": {
