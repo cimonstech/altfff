@@ -14,6 +14,13 @@ import {
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
+import {
+  DuplicateRegistrationError,
+  EXHIBITOR_BLOCKING_STATUSES,
+  EXHIBITOR_DUPLICATE_EMAIL_MESSAGE,
+  findBlockingRegistrationByEmail,
+  withRegistrationEmailLock,
+} from "@/lib/registrationDuplicates";
 
 export const runtime = "nodejs";
 
@@ -68,28 +75,42 @@ export async function POST(request: Request) {
       ? EXHIBITOR_PACKAGE_MAP[space as keyof typeof EXHIBITOR_PACKAGE_MAP]
       : null;
 
-  // Deliberately the session-less anon client, never the cookie-aware
-  // server client - see src/lib/supabase/anon.ts for the PGRST303
-  // "JWT expired" incident that motivates this. Public form inserts are
-  // anonymous by design and must not inherit browser session cookies.
-  const supabase = createAnonClient();
-  const { error: insertError } = await supabase.from("exhibitor_applications").insert({
-    email,
-    full_name: name || null,
-    phone: phone || null,
-    company_name: company || null,
-    job_title: title || null,
-    nature_of_business: nature || null,
-    business_location: based || null,
-    country: country || null,
-    package_type: packageType,
-    heard_about_us: hear || null,
-    newsletter_opt_in: newsletterOptIn,
-  });
+  try {
+    await withRegistrationEmailLock("exhibitor", email, async () => {
+      const existing = await findBlockingRegistrationByEmail(
+        "exhibitor_applications",
+        email,
+        EXHIBITOR_BLOCKING_STATUSES,
+      );
+      if (existing) {
+        throw new DuplicateRegistrationError(EXHIBITOR_DUPLICATE_EMAIL_MESSAGE);
+      }
 
-  if (insertError) {
-    console.error("Exhibitor application insert failed:", insertError);
-    reportServerError(insertError, {
+      const supabase = createAnonClient();
+      const { error: insertError } = await supabase.from("exhibitor_applications").insert({
+        email,
+        full_name: name || null,
+        phone: phone || null,
+        company_name: company || null,
+        job_title: title || null,
+        nature_of_business: nature || null,
+        business_location: based || null,
+        country: country || null,
+        package_type: packageType,
+        heard_about_us: hear || null,
+        newsletter_opt_in: newsletterOptIn,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+    });
+  } catch (err) {
+    if (err instanceof DuplicateRegistrationError) {
+      return NextResponse.json({ ok: false, error: err.message }, { status: 409 });
+    }
+    console.error("Exhibitor application insert failed:", err);
+    reportServerError(err, {
       route: "/api/exhibitor-applications",
       kind: "db",
       extra: { op: "insert" },

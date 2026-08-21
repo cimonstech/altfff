@@ -48,10 +48,10 @@ const visitorBaseFields = {
   newsletter: optionalNewsletterCheckbox,
 };
 
-/** API + modal (VisitorRegisterForm) - email required only. */
+/** API + modal (VisitorRegisterForm) — email and full name required. */
 export const visitorRegistrationSchema = z.object({
   ...visitorBaseFields,
-  full_name: optionalShortText("Full name"),
+  full_name: requiredShortText("Full name"),
 });
 
 /**

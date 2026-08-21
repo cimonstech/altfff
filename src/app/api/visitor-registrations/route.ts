@@ -12,6 +12,13 @@ import {
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
+import {
+  DuplicateRegistrationError,
+  VISITOR_BLOCKING_STATUSES,
+  VISITOR_DUPLICATE_EMAIL_MESSAGE,
+  findBlockingRegistrationByEmail,
+  withRegistrationEmailLock,
+} from "@/lib/registrationDuplicates";
 
 export const runtime = "nodejs";
 
@@ -26,8 +33,8 @@ export const runtime = "nodejs";
  * ever sent by one form or the other - all are nullable columns (see
  * migration 0002), so that's expected and fine.
  *
- * Server schema requires email only (same as before). The /visit page uses a
- * stricter client schema that also requires full_name.
+ * Server schema requires email and full name (same as exhibitor). The /visit page
+ * uses the same required fields via visitPageRegistrationSchema.
  */
 export async function POST(request: Request) {
   const rate = await checkPublicFormRateLimit(request, "visitor-registrations");
@@ -86,27 +93,41 @@ export async function POST(request: Request) {
   } = parsed.data;
   const newsletterOptIn = parseNewsletterOptIn(newsletter);
 
-  // Deliberately the session-less anon client, never the cookie-aware
-  // server client - see src/lib/supabase/anon.ts for the PGRST303
-  // "JWT expired" incident that motivates this. Public form inserts are
-  // anonymous by design and must not inherit browser session cookies.
-  const supabase = createAnonClient();
-  const { error: insertError } = await supabase.from("visitor_registrations").insert({
-    email,
-    full_name: fullName || null,
-    phone: phone || null,
-    number_attending: numberAttending ?? undefined, // let the column default (1) apply if omitted
-    heard_about_us: heardAboutUs || null,
-    company_name: companyName || null,
-    job_title: jobTitle || null,
-    country: country || null,
-    interest: interest || null,
-    newsletter_opt_in: newsletterOptIn,
-  });
+  try {
+    await withRegistrationEmailLock("visitor", email, async () => {
+      const existing = await findBlockingRegistrationByEmail(
+        "visitor_registrations",
+        email,
+        VISITOR_BLOCKING_STATUSES,
+      );
+      if (existing) {
+        throw new DuplicateRegistrationError(VISITOR_DUPLICATE_EMAIL_MESSAGE);
+      }
 
-  if (insertError) {
-    console.error("Visitor registration insert failed:", insertError);
-    reportServerError(insertError, {
+      const supabase = createAnonClient();
+      const { error: insertError } = await supabase.from("visitor_registrations").insert({
+        email,
+        full_name: fullName || null,
+        phone: phone || null,
+        number_attending: numberAttending ?? undefined,
+        heard_about_us: heardAboutUs || null,
+        company_name: companyName || null,
+        job_title: jobTitle || null,
+        country: country || null,
+        interest: interest || null,
+        newsletter_opt_in: newsletterOptIn,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+    });
+  } catch (err) {
+    if (err instanceof DuplicateRegistrationError) {
+      return NextResponse.json({ ok: false, error: err.message }, { status: 409 });
+    }
+    console.error("Visitor registration insert failed:", err);
+    reportServerError(err, {
       route: "/api/visitor-registrations",
       kind: "db",
       extra: { op: "insert" },

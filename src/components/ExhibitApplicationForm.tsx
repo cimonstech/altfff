@@ -12,6 +12,7 @@ import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { EXHIBITOR_2026_TERMS } from "@/lib/constants";
 import { exhibitorApplicationSchema } from "@/lib/validation/exhibitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
+import { useFormSubmitGuard } from "@/lib/useFormSubmitGuard";
 
 const TOTAL_FIELDS = 9; // 8 text/tel/email inputs + 1 select
 
@@ -37,6 +38,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
   const [formKey, setFormKey] = useState(0);
   const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
     useZodFormErrors(exhibitorApplicationSchema);
+  const { beginSubmit, endSubmit } = useFormSubmitGuard();
 
   const handleFilledChange = useCallback((id: string, filled: boolean) => {
     const set = filledSetRef.current;
@@ -62,11 +64,13 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
+    if (!beginSubmit()) return;
 
     const data = formDataToObject(e.currentTarget);
     const check = validateAll(data);
     if (!check.ok) {
       setStatus("idle");
+      endSubmit();
       return;
     }
 
@@ -85,6 +89,14 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         setStatus("error");
         return;
       }
+      if (res.status === 409) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) ||
+            "You've already applied with this email — we'll be in touch.",
+        );
+        setStatus("error");
+        return;
+      }
       if (res.status === 400 && body.fieldErrors && typeof body.fieldErrors === "object") {
         applyServerFieldErrors(body.fieldErrors as Record<string, string>);
         setStatus("idle");
@@ -97,10 +109,6 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
       }
       setStatus("idle");
       setShowBanner(true);
-      // Reset the progress indicator alongside the fields it tracks -
-      // remounting the fields (via formKey below) doesn't itself fire the
-      // onFilledChange callbacks that built this state up, so it has to be
-      // cleared explicitly.
       filledSetRef.current.clear();
       setFilledCount(0);
       clearFieldErrors();
@@ -108,6 +116,8 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
       setStatus("error");
+    } finally {
+      endSubmit();
     }
   };
 
@@ -152,6 +162,7 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         <FloatingField
           id="name"
           label="Full Name"
+          required
           error={fieldErrors.name}
           onFilledChange={handleFilledChange}
           onBlurValidate={onBlurValidate}

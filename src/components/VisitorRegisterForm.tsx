@@ -11,6 +11,7 @@ import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { EVENT } from "@/lib/constants";
 import { visitorRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
+import { useFormSubmitGuard } from "@/lib/useFormSubmitGuard";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -32,6 +33,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
   const [formKey, setFormKey] = useState(0);
   const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
     useZodFormErrors(visitorRegistrationSchema);
+  const { beginSubmit, endSubmit } = useFormSubmitGuard();
 
   const onBlurValidate = (field: string) => {
     if (!formRef.current) return;
@@ -41,11 +43,13 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
+    if (!beginSubmit()) return;
 
     const data = formDataToObject(e.currentTarget);
     const check = validateAll(data);
     if (!check.ok) {
       setStatus("idle");
+      endSubmit();
       return;
     }
 
@@ -60,6 +64,14 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       if (res.status === 429) {
         setErrorMessage(
           (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 409) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) ||
+            "You've already registered with this email — we'll be in touch.",
         );
         setStatus("error");
         return;
@@ -81,6 +93,8 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
       setStatus("error");
+    } finally {
+      endSubmit();
     }
   };
 
@@ -109,6 +123,7 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
           id="visitor-name"
           name="full_name"
           label="Full Name"
+          required
           error={fieldErrors.full_name}
           onBlurValidate={onBlurValidate}
         />

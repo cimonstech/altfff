@@ -4,6 +4,7 @@ import {
   optionalPhone,
   optionalSelect,
   optionalShortText,
+  requiredShortText,
   requiredEmail,
 } from "./fields";
 import { optionalNewsletterCheckbox } from "./newsletter";
@@ -19,12 +20,11 @@ export const EXHIBITOR_PACKAGE_MAP: Record<(typeof EXHIBITOR_SPACE_VALUES)[numbe
 };
 
 /**
- * Exhibitor application - only `email` is required in the UI/API today;
- * every other field stays optional with format/length checks when present.
+ * Exhibitor application — email and full name required; other fields optional.
  */
 export const exhibitorApplicationSchema = z.object({
   email: requiredEmail,
-  name: optionalShortText("Full name"),
+  name: requiredShortText("Full name"),
   phone: optionalPhone,
   company: optionalShortText("Company name"),
   title: optionalShortText("Job title"),

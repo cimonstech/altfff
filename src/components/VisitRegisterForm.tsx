@@ -11,6 +11,7 @@ import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { visitPageRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
+import { useFormSubmitGuard } from "@/lib/useFormSubmitGuard";
 
 const INTEREST_OPTIONS = [
   { value: "materials", text: "Discovering New Materials & Innovation" },
@@ -46,6 +47,7 @@ export default function VisitRegisterForm() {
   const [formKey, setFormKey] = useState(0);
   const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
     useZodFormErrors(visitPageRegistrationSchema);
+  const { beginSubmit, endSubmit } = useFormSubmitGuard();
 
   useGSAP(
     () => {
@@ -69,11 +71,13 @@ export default function VisitRegisterForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
+    if (!beginSubmit()) return;
 
     const data = formDataToObject(e.currentTarget);
     const check = validateAll(data);
     if (!check.ok) {
       setStatus("idle");
+      endSubmit();
       return;
     }
 
@@ -88,6 +92,14 @@ export default function VisitRegisterForm() {
       if (res.status === 429) {
         setErrorMessage(
           (typeof body.error === "string" && body.error) || RATE_LIMIT_ERROR_MESSAGE,
+        );
+        setStatus("error");
+        return;
+      }
+      if (res.status === 409) {
+        setErrorMessage(
+          (typeof body.error === "string" && body.error) ||
+            "You've already registered with this email — we'll be in touch.",
         );
         setStatus("error");
         return;
@@ -109,6 +121,8 @@ export default function VisitRegisterForm() {
     } catch {
       setErrorMessage("Something went wrong. Please check your connection and try again.");
       setStatus("error");
+    } finally {
+      endSubmit();
     }
   };
 
