@@ -1,6 +1,7 @@
 "use client";
 
 import AdminDataTable from "@/components/admin/AdminDataTable";
+import WalkInRegistrationToggle from "@/components/admin/WalkInRegistrationToggle";
 import {
   formatVisitorSourceLabel,
   visitorSourcePillClass,
@@ -27,9 +28,11 @@ export default function AdminVisitorsPage() {
       <p className="mt-2 text-sm text-ink/60">
         Pre-registered visitors start as <span className="font-medium">registered</span> (pending review) — use
         Approve or Decline in the detail view. Walk-in registrations from{" "}
-        <span className="font-medium">/walk-in</span> are confirmed immediately with no QR code.
+        <span className="font-medium">/walk-in</span> are confirmed immediately with no QR code. Use the toggle
+        below to open or close on-site walk-in registration on event day.
       </p>
-      <div className="mt-6">
+      <div className="mt-6 space-y-6">
+        <WalkInRegistrationToggle />
         <AdminDataTable
           table="visitor_registrations"
           entityLabel="Visitor Registration"

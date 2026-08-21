@@ -23,6 +23,20 @@ const BADGE_CHANNEL_NAME = "admin-sidebar-badges";
 const RECONNECT_BASE_MS = 3000;
 const RECONNECT_MAX_MS = 30000;
 
+type RealtimeProbe = {
+  subscribed: boolean;
+  connecting: boolean;
+  reconnectAttempt: number;
+  lastStatus: string | null;
+  disconnectTransport: () => void;
+};
+
+declare global {
+  interface Window {
+    __altfffSidebarRealtimeProbe?: RealtimeProbe;
+  }
+}
+
 function navItemIsActive(href: string, pathname: string): boolean {
   if (href === "/admin") return pathname === "/admin";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -128,6 +142,33 @@ export default function AdminSidebar({
     let connecting = false;
     let intentionalTeardown = false;
 
+    const probeState = {
+      subscribed: false,
+      connecting: false,
+      reconnectAttempt: 0,
+      lastStatus: null as string | null,
+    };
+
+    if (process.env.NODE_ENV === "development") {
+      window.__altfffSidebarRealtimeProbe = {
+        get subscribed() {
+          return probeState.subscribed;
+        },
+        get connecting() {
+          return probeState.connecting;
+        },
+        get reconnectAttempt() {
+          return probeState.reconnectAttempt;
+        },
+        get lastStatus() {
+          return probeState.lastStatus;
+        },
+        disconnectTransport: () => {
+          void supabase.realtime.disconnect();
+        },
+      };
+    }
+
     const tables = badgeTargets.map((t) => t.table);
 
     const syncRealtimeAuth = async (accessToken?: string | null) => {
@@ -161,6 +202,7 @@ export default function AdminSidebar({
     const subscribeChannel = async () => {
       if (cancelled || connecting) return;
       connecting = true;
+      probeState.connecting = true;
       clearReconnectTimer();
 
       try {
@@ -187,30 +229,42 @@ export default function AdminSidebar({
         nextChannel.subscribe((status, err) => {
           if (cancelled) return;
 
+          probeState.lastStatus = status;
+
           if (status === "SUBSCRIBED") {
             subscribed = true;
+            probeState.subscribed = true;
             reconnectAttempt = 0;
+            probeState.reconnectAttempt = 0;
+            if (process.env.NODE_ENV === "development") {
+              console.warn("[AdminSidebar] Realtime channel subscribed (badge updates live).");
+            }
             return;
           }
 
           subscribed = false;
+          probeState.subscribed = false;
 
           if (intentionalTeardown) return;
 
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            console.error("[AdminSidebar] Realtime channel error:", status, err);
-            scheduleReconnect();
+            console.warn("[AdminSidebar] Realtime channel dropped:", status, err ?? "");
+            // Defer past subscribeChannel's finally so a synchronous error callback
+            // cannot miss reconnect while `connecting` is still true.
+            queueMicrotask(() => scheduleReconnect());
           }
         });
       } finally {
         connecting = false;
+        probeState.connecting = false;
       }
     };
 
     const scheduleReconnect = () => {
-      if (cancelled || reconnectTimer || connecting) return;
+      if (cancelled || reconnectTimer) return;
       const delay = Math.min(RECONNECT_BASE_MS * 2 ** reconnectAttempt, RECONNECT_MAX_MS);
       reconnectAttempt += 1;
+      probeState.reconnectAttempt = reconnectAttempt;
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
         void subscribeChannel();
@@ -270,6 +324,9 @@ export default function AdminSidebar({
       clearReconnectTimer();
       window.removeEventListener("online", onOnline);
       document.removeEventListener("visibilitychange", onVisibility);
+      if (process.env.NODE_ENV === "development") {
+        delete window.__altfffSidebarRealtimeProbe;
+      }
       void teardownChannel();
       for (const timer of Object.values(debounceRef.current)) clearTimeout(timer);
       debounceRef.current = {};

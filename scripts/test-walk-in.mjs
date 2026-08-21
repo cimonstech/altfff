@@ -1,5 +1,7 @@
 /**
- * End-to-end walk-in registration smoke test (requires migration 0012 applied).
+ * End-to-end walk-in registration smoke test (requires migrations 0012 + 0013 applied).
+ *
+ * Temporarily enables walk-in registration via service role if it is closed.
  *
  * Usage:
  *   node --env-file=.env.local scripts/test-walk-in.mjs
@@ -43,10 +45,39 @@ async function ensureMigration() {
     console.error("Schema check failed:", error.message);
     process.exit(1);
   }
+
+  const { error: settingsError } = await supabase.from("app_settings").select("key").limit(1);
+  if (settingsError) {
+    console.error("Migration 0013 not applied — run supabase/migrations/0013_app_settings.sql first.");
+    process.exit(1);
+  }
+}
+
+async function ensureWalkInOpen() {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "walk_in_registration_enabled")
+    .maybeSingle();
+  if (error) {
+    console.error("Failed to read walk-in gate:", error.message);
+    process.exit(1);
+  }
+  if (data?.value === true) return;
+  console.log("Enabling walk_in_registration_enabled for this test run…");
+  const { error: updateError } = await supabase
+    .from("app_settings")
+    .update({ value: true })
+    .eq("key", "walk_in_registration_enabled");
+  if (updateError) {
+    console.error("Failed to enable walk-in registration:", updateError.message);
+    process.exit(1);
+  }
 }
 
 async function main() {
   await ensureMigration();
+  await ensureWalkInOpen();
 
   const body = {
     full_name: fullName,

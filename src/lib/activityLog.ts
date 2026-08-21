@@ -8,6 +8,7 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   admin_invited: "Admin invited",
   admin_deleted: "Admin deleted",
   communication_sent: "Communication sent",
+  walk_in_registration_toggled: "Walk-in registration toggled",
 };
 
 export const ACTIVITY_ACTIONS = Object.keys(ACTIVITY_ACTION_LABELS);
@@ -20,6 +21,7 @@ const TABLE_LABELS: Record<string, string> = {
   news_posts: "News posts",
   admin_profiles: "Admin profiles",
   communication_log: "Communications",
+  app_settings: "App settings",
 };
 
 function str(value: unknown): string {
@@ -77,6 +79,8 @@ export function formatActivitySummary(
       }
       break;
     }
+    case "walk_in_registration_toggled":
+      return details.enabled === true ? "Opened walk-in registration" : "Closed walk-in registration";
   }
 
   return "-";

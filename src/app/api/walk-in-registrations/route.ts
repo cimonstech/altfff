@@ -17,6 +17,10 @@ import {
   findBlockingRegistrationByEmail,
   withRegistrationEmailLock,
 } from "@/lib/registrationDuplicates";
+import {
+  isWalkInRegistrationEnabled,
+  WALK_IN_REGISTRATION_CLOSED_API_ERROR,
+} from "@/lib/appSettings";
 
 export const runtime = "nodejs";
 
@@ -46,6 +50,10 @@ function buildWalkInConfirmationSms(fullName: string): string {
 }
 
 export async function POST(request: Request) {
+  if (!(await isWalkInRegistrationEnabled())) {
+    return NextResponse.json({ ok: false, error: WALK_IN_REGISTRATION_CLOSED_API_ERROR }, { status: 403 });
+  }
+
   const rate = await checkPublicFormRateLimit(request, "walk-in-registrations");
   if (!rate.success) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });
