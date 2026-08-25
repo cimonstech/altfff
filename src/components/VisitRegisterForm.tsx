@@ -6,6 +6,9 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
+import { SelectWithOtherFollowUp } from "@/components/SelectWithOtherFollowUp";
+import { COUNTRY_OPTIONS, COUNTRY_OTHER_VALUE } from "@/lib/countries";
+import { HEARD_ABOUT_OPTIONS, HEARD_ABOUT_OTHER_VALUE } from "@/lib/heardAboutSources";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
@@ -179,11 +182,17 @@ export default function VisitRegisterForm() {
           error={fieldErrors.job_title}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingField
-          id="visit-country"
-          name="country"
-          label="Country"
-          error={fieldErrors.country}
+        <SelectWithOtherFollowUp
+          selectId="visit-country"
+          selectName="country"
+          selectLabel="Country"
+          selectOptions={COUNTRY_OPTIONS}
+          otherId="visit-country-other"
+          otherName="country_other"
+          otherLabel="Please specify your country"
+          otherValue={COUNTRY_OTHER_VALUE}
+          selectError={fieldErrors.country}
+          otherError={fieldErrors.country_other}
           onBlurValidate={onBlurValidate}
         />
         <FloatingSelect
@@ -194,11 +203,17 @@ export default function VisitRegisterForm() {
           error={fieldErrors.interest}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingField
-          id="visit-hearAbout"
-          name="heard_about_us"
-          label="Where did you hear about Alt.FFF?"
-          error={fieldErrors.heard_about_us}
+        <SelectWithOtherFollowUp
+          selectId="visit-hearAbout"
+          selectName="heard_about_us"
+          selectLabel="Where did you hear about Alt.FFF?"
+          selectOptions={HEARD_ABOUT_OPTIONS}
+          otherId="visit-hearAbout-other"
+          otherName="heard_about_us_other"
+          otherLabel="Please tell us how you heard about Alt.FFF"
+          otherValue={HEARD_ABOUT_OTHER_VALUE}
+          selectError={fieldErrors.heard_about_us}
+          otherError={fieldErrors.heard_about_us_other}
           onBlurValidate={onBlurValidate}
         />
 

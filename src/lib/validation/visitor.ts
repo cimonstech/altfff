@@ -1,5 +1,13 @@
 import { z } from "zod";
 import {
+  COUNTRY_OTHER_VALUE,
+  COUNTRY_SELECTABLE_VALUES,
+} from "@/lib/countries";
+import {
+  HEARD_ABOUT_OTHER_VALUE,
+  HEARD_ABOUT_VALUES,
+} from "@/lib/heardAboutSources";
+import {
   emptyToUndefined,
   optionalPhone,
   optionalSelect,
@@ -8,6 +16,7 @@ import {
   requiredShortText,
 } from "./fields";
 import { optionalNewsletterCheckbox } from "./newsletter";
+import { withOtherFollowUpRefinement } from "./selectWithOther";
 
 /** Matches VisitRegisterForm INTEREST_OPTIONS values. */
 export const VISITOR_INTEREST_VALUES = [
@@ -38,30 +47,43 @@ const optionalNumberAttending = z.preprocess((value) => {
  */
 const visitorBaseFields = {
   email: requiredEmail,
+  full_name: requiredShortText("Full name"),
   phone: optionalPhone,
   number_attending: optionalNumberAttending,
-  heard_about_us: optionalShortText("How you heard about us"),
+  heard_about_us: optionalSelect(HEARD_ABOUT_VALUES),
+  heard_about_us_other: optionalShortText("How you heard about us"),
   company_name: optionalShortText("Company name"),
   job_title: optionalShortText("Job title"),
-  country: optionalShortText("Country"),
+  country: optionalSelect(COUNTRY_SELECTABLE_VALUES),
+  country_other: optionalShortText("Country name"),
   interest: optionalSelect(VISITOR_INTEREST_VALUES),
   newsletter: optionalNewsletterCheckbox,
 };
 
+const visitorRegistrationBaseSchema = z.object(visitorBaseFields);
+
+const visitorRegistrationWithOtherRefinements = withOtherFollowUpRefinement(
+  withOtherFollowUpRefinement(
+    visitorRegistrationBaseSchema,
+    "country",
+    "country_other",
+    COUNTRY_OTHER_VALUE,
+    "Please enter your country.",
+  ),
+  "heard_about_us",
+  "heard_about_us_other",
+  HEARD_ABOUT_OTHER_VALUE,
+  "Please tell us how you heard about Alt.FFF.",
+);
+
 /** API + modal (VisitorRegisterForm) — email and full name required. */
-export const visitorRegistrationSchema = z.object({
-  ...visitorBaseFields,
-  full_name: requiredShortText("Full name"),
-});
+export const visitorRegistrationSchema = visitorRegistrationWithOtherRefinements;
 
 /**
  * /visit inline form - email + full name required in the UI today.
  * Same field names as the modal/API so payloads stay compatible.
  */
-export const visitPageRegistrationSchema = z.object({
-  ...visitorBaseFields,
-  full_name: requiredShortText("Full name"),
-});
+export const visitPageRegistrationSchema = visitorRegistrationWithOtherRefinements;
 
 export type VisitorRegistrationInput = z.infer<typeof visitorRegistrationSchema>;
 export type VisitPageRegistrationInput = z.infer<typeof visitPageRegistrationSchema>;

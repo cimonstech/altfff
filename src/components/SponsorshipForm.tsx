@@ -3,11 +3,13 @@
 import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
-import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import { FloatingField } from "@/components/FormFields";
 import EmailFloatingField from "@/components/EmailFloatingField";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { PhoneInput } from "@/components/PhoneInput";
-import { COUNTRY_OPTIONS } from "@/lib/countries";
+import { SelectWithOtherFollowUp } from "@/components/SelectWithOtherFollowUp";
+import { COUNTRY_OPTIONS, COUNTRY_OTHER_VALUE } from "@/lib/countries";
+import { HEARD_ABOUT_OPTIONS, HEARD_ABOUT_OTHER_VALUE } from "@/lib/heardAboutSources";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
@@ -137,11 +139,16 @@ export default function SponsorshipForm() {
           error={fieldErrors.phone}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingField
-          id="hearAbout"
-          label="Where did you hear about Alt.FFF?"
-          required
-          error={fieldErrors.hearAbout}
+        <SelectWithOtherFollowUp
+          selectId="hearAbout"
+          selectLabel="Where did you hear about Alt.FFF?"
+          selectRequired
+          selectOptions={HEARD_ABOUT_OPTIONS}
+          otherId="hearAbout_other"
+          otherLabel="Please tell us how you heard about Alt.FFF"
+          otherValue={HEARD_ABOUT_OTHER_VALUE}
+          selectError={fieldErrors.hearAbout}
+          otherError={fieldErrors.hearAbout_other}
           onBlurValidate={onBlurValidate}
         />
         <FloatingField
@@ -165,11 +172,15 @@ export default function SponsorshipForm() {
           error={fieldErrors.jobTitle}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingSelect
-          id="country"
-          label="Country"
-          options={COUNTRY_OPTIONS}
-          error={fieldErrors.country}
+        <SelectWithOtherFollowUp
+          selectId="country"
+          selectLabel="Country"
+          selectOptions={COUNTRY_OPTIONS}
+          otherId="country_other"
+          otherLabel="Please specify your country"
+          otherValue={COUNTRY_OTHER_VALUE}
+          selectError={fieldErrors.country}
+          otherError={fieldErrors.country_other}
           onBlurValidate={onBlurValidate}
         />
         <FloatingField

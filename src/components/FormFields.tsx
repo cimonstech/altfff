@@ -18,6 +18,7 @@ export function FloatingField({
   error,
   onFilledChange,
   onBlurValidate,
+  validateOnChange,
 }: {
   id: string;
   /** Falls back to `id` when omitted. Only matters for forms that submit
@@ -32,6 +33,8 @@ export function FloatingField({
   onFilledChange?: (id: string, filled: boolean) => void;
   /** Called after blur with the field's form `name` (for shared Zod schemas). */
   onBlurValidate?: (fieldName: string) => void;
+  /** Re-run field validation on each change (used for conditional follow-ups). */
+  validateOnChange?: boolean;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
@@ -83,6 +86,9 @@ export function FloatingField({
           const isFilled = e.target.value.length > 0;
           setFilled(isFilled);
           onFilledChange?.(id, isFilled);
+          if (validateOnChange) {
+            onBlurValidate?.(fieldName);
+          }
         }}
         className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-base text-ink outline-none md:text-sm"
       />
@@ -196,18 +202,22 @@ export function FloatingSelect({
   name,
   label,
   options,
+  required,
   error,
   onFilledChange,
   onBlurValidate,
+  onValueChange,
 }: {
   id: string;
   /** Falls back to `id` when omitted - see FloatingField's own `name` doc. */
   name?: string;
   label: string;
-  options: { value: string; text: string }[];
+  options: { value: string; text: string; disabled?: boolean }[];
+  required?: boolean;
   error?: string;
   onFilledChange?: (id: string, filled: boolean) => void;
   onBlurValidate?: (fieldName: string) => void;
+  onValueChange?: (value: string) => void;
 }) {
   const labelRef = useRef<HTMLSpanElement>(null);
   const underlineRef = useRef<HTMLSpanElement>(null);
@@ -242,6 +252,7 @@ export function FloatingSelect({
         className="pointer-events-none absolute left-0 top-5 origin-left text-xs font-semibold uppercase tracking-wide text-ink/50"
       >
         {textWithBrandName(label)}
+        {required && <span className="text-madder"> *</span>}
       </span>
       <select
         id={id}
@@ -255,15 +266,18 @@ export function FloatingSelect({
           onBlurValidate?.(fieldName);
         }}
         onChange={(e) => {
-          const isFilled = e.target.value.length > 0;
+          const value = e.target.value;
+          const isFilled = value.length > 0;
           setFilled(isFilled);
           onFilledChange?.(id, isFilled);
+          onValueChange?.(value);
+          onBlurValidate?.(fieldName);
         }}
         className="w-full border-0 border-b border-hairline bg-transparent px-0 pb-2 pt-1 text-base text-ink outline-none md:text-sm"
       >
         <option value="" disabled hidden />
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
+          <option key={`${o.value}-${o.text}`} value={o.value} disabled={o.disabled}>
             {o.text}
           </option>
         ))}

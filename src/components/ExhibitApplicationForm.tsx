@@ -5,7 +5,9 @@ import { gsap } from "@/lib/gsap";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
 import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
-import { COUNTRY_OPTIONS } from "@/lib/countries";
+import { SelectWithOtherFollowUp } from "@/components/SelectWithOtherFollowUp";
+import { COUNTRY_OPTIONS, COUNTRY_OTHER_VALUE } from "@/lib/countries";
+import { HEARD_ABOUT_OPTIONS, HEARD_ABOUT_OTHER_VALUE } from "@/lib/heardAboutSources";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
@@ -207,19 +209,28 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
             field is free text (city/region detail varies a lot, e.g.
             "Kumasi, Ghana" or "West Africa region") while this is a clean,
             filterable value for the country column added in migration 0004. */}
-        <FloatingSelect
-          id="country"
-          label="Country"
+        <SelectWithOtherFollowUp
+          selectId="country"
+          selectLabel="Country"
+          selectOptions={COUNTRY_OPTIONS}
+          otherId="country_other"
+          otherLabel="Please specify your country"
+          otherValue={COUNTRY_OTHER_VALUE}
+          selectError={fieldErrors.country}
+          otherError={fieldErrors.country_other}
           onFilledChange={handleFilledChange}
-          options={COUNTRY_OPTIONS}
-          error={fieldErrors.country}
           onBlurValidate={onBlurValidate}
         />
 
-        <FloatingField
-          id="hear"
-          label="Where did you hear about Alt.FFF?"
-          error={fieldErrors.hear}
+        <SelectWithOtherFollowUp
+          selectId="hear"
+          selectLabel="Where did you hear about Alt.FFF?"
+          selectOptions={HEARD_ABOUT_OPTIONS}
+          otherId="hear_other"
+          otherLabel="Please tell us how you heard about Alt.FFF"
+          otherValue={HEARD_ABOUT_OTHER_VALUE}
+          selectError={fieldErrors.hear}
+          otherError={fieldErrors.hear_other}
           onFilledChange={handleFilledChange}
           onBlurValidate={onBlurValidate}
         />

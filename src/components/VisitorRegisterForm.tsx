@@ -5,6 +5,8 @@ import { FloatingField } from "@/components/FormFields";
 import EmailFloatingField from "@/components/EmailFloatingField";
 import { BrandName } from "@/components/BrandName";
 import { PhoneInput } from "@/components/PhoneInput";
+import { SelectWithOtherFollowUp } from "@/components/SelectWithOtherFollowUp";
+import { HEARD_ABOUT_OPTIONS, HEARD_ABOUT_OTHER_VALUE } from "@/lib/heardAboutSources";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
@@ -150,11 +152,17 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
           error={fieldErrors.number_attending}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingField
-          id="visitor-hear"
-          name="heard_about_us"
-          label="How did you hear about Alt.FFF?"
-          error={fieldErrors.heard_about_us}
+        <SelectWithOtherFollowUp
+          selectId="visitor-hear"
+          selectName="heard_about_us"
+          selectLabel="How did you hear about Alt.FFF?"
+          selectOptions={HEARD_ABOUT_OPTIONS}
+          otherId="visitor-hear-other"
+          otherName="heard_about_us_other"
+          otherLabel="Please tell us how you heard about Alt.FFF"
+          otherValue={HEARD_ABOUT_OTHER_VALUE}
+          selectError={fieldErrors.heard_about_us}
+          otherError={fieldErrors.heard_about_us_other}
           onBlurValidate={onBlurValidate}
         />
 

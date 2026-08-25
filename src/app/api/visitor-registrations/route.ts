@@ -13,6 +13,8 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
+import { resolveCountryValue } from "@/lib/countries";
+import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
 import {
   DuplicateRegistrationError,
   VISITOR_BLOCKING_STATUSES,
@@ -89,9 +91,11 @@ export async function POST(request: Request) {
     phone,
     number_attending: numberAttending,
     heard_about_us: heardAboutUs,
+    heard_about_us_other: heardAboutUsOther,
     company_name: companyName,
     job_title: jobTitle,
     country,
+    country_other: countryOther,
     interest,
     newsletter,
   } = parsed.data;
@@ -114,10 +118,10 @@ export async function POST(request: Request) {
         full_name: fullName || null,
         phone: phone || null,
         number_attending: numberAttending ?? undefined,
-        heard_about_us: heardAboutUs || null,
+        heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
         company_name: companyName || null,
         job_title: jobTitle || null,
-        country: country || null,
+        country: resolveCountryValue(country, countryOther),
         interest: interest || null,
         newsletter_opt_in: newsletterOptIn,
       });
@@ -150,8 +154,8 @@ export async function POST(request: Request) {
       name: fullName || null,
       company: companyName || null,
       jobTitle: jobTitle || null,
-      country: country || null,
-      heardAbout: heardAboutUs || null,
+      country: resolveCountryValue(country, countryOther),
+      heardAbout: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
       interest: interest || null,
       phone: phone || null,
     });
@@ -203,12 +207,13 @@ export async function POST(request: Request) {
     }
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
+    const resolvedCountry = resolveCountryValue(country, countryOther);
     const internalBody = [
       `Name: ${fullName || "-"}`,
       companyName ? `Company: ${companyName}` : null,
       `Email: ${email}`,
       phone ? `Phone: ${phone}` : null,
-      country ? `Country: ${country}` : null,
+      resolvedCountry ? `Country: ${resolvedCountry}` : null,
       numberAttending != null ? `Number attending: ${numberAttending}` : null,
     ]
       .filter(Boolean)

@@ -15,6 +15,8 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
+import { resolveCountryValue } from "@/lib/countries";
+import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
 import {
   DuplicateRegistrationError,
   EXHIBITOR_BLOCKING_STATUSES,
@@ -71,7 +73,7 @@ export async function POST(request: Request) {
   const emailDomainError = await emailDomainValidationResponse(parsed.data.email);
   if (emailDomainError) return emailDomainError;
 
-  const { email, name, phone, company, title, nature, based, country, space, hear, newsletter } =
+  const { email, name, phone, company, title, nature, based, country, country_other, space, hear, hear_other, newsletter } =
     parsed.data;
   const newsletterOptIn = parseNewsletterOptIn(newsletter);
   const packageType =
@@ -99,9 +101,9 @@ export async function POST(request: Request) {
         job_title: title || null,
         nature_of_business: nature || null,
         business_location: based || null,
-        country: country || null,
+        country: resolveCountryValue(country, country_other),
         package_type: packageType,
-        heard_about_us: hear || null,
+        heard_about_us: resolveHeardAboutValue(hear, hear_other),
         newsletter_opt_in: newsletterOptIn,
       });
 
@@ -140,9 +142,9 @@ export async function POST(request: Request) {
       jobTitle: title || null,
       natureOfBusiness: nature || null,
       businessLocation: based || null,
-      country: country || null,
+      country: resolveCountryValue(country, country_other),
       space: exhibitorSpaceForMailchimp,
-      heardAbout: hear || null,
+      heardAbout: resolveHeardAboutValue(hear, hear_other),
       phone: phone || null,
     });
   }

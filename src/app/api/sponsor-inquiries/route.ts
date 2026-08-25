@@ -10,6 +10,8 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
+import { resolveCountryValue } from "@/lib/countries";
+import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
 
 export const runtime = "nodejs";
 
@@ -64,10 +66,12 @@ export async function POST(request: Request) {
     fullName,
     phone,
     hearAbout,
+    hearAbout_other,
     linkedin,
     company,
     jobTitle,
     country,
+    country_other,
     businessNature,
     newsletter,
   } = parsed.data;
@@ -86,10 +90,10 @@ export async function POST(request: Request) {
     phone,
     company_name: company,
     job_title: jobTitle,
-    country: country || null,
+    country: resolveCountryValue(country, country_other),
     nature_of_business: businessNature,
     linkedin_handle: linkedin,
-    heard_about_us: hearAbout,
+    heard_about_us: resolveHeardAboutValue(hearAbout, hearAbout_other),
     newsletter_opt_in: newsletterOptIn,
   });
 
@@ -112,8 +116,8 @@ export async function POST(request: Request) {
       jobTitle,
       natureOfBusiness: businessNature,
       linkedin,
-      country: country || null,
-      heardAbout: hearAbout,
+      country: resolveCountryValue(country, country_other),
+      heardAbout: resolveHeardAboutValue(hearAbout, hearAbout_other),
       phone,
     });
   }

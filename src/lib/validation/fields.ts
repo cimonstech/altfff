@@ -84,3 +84,14 @@ export function optionalSelect<T extends string>(allowed?: readonly [T, ...T[]])
     }).optional(),
   );
 }
+
+/** Required select — rejects blank and out-of-list values. */
+export function requiredSelect<T extends string>(allowed: readonly [T, ...T[]], label: string) {
+  return z.preprocess(
+    emptyToUndefined,
+    z.enum(allowed, {
+      error: (issue) =>
+        issue.input === undefined ? `${label} is required.` : "Please select a valid option.",
+    }),
+  );
+}
