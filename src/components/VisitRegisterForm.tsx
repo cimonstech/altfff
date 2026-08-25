@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
@@ -141,12 +142,11 @@ export default function VisitRegisterForm() {
         className="visit-form-in flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <FloatingField
+        <EmailFloatingField
           id="visit-email"
           name="email"
           label="Email Address"
           required
-          type="email"
           error={fieldErrors.email}
           onBlurValidate={onBlurValidate}
         />

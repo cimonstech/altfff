@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "@/lib/gsap";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
 import { SuccessBanner } from "@/components/SuccessBanner";
@@ -150,11 +151,10 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
       </p>
 
       <form key={formKey} ref={formRef} noValidate className="mt-4 flex flex-col gap-1" onSubmit={handleSubmit}>
-        <FloatingField
+        <EmailFloatingField
           id="email"
           label="Email Address"
           required
-          type="email"
           error={fieldErrors.email}
           onFilledChange={handleFilledChange}
           onBlurValidate={onBlurValidate}

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingTextarea } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
@@ -148,11 +149,10 @@ export default function ContactForm() {
             onBlurValidate={onBlurValidate}
           />
         </div>
-        <FloatingField
+        <EmailFloatingField
           id="email"
           label="Email"
           required
-          type="email"
           error={fieldErrors.email}
           onBlurValidate={onBlurValidate}
         />

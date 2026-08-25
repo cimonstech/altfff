@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { FloatingField, FloatingSelect } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
 import { PhoneInput } from "@/components/PhoneInput";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
@@ -115,11 +116,10 @@ export default function SponsorshipForm() {
         className="sponsor-form-in flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <FloatingField
+        <EmailFloatingField
           id="email"
           label="Email Address"
           required
-          type="email"
           error={fieldErrors.email}
           onBlurValidate={onBlurValidate}
         />

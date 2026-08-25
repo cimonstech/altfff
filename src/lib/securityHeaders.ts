@@ -1,6 +1,6 @@
 /**
  * Security headers for next.config.ts — adapted from hardened Aaero Xpress patterns.
- * CSP is scoped to Alt.FFF's actual third parties (Supabase, R2, Sentry, GA).
+ * CSP is scoped to Alt.FFF's actual third parties (Supabase, R2, Sentry, GA, LinkedIn).
  *
  * unsafe-inline is required for Next.js App Router inline bootstrap scripts/styles.
  * unsafe-eval is required at runtime by GSAP/ScrollTrigger (property parsing) — without
@@ -36,6 +36,8 @@ export function buildContentSecurityPolicy(r2Hostname: string | null): string {
     "https://www.google-analytics.com",
     "https://www.googletagmanager.com",
     "https://region1.google-analytics.com",
+    "https://px.ads.linkedin.com",
+    "https://snap.licdn.com",
     // Presigned PUT from the browser (News cover upload, etc.)
     getR2UploadConnectSrc(),
   ];
@@ -51,6 +53,9 @@ export function buildContentSecurityPolicy(r2Hostname: string | null): string {
     "blob:",
     "https://www.google-analytics.com",
     "https://www.googletagmanager.com",
+    "https://px.ads.linkedin.com",
+    // LinkedIn Insight Tag cookie-sync redirect (li_sync) — verified via scripts/verify-linkedin-csp.mjs
+    "https://www.linkedin.com",
     // react-phone-number-input default flagUrl (CountryIcon.js → GH.svg etc.)
     "https://purecatamphetamine.github.io",
   ];
@@ -58,7 +63,7 @@ export function buildContentSecurityPolicy(r2Hostname: string | null): string {
 
   const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://snap.licdn.com",
     "style-src 'self' 'unsafe-inline'",
     `img-src ${imgSrc.join(" ")}`,
     "font-src 'self' data:",

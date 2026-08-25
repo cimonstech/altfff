@@ -7,6 +7,7 @@ import { contactSchema, type ContactInput } from "@/lib/validation/contact";
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
+import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const emailDomainError = await emailDomainValidationResponse(parsed.data.email);
+  if (emailDomainError) return emailDomainError;
 
   const { firstName, lastName, email, phone, message, newsletter } = parsed.data;
   const newsletterOptIn = parseNewsletterOptIn(newsletter);

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FloatingField } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
@@ -114,12 +115,11 @@ export default function WalkInRegisterForm() {
           onBlurValidate={onBlurValidate}
         />
 
-        <FloatingField
+        <EmailFloatingField
           id="walk-in-email"
           name="email"
           label="Email"
           required
-          type="email"
           error={fieldErrors.email}
           onBlurValidate={onBlurValidate}
         />

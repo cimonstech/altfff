@@ -9,6 +9,7 @@ import { walkInRegistrationSchema, type WalkInRegistrationInput } from "@/lib/va
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
+import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { sendSms } from "@/lib/sms";
 import {
   DuplicateRegistrationError,
@@ -92,6 +93,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const emailDomainError = await emailDomainValidationResponse(parsed.data.email);
+  if (emailDomainError) return emailDomainError;
 
   const {
     email,

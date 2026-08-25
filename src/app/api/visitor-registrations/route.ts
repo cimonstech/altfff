@@ -12,6 +12,7 @@ import {
 import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
+import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import {
   DuplicateRegistrationError,
   VISITOR_BLOCKING_STATUSES,
@@ -78,6 +79,9 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+
+  const emailDomainError = await emailDomainValidationResponse(parsed.data.email);
+  if (emailDomainError) return emailDomainError;
 
   const {
     email,

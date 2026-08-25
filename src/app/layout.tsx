@@ -5,6 +5,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 import { SiteModalsProvider } from "@/components/SiteModals";
 import BackToTop from "@/components/BackToTop";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import LinkedInInsightTag from "@/components/LinkedInInsightTag";
 import { GlobalStructuredData } from "@/components/structured-data";
 import { SITE, EVENT } from "@/lib/constants";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
           <SiteModalsProvider>{children}</SiteModalsProvider>
         </SmoothScroll>
         <BackToTop />
+        <LinkedInInsightTag />
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { FloatingField } from "@/components/FormFields";
+import EmailFloatingField from "@/components/EmailFloatingField";
 import { BrandName } from "@/components/BrandName";
 import { PhoneInput } from "@/components/PhoneInput";
 import { SuccessBanner } from "@/components/SuccessBanner";
@@ -127,12 +128,11 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
           error={fieldErrors.full_name}
           onBlurValidate={onBlurValidate}
         />
-        <FloatingField
+        <EmailFloatingField
           id="visitor-email"
           name="email"
           label="Email Address"
           required
-          type="email"
           error={fieldErrors.email}
           onBlurValidate={onBlurValidate}
         />
