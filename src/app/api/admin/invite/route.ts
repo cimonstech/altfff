@@ -66,9 +66,23 @@ export async function POST(request: Request) {
   // non-super_admin request.
   const adminClient = createAdminClient();
 
+  const siteUrl = getSiteUrl();
+  const redirectTo = `${siteUrl}/admin/set-password`;
+  console.info("[admin-invite] getSiteUrl():", siteUrl);
+  console.info("[admin-invite] redirectTo:", redirectTo);
+
+  if (process.env.NODE_ENV === "production" && /localhost|127\.0\.0\.1/.test(redirectTo)) {
+    console.error("[admin-invite] redirectTo still points at localhost in production — check SITE_URL.");
+    reportServerError(new Error("Admin invite redirectTo uses localhost in production"), {
+      route: "/api/admin/invite",
+      kind: "admin",
+      extra: { siteUrl, redirectTo },
+    });
+  }
+
   const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName || null },
-    redirectTo: `${getSiteUrl()}/admin/set-password`,
+    redirectTo,
   });
 
   if (inviteError) {
