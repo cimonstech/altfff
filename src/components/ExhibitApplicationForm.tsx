@@ -275,14 +275,6 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
             A late payment fee of 0.15% per calendar day applies to any overdue balance, capped at
             10% of the outstanding amount.
           </p>
-          <a
-            href="/Exhibitors+Pack+ALT.FFF_June+2026.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-gold-deep underline underline-offset-2 hover:opacity-80"
-          >
-            Read the full exhibitor terms and conditions
-          </a>
         </div>
       </details>
     </div>
