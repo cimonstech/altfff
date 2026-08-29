@@ -72,6 +72,18 @@ export const optionalPhone = z.preprocess(
   z.string().regex(E164, { error: "Please enter a valid phone number." }).optional(),
 );
 
+export const requiredUrl = (label: string) =>
+  z.preprocess(
+    emptyToUndefined,
+    z
+      .string({
+        error: (issue) =>
+          issue.input === undefined ? `${label} is required.` : "Please enter a valid URL.",
+      })
+      .url({ error: "Please enter a valid URL." })
+      .max(MAX_MEDIUM, { error: `${label} must be ${MAX_MEDIUM} characters or fewer.` }),
+  );
+
 /** Empty select → undefined; otherwise must be one of `allowed` when provided. */
 export function optionalSelect<T extends string>(allowed?: readonly [T, ...T[]]) {
   if (!allowed) {

@@ -6,6 +6,7 @@ import {
   formatVisitorSourceLabel,
   visitorSourcePillClass,
 } from "@/components/admin/adminVisual";
+import { formatVisitorBusinessType } from "@/lib/visitorBusinessType";
 
 const STATUSES = ["registered", "confirmed", "declined", "cancelled"];
 
@@ -45,7 +46,7 @@ export default function AdminVisitorsPage() {
             { label: "Name", field: "full_name" },
             { label: "Email", field: "email" },
             { label: "Type", field: "source", format: (row) => visitorSourceBadge(row.source) },
-            { label: "Attending", field: "number_attending" },
+            { label: "Country", field: "country" },
             { label: "Status", field: "status" },
             { label: "Created", field: "created_at", format: (row) => new Date(String(row.created_at)).toLocaleDateString() },
           ]}
@@ -53,12 +54,16 @@ export default function AdminVisitorsPage() {
             { label: "Registration type", field: "source", format: (row) => visitorSourceBadge(row.source) },
             { label: "Email", field: "email" },
             { label: "Phone", field: "phone" },
-            { label: "Number Attending", field: "number_attending" },
-            { label: "Heard About Us Via", field: "heard_about_us" },
             { label: "Company", field: "company_name" },
-            { label: "Job Title", field: "job_title" },
+            { label: "Social / website", field: "social_media_website" },
             { label: "Country", field: "country" },
             { label: "Interest", field: "interest" },
+            {
+              label: "B2B/B2C",
+              field: "business_type",
+              format: (row) => formatVisitorBusinessType(row.business_type),
+            },
+            { label: "Heard about us", field: "heard_about_us" },
           ]}
         />
       </div>

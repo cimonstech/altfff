@@ -17,6 +17,8 @@ export const MAILCHIMP_MERGE_TAGS = {
   heardAboutText: "WHERE",
   message: "TEXTAREAY",
   phone: "PHONE",
+  /** Confirmed via GET …/merge-fields — "Add a link to your Website". */
+  website: "WEBSITE",
   /** Dropdown: Exhibiting | Visiting | Sponsoring - not used by Alt.FFF visitor interest select. */
   participationInterest: "MMERGE3",
 } as const;
@@ -62,7 +64,9 @@ export type MailchimpVisitorFields = {
   jobTitle?: string | null;
   country?: string | null;
   heardAbout?: string | null;
-  /** Site value: materials | leaders | learning | business | other - no matching Mailchimp merge field. */
+  /** Visitor form URL — maps to Mailchimp WEBSITE. */
+  socialMediaWebsite?: string | null;
+  /** Resolved interest label — Supabase only until a Mailchimp merge field exists. */
   interest?: string | null;
   phone?: string | null;
 };
@@ -151,10 +155,11 @@ export function buildMailchimpMergeFields(
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.jobTitle, fields.jobTitle);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.country, fields.country);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.heardAboutText, fields.heardAbout);
+      setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.website, fields.socialMediaWebsite);
       setPhoneMergeField(merge_fields, fields.phone);
       if (fields.interest?.trim()) {
         unmapped.push(
-          `interest (${fields.interest.trim()}) - no merge field; MMERGE3 is Exhibiting/Visiting/Sponsoring, MMERGE2 is sector dropdown`,
+          `interest (${fields.interest.trim()}) - no Mailchimp merge field yet; stored in Supabase only`,
         );
       }
       break;

@@ -1,15 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { FloatingField } from "@/components/FormFields";
-import EmailFloatingField from "@/components/EmailFloatingField";
 import { BrandName } from "@/components/BrandName";
-import { PhoneInput } from "@/components/PhoneInput";
-import { SelectWithOtherFollowUp } from "@/components/SelectWithOtherFollowUp";
-import { HEARD_ABOUT_OPTIONS, HEARD_ABOUT_OTHER_VALUE } from "@/lib/heardAboutSources";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { BotProtection } from "@/components/BotProtection";
 import NewsletterOptInCheckbox from "@/components/NewsletterOptInCheckbox";
+import { VisitorRegistrationFields } from "@/components/VisitorRegistrationFields";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { EVENT } from "@/lib/constants";
 import { visitorRegistrationSchema } from "@/lib/validation/visitor";
@@ -20,19 +16,14 @@ type Status = "idle" | "submitting" | "error";
 
 /**
  * Visitor registration form - rendered as the shared Modal's content when
- * opened from any "Register to visit" CTA. Submits
- * to /api/visitor-registrations, shared with the fuller inline form on
- * /visit (VisitRegisterForm.tsx) - both use the same canonical field names
- * so that one route can handle either submission shape.
+ * opened from any "Register to visit" CTA. Submits to /api/visitor-registrations,
+ * shared with the inline form on /visit (VisitRegisterForm.tsx).
  */
 export default function VisitorRegisterForm({ headingId }: { headingId?: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
-  // Bumped on every successful submit to force the <form> below to fully
-  // remount - the simplest reliable way to reset both native uncontrolled
-  // inputs AND PhoneInput/FloatingField's own internal state back to empty.
   const [formKey, setFormKey] = useState(0);
   const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
     useZodFormErrors(visitorRegistrationSchema);
@@ -122,47 +113,9 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         className="mt-2 flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <FloatingField
-          id="visitor-name"
-          name="full_name"
-          label="Full Name"
-          required
-          error={fieldErrors.full_name}
-          onBlurValidate={onBlurValidate}
-        />
-        <EmailFloatingField
-          id="visitor-email"
-          name="email"
-          label="Email Address"
-          required
-          error={fieldErrors.email}
-          onBlurValidate={onBlurValidate}
-        />
-        <PhoneInput
-          id="visitor-phone"
-          name="phone"
-          label="Phone Number"
-          error={fieldErrors.phone}
-          onBlurValidate={onBlurValidate}
-        />
-        <FloatingField
-          id="visitor-attending"
-          name="number_attending"
-          label="Number Attending"
-          error={fieldErrors.number_attending}
-          onBlurValidate={onBlurValidate}
-        />
-        <SelectWithOtherFollowUp
-          selectId="visitor-hear"
-          selectName="heard_about_us"
-          selectLabel="How did you hear about Alt.FFF?"
-          selectOptions={HEARD_ABOUT_OPTIONS}
-          otherId="visitor-hear-other"
-          otherName="heard_about_us_other"
-          otherLabel="Please tell us how you heard about Alt.FFF"
-          otherValue={HEARD_ABOUT_OTHER_VALUE}
-          selectError={fieldErrors.heard_about_us}
-          otherError={fieldErrors.heard_about_us_other}
+        <VisitorRegistrationFields
+          idPrefix="visitor"
+          fieldErrors={fieldErrors}
           onBlurValidate={onBlurValidate}
         />
 

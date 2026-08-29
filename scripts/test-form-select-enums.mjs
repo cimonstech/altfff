@@ -64,8 +64,11 @@ const validSponsor = {
 const validVisitor = {
   email: `enum-test-vi-${randomUUID()}@example.com`,
   full_name: "Enum Test Visitor",
-  heard_about_us: "whatsapp",
+  phone: "+233241234567",
+  social_media_website: "https://example.com/profile",
   country: "Nigeria",
+  interest: "learning",
+  business_type: "both",
 };
 
 async function expectRejected(path, body, field) {
@@ -140,11 +143,30 @@ async function main() {
     country: "Made Up Land",
   }, "country");
 
+  await expectRejected("/api/visitor-registrations", {
+    ...validVisitor,
+    interest: "flyer",
+  }, "interest");
+
+  await expectOtherRequiresDetail(
+    "/api/visitor-registrations",
+    { ...validVisitor, interest: "other" },
+    "interest",
+    "interest_other",
+  );
+
   await expectOtherRequiresDetail(
     "/api/visitor-registrations",
     { ...validVisitor, heard_about_us: "other" },
     "heard_about_us",
     "heard_about_us_other",
+  );
+
+  await expectOtherRequiresDetail(
+    "/api/visitor-registrations",
+    { ...validVisitor, country: "Other" },
+    "country",
+    "country_other",
   );
 
   const ok = await postJson("/api/exhibitor-applications", {

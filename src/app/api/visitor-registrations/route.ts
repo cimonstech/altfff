@@ -15,6 +15,7 @@ import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { resolveCountryValue } from "@/lib/countries";
 import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
+import { resolveInterestValue } from "@/lib/visitorInterests";
 import {
   DuplicateRegistrationError,
   VISITOR_BLOCKING_STATUSES,
@@ -26,18 +27,10 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Shared by both visitor-facing forms - the quick modal (VisitorRegisterForm.tsx)
- * and the fuller inline form on /visit (VisitRegisterForm.tsx). Both forms use
- * explicit `name` attributes matching these canonical keys directly (see each
- * component), so this route doesn't need to know which form a submission came
- * from - it just inserts whichever optional fields are present.
- *
- * number_attending, company_name, job_title, country, and interest are only
- * ever sent by one form or the other - all are nullable columns (see
- * migration 0002), so that's expected and fine.
- *
- * Server schema requires email and full name (same as exhibitor). The /visit page
- * uses the same required fields via visitPageRegistrationSchema.
+ * Shared by both visitor-facing forms - the modal (VisitorRegisterForm.tsx)
+ * and the inline form on /visit (VisitRegisterForm.tsx). Both forms use the
+ * same field set and canonical `name` attributes; this route validates and
+ * inserts whichever fields are present.
  */
 export async function POST(request: Request) {
   const rate = await checkPublicFormRateLimit(request, "visitor-registrations");
@@ -89,14 +82,15 @@ export async function POST(request: Request) {
     email,
     full_name: fullName,
     phone,
-    number_attending: numberAttending,
-    heard_about_us: heardAboutUs,
-    heard_about_us_other: heardAboutUsOther,
     company_name: companyName,
-    job_title: jobTitle,
+    social_media_website: socialMediaWebsite,
     country,
     country_other: countryOther,
     interest,
+    interest_other: interestOther,
+    business_type: businessType,
+    heard_about_us: heardAboutUs,
+    heard_about_us_other: heardAboutUsOther,
     newsletter,
   } = parsed.data;
   const newsletterOptIn = parseNewsletterOptIn(newsletter);
@@ -117,12 +111,12 @@ export async function POST(request: Request) {
         email,
         full_name: fullName || null,
         phone: phone || null,
-        number_attending: numberAttending ?? undefined,
-        heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
         company_name: companyName || null,
-        job_title: jobTitle || null,
+        social_media_website: socialMediaWebsite || null,
         country: resolveCountryValue(country, countryOther),
-        interest: interest || null,
+        interest: resolveInterestValue(interest, interestOther),
+        business_type: businessType || null,
+        heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
         newsletter_opt_in: newsletterOptIn,
       });
 
@@ -153,10 +147,10 @@ export async function POST(request: Request) {
       source: "VISITOR",
       name: fullName || null,
       company: companyName || null,
-      jobTitle: jobTitle || null,
       country: resolveCountryValue(country, countryOther),
       heardAbout: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
-      interest: interest || null,
+      socialMediaWebsite: socialMediaWebsite || null,
+      interest: resolveInterestValue(interest, interestOther),
       phone: phone || null,
     });
   }
@@ -208,13 +202,18 @@ export async function POST(request: Request) {
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
     const resolvedCountry = resolveCountryValue(country, countryOther);
+    const resolvedInterest = resolveInterestValue(interest, interestOther);
+    const resolvedHeardAbout = resolveHeardAboutValue(heardAboutUs, heardAboutUsOther);
     const internalBody = [
       `Name: ${fullName || "-"}`,
       companyName ? `Company: ${companyName}` : null,
       `Email: ${email}`,
-      phone ? `Phone: ${phone}` : null,
+      `Phone: ${phone}`,
+      socialMediaWebsite ? `Social / website: ${socialMediaWebsite}` : null,
       resolvedCountry ? `Country: ${resolvedCountry}` : null,
-      numberAttending != null ? `Number attending: ${numberAttending}` : null,
+      resolvedInterest ? `Interest: ${resolvedInterest}` : null,
+      businessType ? `B2B/B2C: ${businessType}` : null,
+      resolvedHeardAbout ? `Heard about us: ${resolvedHeardAbout}` : null,
     ]
       .filter(Boolean)
       .join("\n");
