@@ -72,6 +72,46 @@ export const optionalPhone = z.preprocess(
   z.string().regex(E164, { error: "Please enter a valid phone number." }).optional(),
 );
 
+const SOCIAL_HANDLE = /^@[\w.]{1,100}$/;
+
+/** Accepts https URLs, bare domains/paths (thisismotivo.com), or @handles. Normalizes domains to https:// for storage. */
+export const requiredSocialOrWebsite = (label: string) =>
+  z.preprocess(
+    (value) => {
+      const cleared = emptyToUndefined(value);
+      if (typeof cleared !== "string") return cleared;
+      const trimmed = cleared.trim();
+      if (SOCIAL_HANDLE.test(trimmed)) return trimmed;
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      return `https://${trimmed}`;
+    },
+    z
+      .string({
+        error: (issue) =>
+          issue.input === undefined
+            ? `${label} is required.`
+            : "Please enter a website, domain name, or social profile link.",
+      })
+      .max(MAX_MEDIUM, { error: `${label} must be ${MAX_MEDIUM} characters or fewer.` })
+      .superRefine((val, ctx) => {
+        if (SOCIAL_HANDLE.test(val)) return;
+        try {
+          const parsed = new URL(val);
+          if (!parsed.hostname.includes(".")) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Please enter a website, domain name, or social profile link.",
+            });
+          }
+        } catch {
+          ctx.addIssue({
+            code: "custom",
+            message: "Please enter a website, domain name, or social profile link.",
+          });
+        }
+      }),
+  );
+
 export const requiredUrl = (label: string) =>
   z.preprocess(
     emptyToUndefined,

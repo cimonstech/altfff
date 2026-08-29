@@ -123,7 +123,14 @@ async function main() {
 
   await expectRejected({ ...validVisitor, phone: "" }, "phone");
   await expectRejected({ ...validVisitor, social_media_website: "" }, "social_media_website");
-  await expectRejected({ ...validVisitor, social_media_website: "not-a-url" }, "social_media_website");
+  await expectRejected({ ...validVisitor, social_media_website: "not valid input" }, "social_media_website");
+
+  const domainOnly = await postJson("/api/visitor-registrations", {
+    ...validVisitor,
+    email: `visitor-domain-${randomUUID()}@example.com`,
+    social_media_website: "thisismotivo.com",
+  });
+  assert(domainOnly.status !== 400, "bare domain accepted for social_media_website");
   await expectRejected({ ...validVisitor, interest: "flyer" }, "interest");
   await expectRejected(
     { ...validVisitor, interest: "other" },

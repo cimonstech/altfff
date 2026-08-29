@@ -21,7 +21,7 @@ import {
   requiredPhone,
   requiredSelect,
   requiredShortText,
-  requiredUrl,
+  requiredSocialOrWebsite,
 } from "./fields";
 import { optionalNewsletterCheckbox } from "./newsletter";
 import { withOtherFollowUpRefinement } from "./selectWithOther";
@@ -36,7 +36,7 @@ const visitorBaseFields = {
   full_name: requiredShortText("Full name"),
   phone: requiredPhone,
   company_name: optionalShortText("Company name"),
-  social_media_website: requiredUrl("Social media / website"),
+  social_media_website: requiredSocialOrWebsite("Social media / website"),
   country: requiredSelect(COUNTRY_SELECTABLE_VALUES, "Country"),
   country_other: optionalShortText("Country name"),
   interest: requiredSelect(VISITOR_INTEREST_VALUES, "Interest"),
