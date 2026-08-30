@@ -130,13 +130,6 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
         Do you produce in Africa? We want to hear from you!
       </h2>
 
-      {showBanner && (
-        <SuccessBanner
-          message="Application received. Thank you for applying to exhibit - our team will review your application and be in touch."
-          onDismiss={() => setShowBanner(false)}
-        />
-      )}
-
       {/* Live progress indicator - interface polish only, no validation
           logic tied to it. */}
       <div className="mb-1 mt-4 flex items-center gap-3">
@@ -253,6 +246,13 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
           {status === "submitting" ? "Sending…" : "Submit"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner
+          message="Application received. Thank you for applying to exhibit - our team will review your application and be in touch."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
 
       {/* Condensed, plain-language terms summary - verbatim facts only.
           This is a page summary, not a Terms of Service page: that's a

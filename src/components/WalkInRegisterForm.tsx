@@ -92,13 +92,6 @@ export default function WalkInRegisterForm() {
 
   return (
     <>
-      {showBanner && (
-        <SuccessBanner
-          message="You're registered — welcome to Alt.FFF. A confirmation has been sent to your email and phone."
-          onDismiss={() => setShowBanner(false)}
-        />
-      )}
-
       <form
         key={formKey}
         ref={formRef}
@@ -159,6 +152,13 @@ export default function WalkInRegisterForm() {
           {status === "submitting" ? "Registering…" : "Register & enter"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner
+          message="You're registered — welcome to Alt.FFF. A confirmation has been sent to your email and phone."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
     </>
   );
 }

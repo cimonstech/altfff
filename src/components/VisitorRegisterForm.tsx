@@ -99,13 +99,6 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
       </h2>
       <p className="mt-2 text-sm text-indigo">Join us {EVENT.tradeFairDateLabel} in Accra.</p>
 
-      {showBanner && (
-        <SuccessBanner
-          message="Registration received. We'll review your request and email you once it's confirmed."
-          onDismiss={() => setShowBanner(false)}
-        />
-      )}
-
       <form
         key={formKey}
         ref={formRef}
@@ -137,6 +130,13 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
           {status === "submitting" ? "Sending…" : "Register"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner
+          message="Registration received. We'll review your request and email you once it's confirmed."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
     </div>
   );
 }

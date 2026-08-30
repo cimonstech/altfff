@@ -15,7 +15,6 @@ import {
   VISITOR_INTEREST_VALUES,
 } from "@/lib/visitorInterests";
 import {
-  optionalSelect,
   optionalShortText,
   requiredEmail,
   requiredPhone,
@@ -42,7 +41,7 @@ const visitorBaseFields = {
   interest: requiredSelect(VISITOR_INTEREST_VALUES, "Interest"),
   interest_other: optionalShortText("Your interest"),
   business_type: requiredSelect(VISITOR_BUSINESS_TYPE_VALUES, "B2B/B2C"),
-  heard_about_us: optionalSelect(HEARD_ABOUT_VALUES),
+  heard_about_us: requiredSelect(HEARD_ABOUT_VALUES, "Where did you hear about Alt.FFF?"),
   heard_about_us_other: optionalShortText("How you heard about us"),
   newsletter: optionalNewsletterCheckbox,
 };

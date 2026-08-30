@@ -60,6 +60,7 @@ const validVisitor = {
   country: "Ghana",
   interest: "materials",
   business_type: "b2b",
+  heard_about_us: "instagram",
 };
 
 async function expectRejected(body, field) {
@@ -132,6 +133,8 @@ async function main() {
   });
   assert(domainOnly.status !== 400, "bare domain accepted for social_media_website");
   await expectRejected({ ...validVisitor, interest: "flyer" }, "interest");
+  const { heard_about_us: _omitHear, ...withoutHeardAbout } = validVisitor;
+  await expectRejected(withoutHeardAbout, "heard_about_us");
   await expectRejected(
     { ...validVisitor, interest: "other" },
     "interest_other",

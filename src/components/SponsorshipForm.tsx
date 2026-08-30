@@ -108,9 +108,6 @@ export default function SponsorshipForm() {
 
   return (
     <div ref={container}>
-      {showBanner && (
-        <SuccessBanner message="Thank you. A member of our team will be in touch." onDismiss={() => setShowBanner(false)} />
-      )}
       <form
         key={formKey}
         ref={formRef}
@@ -209,6 +206,10 @@ export default function SponsorshipForm() {
           {status === "submitting" ? "Sending…" : "Submit"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner message="Thank you. A member of our team will be in touch." onDismiss={() => setShowBanner(false)} />
+      )}
     </div>
   );
 }

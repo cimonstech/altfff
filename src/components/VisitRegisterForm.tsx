@@ -108,12 +108,6 @@ export default function VisitRegisterForm() {
 
   return (
     <div ref={container}>
-      {showBanner && (
-        <SuccessBanner
-          message="Registration received. We'll review your request and email you once it's confirmed."
-          onDismiss={() => setShowBanner(false)}
-        />
-      )}
       <form
         key={formKey}
         ref={formRef}
@@ -145,6 +139,13 @@ export default function VisitRegisterForm() {
           {status === "submitting" ? "Sending…" : "Submit"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner
+          message="Registration received. We'll review your request and email you once it's confirmed."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
     </div>
   );
 }

@@ -5,8 +5,8 @@ import { useEffect } from "react";
 const AUTO_DISMISS_MS = 9000;
 
 /**
- * Shared success banner for the site's five submission forms - shown above
- * the form on a successful submit, while the form itself stays visible and
+ * Shared success banner for the site's five submission forms - shown below
+ * the submit button on a successful submit, while the form itself stays visible and
  * resets for a fresh entry (see each form's `formKey` reset pattern). Forest
  * reads as this site's established "success" tone (already used that way in
  * the admin communications history view), so it's used here rather than
@@ -25,7 +25,7 @@ export function SuccessBanner({ message, onDismiss }: { message: string; onDismi
   return (
     <div
       role="status"
-      className="relative mb-4 flex items-start gap-3 rounded-xl border border-forest bg-forest/10 p-4 pr-11 text-sm text-forest"
+      className="relative mt-4 flex items-start gap-3 rounded-xl border border-forest bg-forest/10 p-4 pr-11 text-sm text-forest"
     >
       <p className="flex-1">{message}</p>
       <button

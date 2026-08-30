@@ -120,12 +120,6 @@ export default function ContactForm() {
 
   return (
     <div ref={container}>
-      {showBanner && (
-        <SuccessBanner
-          message="Message sent. Thank you for reaching out - our team will get back to you shortly."
-          onDismiss={() => setShowBanner(false)}
-        />
-      )}
       <form
         key={formKey}
         ref={formRef}
@@ -184,6 +178,13 @@ export default function ContactForm() {
           {status === "submitting" ? "Sending…" : "Send"}
         </button>
       </form>
+
+      {showBanner && (
+        <SuccessBanner
+          message="Message sent. Thank you for reaching out - our team will get back to you shortly."
+          onDismiss={() => setShowBanner(false)}
+        />
+      )}
     </div>
   );
 }

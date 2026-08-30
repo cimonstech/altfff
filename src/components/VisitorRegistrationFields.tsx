@@ -101,6 +101,7 @@ export function VisitorRegistrationFields({
         selectName="heard_about_us"
         selectLabel="Where did you hear about Alt.FFF?"
         selectOptions={HEARD_ABOUT_OPTIONS}
+        selectRequired
         otherId={`${idPrefix}-hearAbout-other`}
         otherName="heard_about_us_other"
         otherLabel="Please tell us how you heard about Alt.FFF"

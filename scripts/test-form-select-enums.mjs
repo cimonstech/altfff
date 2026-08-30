@@ -69,6 +69,7 @@ const validVisitor = {
   country: "Nigeria",
   interest: "learning",
   business_type: "both",
+  heard_about_us: "instagram",
 };
 
 async function expectRejected(path, body, field) {

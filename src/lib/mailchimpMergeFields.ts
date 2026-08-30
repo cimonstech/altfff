@@ -19,7 +19,11 @@ export const MAILCHIMP_MERGE_TAGS = {
   phone: "PHONE",
   /** Confirmed via GET …/merge-fields — "Add a link to your Website". */
   website: "WEBSITE",
-  /** Dropdown: Exhibiting | Visiting | Sponsoring - not used by Alt.FFF visitor interest select. */
+  /** Text — "Visitor Reason for Attending" (Alt.FFF visitor interest dropdown). */
+  visitorReasonForAttending: "MMERGE26",
+  /** Text — "Business Type (B2B/B2C)". */
+  visitorBusinessType: "MMERGE27",
+  /** Dropdown: Exhibiting | Visiting | Sponsoring — legacy field, not Alt.FFF visitor interest. */
   participationInterest: "MMERGE3",
 } as const;
 
@@ -66,8 +70,10 @@ export type MailchimpVisitorFields = {
   heardAbout?: string | null;
   /** Visitor form URL — maps to Mailchimp WEBSITE. */
   socialMediaWebsite?: string | null;
-  /** Resolved interest label — Supabase only until a Mailchimp merge field exists. */
+  /** Resolved interest label — maps to MMERGE26. */
   interest?: string | null;
+  /** Human-readable B2B/B2C/Both — maps to MMERGE27. */
+  businessType?: string | null;
   phone?: string | null;
 };
 
@@ -156,12 +162,9 @@ export function buildMailchimpMergeFields(
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.country, fields.country);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.heardAboutText, fields.heardAbout);
       setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.website, fields.socialMediaWebsite);
+      setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.visitorReasonForAttending, fields.interest);
+      setTrimmed(merge_fields, MAILCHIMP_MERGE_TAGS.visitorBusinessType, fields.businessType);
       setPhoneMergeField(merge_fields, fields.phone);
-      if (fields.interest?.trim()) {
-        unmapped.push(
-          `interest (${fields.interest.trim()}) - no Mailchimp merge field yet; stored in Supabase only`,
-        );
-      }
       break;
     }
     case "WALKIN": {

@@ -15,6 +15,7 @@ import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { resolveCountryValue } from "@/lib/countries";
 import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
+import { formatVisitorBusinessType } from "@/lib/visitorBusinessType";
 import { resolveInterestValue } from "@/lib/visitorInterests";
 import {
   DuplicateRegistrationError,
@@ -141,6 +142,7 @@ export async function POST(request: Request) {
   }
 
   if (newsletterOptIn) {
+    const resolvedInterest = resolveInterestValue(interest, interestOther);
     scheduleMailchimpSync({
       email,
       route: "/api/visitor-registrations",
@@ -150,7 +152,8 @@ export async function POST(request: Request) {
       country: resolveCountryValue(country, countryOther),
       heardAbout: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
       socialMediaWebsite: socialMediaWebsite || null,
-      interest: resolveInterestValue(interest, interestOther),
+      interest: resolvedInterest,
+      businessType: formatVisitorBusinessType(businessType),
       phone: phone || null,
     });
   }
