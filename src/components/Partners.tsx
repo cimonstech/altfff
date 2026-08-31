@@ -22,6 +22,8 @@ const SUPPORTERS: Supporter[] = [
   },
   { file: "gcf.png", name: "Ghana Culture Forum" },
   { file: "ncc.png", name: "National Commission on Culture" },
+  { file: "CAAG.png", name: "Creative Arts Agency" },
+  { file: "GTA.png", name: "Ghana Tourism Authority" },
 ];
 
 const SPONSORS: Supporter[] = [{ file: "dimo.png", name: "DIMO" }];
