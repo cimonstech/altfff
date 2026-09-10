@@ -11,6 +11,7 @@ import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { visitorRegistrationSchema } from "@/lib/validation/visitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 import { useFormSubmitGuard } from "@/lib/useFormSubmitGuard";
+import { PublicFormsClosedNotice } from "@/components/PublicFormsClosedNotice";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -18,7 +19,7 @@ type Status = "idle" | "submitting" | "error";
  * Visitor registration form, inline on /visit. Submits to
  * /api/visitor-registrations, shared with the modal (VisitorRegisterForm.tsx).
  */
-export default function VisitRegisterForm() {
+export default function VisitRegisterForm({ formsEnabled = true }: { formsEnabled?: boolean }) {
   const container = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<Status>("idle");
@@ -108,6 +109,7 @@ export default function VisitRegisterForm() {
 
   return (
     <div ref={container}>
+      {!formsEnabled && <PublicFormsClosedNotice className="mb-6" />}
       <form
         key={formKey}
         ref={formRef}
@@ -115,15 +117,17 @@ export default function VisitRegisterForm() {
         className="visit-form-in flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <VisitorRegistrationFields
-          idPrefix="visit"
-          fieldErrors={fieldErrors}
-          onBlurValidate={onBlurValidate}
-        />
+        <fieldset disabled={!formsEnabled} className="flex min-w-0 flex-col gap-1 border-0 p-0 disabled:opacity-60">
+          <VisitorRegistrationFields
+            idPrefix="visit"
+            fieldErrors={fieldErrors}
+            onBlurValidate={onBlurValidate}
+          />
 
-        <NewsletterOptInCheckbox />
+          <NewsletterOptInCheckbox />
 
-        <BotProtection />
+          <BotProtection />
+        </fieldset>
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">
@@ -133,7 +137,7 @@ export default function VisitRegisterForm() {
 
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={!formsEnabled || status === "submitting"}
           className="mt-5 inline-flex items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85 disabled:opacity-60"
         >
           {status === "submitting" ? "Sending…" : "Submit"}

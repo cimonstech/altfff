@@ -16,6 +16,7 @@ import { EXHIBITOR_2026_TERMS } from "@/lib/constants";
 import { exhibitorApplicationSchema } from "@/lib/validation/exhibitor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
 import { useFormSubmitGuard } from "@/lib/useFormSubmitGuard";
+import { PublicFormsClosedModalContent } from "@/components/PublicFormsClosedNotice";
 
 const TOTAL_FIELDS = 9; // 8 text/tel/email inputs + 1 select
 
@@ -27,7 +28,13 @@ type Status = "idle" | "submitting" | "error";
  * /api/exhibitor-applications, matching the pattern already proven in
  * ContactForm.tsx.
  */
-export default function ExhibitApplicationForm({ headingId }: { headingId?: string }) {
+export default function ExhibitApplicationForm({
+  headingId,
+  formsEnabled = true,
+}: {
+  headingId?: string;
+  formsEnabled?: boolean;
+}) {
   const progressBarRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const filledSetRef = useRef<Set<string>>(new Set());
@@ -123,6 +130,10 @@ export default function ExhibitApplicationForm({ headingId }: { headingId?: stri
       endSubmit();
     }
   };
+
+  if (!formsEnabled) {
+    return <PublicFormsClosedModalContent headingId={headingId ?? "exhibit-modal-heading"} />;
+  }
 
   return (
     <div className="p-6 md:p-8">

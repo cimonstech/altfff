@@ -15,6 +15,7 @@ import { BotProtection } from "@/components/BotProtection";
 import { RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimitMessages";
 import { sponsorInquirySchema } from "@/lib/validation/sponsor";
 import { formDataToObject, useZodFormErrors } from "@/lib/validation/useZodFormErrors";
+import { PublicFormsClosedNotice } from "@/components/PublicFormsClosedNotice";
 
 type Status = "idle" | "submitting" | "error";
 
@@ -22,7 +23,7 @@ type Status = "idle" | "submitting" | "error";
  * Sponsorship enquiry form. Submits to /api/sponsor-inquiries, matching the
  * pattern already proven in ContactForm.tsx.
  */
-export default function SponsorshipForm() {
+export default function SponsorshipForm({ formsEnabled = true }: { formsEnabled?: boolean }) {
   // Deliberately a wrapping div, not the <form> itself - a useGSAP scope
   // only ever matches DESCENDANTS of its scope root, never the root node
   // itself. Scoping to the form while also animating it via
@@ -108,6 +109,7 @@ export default function SponsorshipForm() {
 
   return (
     <div ref={container}>
+      {!formsEnabled && <PublicFormsClosedNotice className="mb-6" />}
       <form
         key={formKey}
         ref={formRef}
@@ -115,7 +117,8 @@ export default function SponsorshipForm() {
         className="sponsor-form-in flex flex-col gap-1"
         onSubmit={handleSubmit}
       >
-        <EmailFloatingField
+        <fieldset disabled={!formsEnabled} className="flex min-w-0 flex-col gap-1 border-0 p-0 disabled:opacity-60">
+          <EmailFloatingField
           id="email"
           label="Email Address"
           required
@@ -191,6 +194,7 @@ export default function SponsorshipForm() {
         <NewsletterOptInCheckbox />
 
         <BotProtection />
+        </fieldset>
 
         {status === "error" && (
           <p className="mt-3 text-sm text-madder" role="alert">
@@ -200,7 +204,7 @@ export default function SponsorshipForm() {
 
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={!formsEnabled || status === "submitting"}
           className="mt-5 inline-flex items-center justify-center rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85 disabled:opacity-60"
         >
           {status === "submitting" ? "Sending…" : "Submit"}

@@ -24,6 +24,7 @@ import {
   findBlockingRegistrationByEmail,
   withRegistrationEmailLock,
 } from "@/lib/registrationDuplicates";
+import { isVisitFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,10 @@ export const runtime = "nodejs";
  * inserts whichever fields are present.
  */
 export async function POST(request: Request) {
+  if (!(await isVisitFormEnabled())) {
+    return NextResponse.json({ ok: false, error: FORM_CLOSED_API_ERROR }, { status: 403 });
+  }
+
   const rate = await checkPublicFormRateLimit(request, "visitor-registrations");
   if (!rate.success) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });

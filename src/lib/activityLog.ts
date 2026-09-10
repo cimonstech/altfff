@@ -1,4 +1,6 @@
 /** Human-readable labels for activity_logs.action values. */
+import { formatFormToggleActivitySummary, isFormToggleForm } from "@/lib/formToggles";
+
 export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   status_change: "Status change",
   news_published: "News published",
@@ -9,6 +11,9 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   admin_deleted: "Admin deleted",
   communication_sent: "Communication sent",
   walk_in_registration_toggled: "Walk-in registration toggled",
+  sponsor_form_toggled: "Sponsor form toggled",
+  exhibitor_form_toggled: "Exhibitor form toggled",
+  visit_form_toggled: "Visit form toggled",
 };
 
 export const ACTIVITY_ACTIONS = Object.keys(ACTIVITY_ACTION_LABELS);
@@ -81,6 +86,13 @@ export function formatActivitySummary(
     }
     case "walk_in_registration_toggled":
       return details.enabled === true ? "Opened walk-in registration" : "Closed walk-in registration";
+    case "sponsor_form_toggled":
+    case "exhibitor_form_toggled":
+    case "visit_form_toggled": {
+      const form = isFormToggleForm(details.form) ? details.form : null;
+      if (form) return formatFormToggleActivitySummary(form, details.enabled);
+      break;
+    }
   }
 
   return "-";

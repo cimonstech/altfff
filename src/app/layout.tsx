@@ -8,6 +8,9 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import LinkedInInsightTag from "@/components/LinkedInInsightTag";
 import { GlobalStructuredData } from "@/components/structured-data";
 import { SITE, EVENT } from "@/lib/constants";
+import { readFormToggleState } from "@/lib/appSettings";
+
+export const dynamic = "force-dynamic";
 
 const display = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -41,18 +44,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const formToggles = await readFormToggleState();
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable} antialiased`}>
       <body className="bg-paper font-body text-ink" suppressHydrationWarning>
         <GoogleAnalytics />
         <GlobalStructuredData />
         <SmoothScroll>
-          <SiteModalsProvider>{children}</SiteModalsProvider>
+          <SiteModalsProvider
+            exhibitorFormEnabled={formToggles.exhibitor}
+            visitFormEnabled={formToggles.visit}
+          >
+            {children}
+          </SiteModalsProvider>
         </SmoothScroll>
         <BackToTop />
         <LinkedInInsightTag />

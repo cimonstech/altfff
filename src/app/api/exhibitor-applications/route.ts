@@ -24,10 +24,15 @@ import {
   findBlockingRegistrationByEmail,
   withRegistrationEmailLock,
 } from "@/lib/registrationDuplicates";
+import { isExhibitorFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!(await isExhibitorFormEnabled())) {
+    return NextResponse.json({ ok: false, error: FORM_CLOSED_API_ERROR }, { status: 403 });
+  }
+
   const rate = await checkPublicFormRateLimit(request, "exhibitor-applications");
   if (!rate.success) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });

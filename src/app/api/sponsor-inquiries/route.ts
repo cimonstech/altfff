@@ -12,10 +12,15 @@ import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { resolveCountryValue } from "@/lib/countries";
 import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
+import { isSponsorFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!(await isSponsorFormEnabled())) {
+    return NextResponse.json({ ok: false, error: FORM_CLOSED_API_ERROR }, { status: 403 });
+  }
+
   const rate = await checkPublicFormRateLimit(request, "sponsor-inquiries");
   if (!rate.success) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 });

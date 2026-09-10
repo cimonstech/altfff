@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import AdminCard, { type AdminCardAccent } from "@/components/admin/AdminCard";
+import PublicFormsToggleGate from "@/components/admin/PublicFormsToggleGate";
 import {
   ADMIN_SECTION_ICONS,
   OVERVIEW_ACCENTS,
@@ -92,6 +93,8 @@ export default async function AdminOverviewPage() {
           Day-of check-in: {checkIn.checkedIn} of {checkIn.approved} approved visitors
         </p>
       )}
+
+      <PublicFormsToggleGate />
 
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {ENTITIES.map((entity, i) => {

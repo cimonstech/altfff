@@ -8,6 +8,7 @@ import SponsorshipBenefits from "@/components/SponsorshipBenefits";
 import SponsorshipForm from "@/components/SponsorshipForm";
 import SponsorshipSidebar from "@/components/SponsorshipSidebar";
 import { buildMetadata } from "@/lib/metadata";
+import { isSponsorFormEnabled } from "@/lib/appSettings";
 
 export const metadata: Metadata = buildMetadata({
   title: "Sponsor Alt.FFF 2026 - Support the Future of African Materials",
@@ -16,7 +17,9 @@ export const metadata: Metadata = buildMetadata({
   path: "/sponsorship",
 });
 
-export default function SponsorshipPage() {
+export default async function SponsorshipPage() {
+  const sponsorFormEnabled = await isSponsorFormEnabled();
+
   return (
     <>
       <Nav />
@@ -48,7 +51,7 @@ export default function SponsorshipPage() {
 
             <div className="mt-12 grid gap-12 md:grid-cols-12">
               <div className="md:col-span-7">
-                <SponsorshipForm />
+                <SponsorshipForm formsEnabled={sponsorFormEnabled} />
               </div>
               <div className="md:col-span-5">
                 <SponsorshipSidebar />
