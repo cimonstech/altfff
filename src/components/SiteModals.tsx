@@ -78,7 +78,7 @@ export function SiteModalsProvider({
         <ExhibitApplicationForm headingId="exhibit-modal-heading" formsEnabled={formToggles.exhibitor} />
       </Modal>
       <Modal isOpen={visitorOpen} onClose={close} titleId="visitor-modal-heading" panelClassName="max-w-md">
-        <VisitorRegisterForm headingId="visitor-modal-heading" formsEnabled={formToggles.visit} />
+        <VisitorRegisterForm headingId="visitor-modal-heading" />
       </Modal>
       <Modal isOpen={closedOpen} onClose={close} titleId="public-forms-closed-heading" panelClassName="max-w-md">
         <PublicFormsClosedModalContent headingId="public-forms-closed-heading" />
