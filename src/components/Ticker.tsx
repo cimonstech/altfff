@@ -8,6 +8,8 @@ import { EVENT, MATERIALS } from "@/lib/constants";
 const DEFAULT_ITEMS = [
   ...MATERIALS.map((m) => m.name),
   "Accra · " + EVENT.dates,
+  EVENT.launchCeremonyLabel,
+  EVENT.doorsOpenLabel,
   EVENT.venue,
   "54 African Countries",
   "One space",

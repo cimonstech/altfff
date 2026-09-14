@@ -55,6 +55,24 @@ export async function generateVisitorTicketPdf(
   });
   y -= 18;
 
+  page.drawText(EVENT.launchCeremonyLabel, {
+    x: margin,
+    y,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.25, 0.25, 0.25),
+  });
+  y -= 16;
+
+  page.drawText(EVENT.doorsOpenLabel, {
+    x: margin,
+    y,
+    size: 11,
+    font: helvetica,
+    color: rgb(0.25, 0.25, 0.25),
+  });
+  y -= 18;
+
   const venueLines = wrapText(EVENT.venue, 70);
   for (const line of venueLines) {
     page.drawText(line, {

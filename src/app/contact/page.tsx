@@ -43,9 +43,14 @@ export default function ContactPage() {
             the sponsorship page's closing-band pattern. */}
         <section aria-label="See you in Accra" className="bg-indigo px-6 py-14 text-paper md:px-16">
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-            <p className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-              See you in Accra. {EVENT.tradeFairDateLabel}.
-            </p>
+            <div>
+              <p className="font-display text-xl font-extrabold uppercase tracking-tight md:text-2xl">
+                See you in Accra. {EVENT.tradeFairDateLabel}.
+              </p>
+              <p className="mt-2 text-sm text-paper/75 md:text-base">
+                {EVENT.launchCeremonyLabel}. {EVENT.doorsOpenLabel}.
+              </p>
+            </div>
             <Link
               href="/visit"
               className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-7 py-3.5 text-sm font-semibold text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"

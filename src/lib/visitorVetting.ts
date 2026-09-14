@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 import { Resend } from "resend";
-import { EVENT } from "@/lib/constants";
+import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, escapeHtml, textToHtml } from "@/lib/emailTemplate";
 import { reportServerError } from "@/lib/sentryReport";
 import { generateVisitorTicketPdf } from "@/lib/visitorTicketPdf";
@@ -48,6 +48,7 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
     `Your registration to visit Alt.FFF on ${EVENT.tradeFairDateLabel} has been approved.`,
     "",
     `Venue: ${EVENT.venue}`,
+    eventScheduleTextBlock(),
     "",
   ].join("\n");
   const textBody = [

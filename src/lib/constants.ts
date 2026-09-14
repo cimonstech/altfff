@@ -13,7 +13,18 @@ export const EVENT = {
   tradeFairDateLabel: "Saturday 19th September. 2026",
   venue: "The Palms Convention Centre, La Palm Royal Beach Hotel, Accra Ghana",
   city: "Accra, Ghana",
+  /** Public fair opening hours — use verbatim on site and in emails. */
+  doorsOpenLabel: "Doors open: 9am-8pm",
+  doorsOpenTime: "9am-8pm",
+  /** Launch ceremony window on fair day — use verbatim on site and in emails. */
+  launchCeremonyLabel: "Launch ceremony: 9-10:30am",
+  launchCeremonyTime: "9-10:30am",
 } as const;
+
+/** Two-line schedule block for plain-text emails and similar contexts. */
+export function eventScheduleTextBlock(): string {
+  return `${EVENT.doorsOpenLabel}\n${EVENT.launchCeremonyLabel}`;
+}
 
 /** Confirmed exhibitor terms for the 2026 fair — use verbatim wherever shown. */
 export const EXHIBITOR_2026_TERMS =

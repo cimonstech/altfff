@@ -20,7 +20,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "What are the dates and location for the Alternative Fashion Fabric Fair (Alt.FFF) 2026?",
     answer:
-      `Alt.FFF 2026 is a one-day trade fair on ${EVENT.tradeFairDateLabel} (exhibitor set-up ${EVENT.setupDateLabel}) at ${EVENT.venue}.`,
+      `Alt.FFF 2026 is a one-day trade fair on ${EVENT.tradeFairDateLabel} (exhibitor set-up ${EVENT.setupDateLabel}) at ${EVENT.venue}. ${EVENT.launchCeremonyLabel}. ${EVENT.doorsOpenLabel}.`,
   },
   {
     question: "Who is the founder of the Alternative Fashion Fabric Fair?",

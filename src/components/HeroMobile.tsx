@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useEffect, useState } from "react";
-import { MATERIALS } from "@/lib/constants";
+import { EVENT, MATERIALS } from "@/lib/constants";
+import EventScheduleLine from "@/components/EventScheduleLine";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import Ticker from "@/components/Ticker";
@@ -124,7 +125,12 @@ export default function HeroMobile() {
           <span className="block whitespace-nowrap">Speak Before</span>
           <span className="block whitespace-nowrap">Fashion</span>
         </h1>
-        <p className="mt-3 text-sm text-paper/60">Accra</p>
+        <p className="mt-3 text-sm text-paper/60">Accra · {EVENT.tradeFairDateLabel}</p>
+        <EventScheduleLine
+          kind="launchCeremony"
+          variant="dark"
+          className="mt-1 text-sm text-paper/60"
+        />
         <p className="mt-3 text-sm text-paper/70">
           This exhibition spotlights the raw, processed, and semi-processed materials that power the industry.
         </p>
@@ -134,6 +140,11 @@ export default function HeroMobile() {
         >
           Exhibit With Us
         </Link>
+      </div>
+
+      {/* Doors open — bottom-right above the ticker, clear of the headline cluster. */}
+      <div className="absolute bottom-[4.5rem] right-5 z-10 text-right">
+        <EventScheduleLine kind="doorsOpen" variant="dark" className="text-sm text-paper/60" />
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10">

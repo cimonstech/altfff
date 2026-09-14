@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAnonClient } from "@/lib/supabase/anon";
-import { EVENT } from "@/lib/constants";
+import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
@@ -146,6 +146,8 @@ export async function POST(request: Request) {
     // change RESEND_FROM_EMAIL in the environment; no code change needed.
     const textBody = [
       `Thanks for your interest in sponsoring Alt.FFF, ${EVENT.dates} at ${EVENT.venue}.`,
+      "",
+      eventScheduleTextBlock(),
       "",
       "Your inquiry has been received - our team will follow up with you.",
       "",

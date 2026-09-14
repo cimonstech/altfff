@@ -98,6 +98,9 @@ export default function VisitorRegisterForm({ headingId }: { headingId?: string 
         Register to Visit <BrandName />
       </h2>
       <p className="mt-2 text-sm text-indigo">Join us {EVENT.tradeFairDateLabel} in Accra.</p>
+      <p className="mt-1 text-sm text-indigo/80">
+        {EVENT.launchCeremonyLabel}. {EVENT.doorsOpenLabel}.
+      </p>
 
       <form
         key={formKey}

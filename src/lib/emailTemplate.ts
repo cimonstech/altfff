@@ -59,7 +59,10 @@ export function buildEmailHtml({
             <tr>
               <td style="background-color:#FFFFFF; padding:0 32px 28px 32px;">
                 <p style="margin:0; font-family:${FONT_STACK}; font-size:12px; line-height:1.6; color:${INK_MUTED};">
-                  ${EVENT.dates} &middot; ${EVENT.venue}<br />
+                  ${EVENT.dates}<br />
+                  ${EVENT.launchCeremonyLabel}<br />
+                  ${EVENT.doorsOpenLabel}<br />
+                  ${EVENT.venue}<br />
                   Alt.FFF &middot; Where Materials Speak Before Fashion${footerNote ? `<br />${footerNote}` : ""}
                 </p>
               </td>

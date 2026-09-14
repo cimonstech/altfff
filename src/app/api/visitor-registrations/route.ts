@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAnonClient } from "@/lib/supabase/anon";
-import { EVENT } from "@/lib/constants";
+import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
@@ -180,6 +180,8 @@ export async function POST(request: Request) {
     // promise of one is made here.
     const textBody = [
       `Thanks for registering your interest in visiting Alt.FFF on ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
+      "",
+      eventScheduleTextBlock(),
       "",
       "Your registration is pending review. We'll email you once it's been confirmed - if approved, you'll receive a QR code to bring on the day.",
       "",

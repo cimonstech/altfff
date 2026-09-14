@@ -87,6 +87,9 @@ export default function VisitHero() {
           Join us on {EVENT.tradeFairDateLabel} at {EVENT.venue} - a one-day
           trade fair of fibres, dyes, weaves, and the people behind them.
         </p>
+        <p className="mt-3 max-w-[55ch] text-sm leading-relaxed text-indigo/80 md:text-base">
+          {EVENT.launchCeremonyLabel}. {EVENT.doorsOpenLabel}.
+        </p>
         <button
           type="button"
           onClick={() => scrollToSection("#visit-register")}

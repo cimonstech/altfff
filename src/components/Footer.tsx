@@ -136,6 +136,9 @@ export default function Footer() {
                     +233 541 177 573
                   </a>
                 </li>
+                <li>{EVENT.tradeFairDateLabel}</li>
+                <li>{EVENT.launchCeremonyLabel}</li>
+                <li>{EVENT.doorsOpenLabel}</li>
                 <li>{EVENT.venue}</li>
               </ul>
             </div>

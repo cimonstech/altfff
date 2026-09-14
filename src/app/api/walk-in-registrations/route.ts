@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAnonClient } from "@/lib/supabase/anon";
-import { EVENT } from "@/lib/constants";
+import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
@@ -31,6 +31,8 @@ function buildWalkInConfirmationEmail(fullName: string): { subject: string; text
     greeting,
     "",
     `Welcome to Alt.FFF — you're registered for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
+    "",
+    eventScheduleTextBlock(),
     "",
     "You're all set for today. No QR code is needed for walk-in registration.",
     "",

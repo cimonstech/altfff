@@ -44,8 +44,8 @@ const EVENT_SCHEMA = {
   "@context": "https://schema.org",
   "@type": "Event",
   name: "Alternative Fashion Fabric Fair 2026",
-  startDate: EVENT.startDate,
-  endDate: EVENT.endDate,
+  startDate: `${EVENT.startDate}T09:00:00+00:00`,
+  endDate: `${EVENT.endDate}T20:00:00+00:00`,
   eventStatus: "https://schema.org/EventScheduled",
   eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
   location: {

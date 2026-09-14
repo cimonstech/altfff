@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 import { MATERIALS, EVENT } from "@/lib/constants";
+import EventScheduleLine from "@/components/EventScheduleLine";
 import { useSiteModals } from "@/components/SiteModals";
 
 const ROTATE_MS = 6000;
@@ -615,7 +616,15 @@ export default function Hero() {
           <p className="mt-1.5 text-sm font-semibold leading-snug text-ink">
             {EVENT.tradeFairDateLabel}
           </p>
-          <p className="mt-3 text-xs leading-snug text-ink/70">
+          <EventScheduleLine
+            kind="launchCeremony"
+            className="mt-2 text-xs leading-snug text-ink/70"
+          />
+          <EventScheduleLine
+            kind="doorsOpen"
+            className="mt-0.5 text-xs leading-snug text-ink/70"
+          />
+          <p className="mt-2 text-xs leading-snug text-ink/70">
             {EVENT.venue}
           </p>
           <button

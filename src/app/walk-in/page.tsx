@@ -31,6 +31,9 @@ export default async function WalkInPage() {
             <p className="mt-3 text-sm leading-relaxed text-ink/70">
               Quick sign-in at the door. You&apos;ll get a welcome email and text — no QR code needed.
             </p>
+            <p className="mt-2 text-xs text-ink/45">
+              {EVENT.launchCeremonyLabel} · {EVENT.doorsOpenLabel}
+            </p>
           ) : (
             <p className="mt-3 text-sm leading-relaxed text-ink/70">{WALK_IN_REGISTRATION_CLOSED_MESSAGE}</p>
           )}

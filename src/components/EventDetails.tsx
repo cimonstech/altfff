@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
+import EventScheduleLine from "@/components/EventScheduleLine";
 import { useSiteModals } from "@/components/SiteModals";
 
 const SCHEDULE = [
@@ -18,8 +19,8 @@ const SCHEDULE = [
     label: "The Fair",
     date: EVENT.tradeFairDateLabel,
     detail:
-      "One-day trade fair - fibres, dyes, weaves, makers, buyers, and the full Alt.FFF programme. The launch is incorporated into the opening of the day.",
-    hours: "9am - 8pm",
+      "One-day trade fair - fibres, dyes, weaves, makers, buyers, and the full Alt.FFF programme.",
+    schedule: ["launchCeremony", "doorsOpen"] as const,
   },
 ];
 
@@ -100,9 +101,14 @@ export default function EventDetails() {
             >
               <p className="font-display text-3xl font-extrabold uppercase">{item.label}</p>
               <p className="mt-3 text-paper/85">{item.date}</p>
-              {item.hours ? (
-                <p className="mt-1 text-sm text-paper/60">{item.hours}</p>
-              ) : null}
+              {item.schedule?.map((kind) => (
+                <EventScheduleLine
+                  key={kind}
+                  kind={kind}
+                  variant="dark"
+                  className="mt-1 text-sm text-paper/60"
+                />
+              ))}
               <p className="mt-4 text-sm leading-relaxed text-paper/75">{item.detail}</p>
             </div>
           ))}
