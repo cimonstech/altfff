@@ -173,12 +173,28 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setResult({ ok: false, message: data.error ?? "Send failed." });
-      } else if (data.status === "queued") {
-        setResult({ ok: true, message: `Queued for ${data.recipientCount} recipients - processing asynchronously.` });
+      } else if (data.status === "failed") {
+        setResult({
+          ok: false,
+          message:
+            data.failedCount != null
+              ? `Failed to queue ${data.failedCount} of ${data.recipientCount} recipients. Check SITE_URL and QStash env vars on Vercel, then try again.`
+              : "Send failed — no recipients were queued.",
+        });
+      } else if (data.status === "partially_failed") {
+        setResult({
+          ok: false,
+          message: `Partially queued: ${data.queuedCount ?? "?"} of ${data.recipientCount} recipients. Some jobs failed to queue — check history for details.`,
+        });
+      } else if (data.status === "sending" || data.recipientCount > 1) {
+        setResult({
+          ok: true,
+          message: `Queued for ${data.queuedCount ?? data.recipientCount} recipients — processing asynchronously.`,
+        });
       } else {
-        setResult({ ok: true, message: `Sent - final status: ${data.status}.` });
+        setResult({ ok: true, message: `Sent — final status: ${data.status}.` });
       }
-      if (data.ok) {
+      if (data.ok && data.status !== "failed" && data.status !== "partially_failed") {
         setSubject("");
         setBody("");
         if (isCustom) clearCustomSelection();

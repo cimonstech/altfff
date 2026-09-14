@@ -1,26 +1,41 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminAuth";
-import { sendVisitorDeclinedEmail, type VisitorRow } from "@/lib/visitorVetting";
+import { reportServerError } from "@/lib/sentryReport";
+import { resolveVisitorRouteId, sendVisitorDeclinedEmail, type VisitorRow } from "@/lib/visitorVetting";
 
 export const runtime = "nodejs";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function POST(_request: Request, context: RouteContext) {
+export async function POST(request: Request, context: RouteContext) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
-  const { id } = await context.params;
-  const supabase = await createClient();
+  const id = await resolveVisitorRouteId(request, context.params);
+  if (!id) {
+    return NextResponse.json({ ok: false, error: "Visitor not found." }, { status: 404 });
+  }
+
+  const supabase = createAdminClient();
 
   const { data: existing, error: fetchError } = await supabase
     .from("visitor_registrations")
     .select("id, email, full_name, status, qr_token")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (fetchError || !existing) {
+  if (fetchError) {
+    console.error("Visitor decline lookup failed:", fetchError);
+    reportServerError(fetchError, {
+      route: "/api/admin/visitors/[id]/decline",
+      kind: "admin",
+      extra: { op: "load_visitor", visitor_id: id },
+    });
+    return NextResponse.json({ ok: false, error: "Failed to load visitor." }, { status: 500 });
+  }
+
+  if (!existing) {
     return NextResponse.json({ ok: false, error: "Visitor not found." }, { status: 404 });
   }
 
@@ -42,10 +57,15 @@ export async function POST(_request: Request, context: RouteContext) {
     .eq("id", id)
     .eq("status", "registered")
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (updateError || !updated) {
     console.error("Visitor decline update failed:", updateError);
+    reportServerError(updateError ?? new Error("decline update returned no row"), {
+      route: "/api/admin/visitors/[id]/decline",
+      kind: "admin",
+      extra: { op: "decline_visitor", visitor_id: id },
+    });
     return NextResponse.json({ ok: false, error: "Failed to decline visitor." }, { status: 500 });
   }
 

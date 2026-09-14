@@ -8,6 +8,35 @@ import { generateVisitorTicketPdf } from "@/lib/visitorTicketPdf";
 export { generateQrToken } from "@/lib/qrToken";
 export { normalizeCheckInToken, QR_TOKEN_PREFIX } from "@/lib/qrToken";
 
+const VISITOR_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolve the visitor UUID from App Router params, falling back to the
+ * request path. Nested `/visitors/[id]/approve` handlers have dropped
+ * `params.id` under some Next/Sentry wrappers, which made a real list row
+ * look like "Visitor not found."
+ */
+export async function resolveVisitorRouteId(
+  request: Request,
+  params: Promise<{ id: string }> | { id: string },
+): Promise<string | null> {
+  const resolved = await Promise.resolve(params);
+  const fromParams = typeof resolved?.id === "string" ? resolved.id.trim() : "";
+  if (VISITOR_ID_RE.test(fromParams)) return fromParams;
+
+  try {
+    const segments = new URL(request.url).pathname.split("/").filter(Boolean);
+    const visitorsAt = segments.indexOf("visitors");
+    const fromPath = visitorsAt >= 0 ? decodeURIComponent(segments[visitorsAt + 1] ?? "").trim() : "";
+    if (VISITOR_ID_RE.test(fromPath)) return fromPath;
+  } catch {
+    // ignore malformed URLs — caller returns 404
+  }
+
+  return null;
+}
+
 export type VisitorRow = {
   id: string;
   email: string;

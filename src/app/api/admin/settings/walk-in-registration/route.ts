@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminAuth";
 import { reportServerError } from "@/lib/sentryReport";
 import { WALK_IN_REGISTRATION_SETTING_KEY } from "@/lib/appSettings";
@@ -12,14 +12,13 @@ type SettingRow = {
   updated_by_email: string | null;
 };
 
-async function loadSetting(supabase: Awaited<ReturnType<typeof createClient>>): Promise<
-  { row: SettingRow } | { error: NextResponse }
-> {
+async function loadSetting(): Promise<{ row: SettingRow } | { error: NextResponse }> {
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("app_settings")
     .select("value, updated_at, updated_by_email")
     .eq("key", WALK_IN_REGISTRATION_SETTING_KEY)
-    .single();
+    .maybeSingle();
 
   if (error || !data) {
     console.error("Failed to load walk-in registration setting:", error);
@@ -35,8 +34,7 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
-  const supabase = await createClient();
-  const loaded = await loadSetting(supabase);
+  const loaded = await loadSetting();
   if ("error" in loaded) return loaded.error;
 
   return NextResponse.json({
@@ -62,13 +60,13 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: false, error: "Please provide enabled: true or false." }, { status: 400 });
   }
 
-  const supabase = await createClient();
-  const loaded = await loadSetting(supabase);
+  const loaded = await loadSetting();
   if ("error" in loaded) return loaded.error;
 
   const previousEnabled = loaded.row.value;
   const enabled = body.enabled;
   const now = new Date().toISOString();
+  const supabase = createAdminClient();
 
   const { data: updated, error: updateError } = await supabase
     .from("app_settings")
@@ -80,7 +78,7 @@ export async function PATCH(request: Request) {
     })
     .eq("key", WALK_IN_REGISTRATION_SETTING_KEY)
     .select("value, updated_at, updated_by_email")
-    .single();
+    .maybeSingle();
 
   if (updateError || !updated) {
     console.error("Failed to update walk-in registration setting:", updateError);

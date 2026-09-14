@@ -14,9 +14,26 @@ import { SITE } from "@/lib/constants";
  * Site URL — https://www.altfff.com with no path — which is the broken invite
  * behaviour we saw in production emails.
  */
+function isLoopbackSiteUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
 export function getSiteUrl(): string {
   const fromEnv = process.env.SITE_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/+$/, "");
+  if (fromEnv) {
+    const normalized = fromEnv.replace(/\/+$/, "");
+    // A copied .env.local value (http://localhost:3000) must not break QStash
+    // callbacks or admin invite redirects on the live Vercel deployment.
+    if (process.env.NODE_ENV === "production" && isLoopbackSiteUrl(normalized)) {
+      return SITE.url;
+    }
+    return normalized;
+  }
 
   if (process.env.NODE_ENV === "production") {
     return SITE.url;

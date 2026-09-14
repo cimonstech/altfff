@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/adminAuth";
+import { reportServerError } from "@/lib/sentryReport";
 import {
   generateQrToken,
+  resolveVisitorRouteId,
   sendVisitorApprovedEmail,
   type VisitorRow,
 } from "@/lib/visitorVetting";
@@ -11,20 +13,34 @@ export const runtime = "nodejs";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function POST(_request: Request, context: RouteContext) {
+export async function POST(request: Request, context: RouteContext) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
 
-  const { id } = await context.params;
-  const supabase = await createClient();
+  const id = await resolveVisitorRouteId(request, context.params);
+  if (!id) {
+    return NextResponse.json({ ok: false, error: "Visitor not found." }, { status: 404 });
+  }
+
+  const supabase = createAdminClient();
 
   const { data: existing, error: fetchError } = await supabase
     .from("visitor_registrations")
     .select("id, email, full_name, status, qr_token")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (fetchError || !existing) {
+  if (fetchError) {
+    console.error("Visitor approve lookup failed:", fetchError);
+    reportServerError(fetchError, {
+      route: "/api/admin/visitors/[id]/approve",
+      kind: "admin",
+      extra: { op: "load_visitor", visitor_id: id },
+    });
+    return NextResponse.json({ ok: false, error: "Failed to load visitor." }, { status: 500 });
+  }
+
+  if (!existing) {
     return NextResponse.json({ ok: false, error: "Visitor not found." }, { status: 404 });
   }
 
@@ -52,10 +68,15 @@ export async function POST(_request: Request, context: RouteContext) {
     .eq("id", id)
     .eq("status", "registered")
     .select("*")
-    .single();
+    .maybeSingle();
 
   if (updateError || !updated) {
     console.error("Visitor approve update failed:", updateError);
+    reportServerError(updateError ?? new Error("approve update returned no row"), {
+      route: "/api/admin/visitors/[id]/approve",
+      kind: "admin",
+      extra: { op: "approve_visitor", visitor_id: id },
+    });
     return NextResponse.json({ ok: false, error: "Failed to approve visitor." }, { status: 500 });
   }
 
