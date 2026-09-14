@@ -6,6 +6,7 @@ import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { EVENT } from "@/lib/constants";
 import { scrollToSection } from "@/lib/scroll";
+import DoorsOpenTime from "@/components/DoorsOpenTime";
 import HeroArtifacts from "@/components/HeroArtifacts";
 
 export default function VisitHero() {
@@ -85,18 +86,20 @@ export default function VisitHero() {
         </h1>
         <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-indigo md:text-lg">
           Join us on {EVENT.tradeFairDateLabel} at {EVENT.venue} - a one-day
-          trade fair of fibres, dyes, weaves, and the people behind them.
+          trade fair of fibres, dyes, weaves, and the people behind them. Launch
+          ceremony:{" "}
+          <span className="font-bold text-gold-deep">{EVENT.launchCeremonyTime}</span>.
         </p>
-        <p className="mt-3 max-w-[55ch] text-sm leading-relaxed text-indigo/80 md:text-base">
-          {EVENT.launchCeremonyLabel}. {EVENT.doorsOpenLabel}.
-        </p>
-        <button
-          type="button"
-          onClick={() => scrollToSection("#visit-register")}
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
-        >
-          Register to visit
-        </button>
+        <div className="mt-8 flex w-full max-w-[55ch] flex-nowrap items-center gap-3 md:gap-6">
+          <button
+            type="button"
+            onClick={() => scrollToSection("#visit-register")}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
+          >
+            Register to visit
+          </button>
+          <DoorsOpenTime variant="light" size="lg" className="ml-auto shrink-0" />
+        </div>
       </div>
     </section>
   );

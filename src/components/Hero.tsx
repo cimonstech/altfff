@@ -7,6 +7,7 @@ import { prefersReducedMotion } from "@/lib/reduced-motion";
 import { scrollToSection } from "@/lib/scroll";
 import { MATERIALS, EVENT } from "@/lib/constants";
 import EventScheduleLine from "@/components/EventScheduleLine";
+import DoorsOpenTime from "@/components/DoorsOpenTime";
 import { useSiteModals } from "@/components/SiteModals";
 
 const ROTATE_MS = 6000;
@@ -184,7 +185,7 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [gooEnabled, setGooEnabled] = useState<boolean | null>(null);
-  const { openExhibitModal } = useSiteModals();
+  const { openExhibitModal, openVisitorModal } = useSiteModals();
   const { sizes: wordFontSizes } = useMaterialWordSizes(
     // Desktop-specific order: start with cotton, place kente near the end
     ((): string[] => {
@@ -582,14 +583,17 @@ export default function Hero() {
             <p className="max-w-[46ch] text-base text-paper md:text-lg">
               A day of fibres, dyes, weaves and the people behind them
             </p>
-            <button
-              type="button"
-              onClick={openExhibitModal}
-              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-[0.9625rem] font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
-            >
-              Apply to exhibit
-              <span aria-hidden>&gt;</span>
-            </button>
+            <div className="flex w-full flex-nowrap items-center gap-3 md:w-auto md:gap-5">
+              <button
+                type="button"
+                onClick={openVisitorModal}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-[0.9625rem] font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
+              >
+                Register your visit
+                <span aria-hidden>&gt;</span>
+              </button>
+              <DoorsOpenTime variant="dark" size="lg" className="ml-auto shrink-0 md:ml-0" />
+            </div>
           </div>
         </div>
 
@@ -620,10 +624,7 @@ export default function Hero() {
             kind="launchCeremony"
             className="mt-2 text-xs leading-snug text-ink/70"
           />
-          <EventScheduleLine
-            kind="doorsOpen"
-            className="mt-0.5 text-xs leading-snug text-ink/70"
-          />
+          <DoorsOpenTime variant="light" size="lg" className="mt-1.5" />
           <p className="mt-2 text-xs leading-snug text-ink/70">
             {EVENT.venue}
           </p>

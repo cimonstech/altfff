@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRef, useEffect, useState } from "react";
 import { EVENT, MATERIALS } from "@/lib/constants";
 import EventScheduleLine from "@/components/EventScheduleLine";
+import DoorsOpenTime from "@/components/DoorsOpenTime";
+import { useSiteModals } from "@/components/SiteModals";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import Ticker from "@/components/Ticker";
@@ -27,6 +28,7 @@ export default function HeroMobile() {
   const imgRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLSpanElement>(null);
   const clusterRef = useRef<HTMLDivElement>(null);
+  const { openVisitorModal } = useSiteModals();
 
   useGSAP(
     () => {
@@ -72,7 +74,7 @@ export default function HeroMobile() {
     <section
       ref={container}
       aria-label="Alt.FFF - where materials speak before fashion"
-      className="relative h-[100dvh] w-full overflow-hidden bg-ink"
+      className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-ink"
     >
       <div ref={imgRef} className="absolute inset-0">
         <Image
@@ -113,9 +115,12 @@ export default function HeroMobile() {
         <span className="normal-case">{VERTICAL_WORD}</span>
       </span>
 
-      {/* Bottom-left headline cluster. right-24 keeps it clear of the
-          vertical word at every width down to 360px. */}
-      <div ref={clusterRef} className="absolute bottom-16 left-5 right-24 z-10">
+      {/* Cap top dead space on tall screens — absolute bottom-pinning left a
+          huge empty band under the nav on longer viewports. */}
+      <div aria-hidden="true" className="relative z-10 min-h-14 max-h-[min(32dvh,17rem)] flex-1 shrink" />
+
+      {/* Headline cluster — padded above the viewport-pinned ticker. */}
+      <div ref={clusterRef} className="relative z-10 shrink-0 px-5 pr-24 pb-14">
         <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.24em] text-paper">
           1st Alternative Fashion Fabric Fair
         </p>
@@ -134,17 +139,16 @@ export default function HeroMobile() {
         <p className="mt-3 text-sm text-paper/70">
           This exhibition spotlights the raw, processed, and semi-processed materials that power the industry.
         </p>
-        <Link
-          href="/exhibiting"
-          className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
-        >
-          Exhibit With Us
-        </Link>
-      </div>
-
-      {/* Doors open — bottom-right above the ticker, clear of the headline cluster. */}
-      <div className="absolute bottom-[4.5rem] right-5 z-10 text-right">
-        <EventScheduleLine kind="doorsOpen" variant="dark" className="text-sm text-paper/60" />
+        <div className="mt-6 flex w-full flex-nowrap items-center gap-3">
+          <button
+            type="button"
+            onClick={openVisitorModal}
+            className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
+          >
+            Register your visit
+          </button>
+          <DoorsOpenTime variant="dark" size="lg" className="ml-auto shrink-0" />
+        </div>
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10">
