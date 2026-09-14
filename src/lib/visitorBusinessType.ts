@@ -16,6 +16,11 @@ export const VISITOR_BUSINESS_TYPES = [
     title: "Both",
     description: "You do a mix of B2B and B2C business",
   },
+  {
+    value: "none_of_the_above",
+    title: "None of the Above",
+    description: "None of the B2B or B2C options above apply to you",
+  },
 ] as const;
 
 export type VisitorBusinessTypeValue = (typeof VISITOR_BUSINESS_TYPES)[number]["value"];

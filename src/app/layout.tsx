@@ -6,6 +6,7 @@ import { SiteModalsProvider } from "@/components/SiteModals";
 import BackToTop from "@/components/BackToTop";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import LinkedInInsightTag from "@/components/LinkedInInsightTag";
+import MetaPixel from "@/components/MetaPixel";
 import { GlobalStructuredData } from "@/components/structured-data";
 import { SITE, EVENT } from "@/lib/constants";
 import { readFormToggleState } from "@/lib/appSettings";
@@ -55,6 +56,7 @@ export default async function RootLayout({
     <html lang="en" className={`${display.variable} ${body.variable} antialiased`}>
       <body className="bg-paper font-body text-ink" suppressHydrationWarning>
         <GoogleAnalytics />
+        <MetaPixel />
         <GlobalStructuredData />
         <SmoothScroll>
           <SiteModalsProvider

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useEffect, useState } from "react";
 import { EVENT, MATERIALS } from "@/lib/constants";
 import EventScheduleLine from "@/components/EventScheduleLine";
 import DoorsOpenTime from "@/components/DoorsOpenTime";
-import { useSiteModals } from "@/components/SiteModals";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
 import Ticker from "@/components/Ticker";
@@ -28,7 +28,6 @@ export default function HeroMobile() {
   const imgRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLSpanElement>(null);
   const clusterRef = useRef<HTMLDivElement>(null);
-  const { openVisitorModal } = useSiteModals();
 
   useGSAP(
     () => {
@@ -140,13 +139,12 @@ export default function HeroMobile() {
           This exhibition spotlights the raw, processed, and semi-processed materials that power the industry.
         </p>
         <div className="mt-6 flex w-full flex-nowrap items-center gap-3">
-          <button
-            type="button"
-            onClick={openVisitorModal}
+          <Link
+            href="/visit"
             className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink transition-opacity hover:opacity-85"
           >
             Register your visit
-          </button>
+          </Link>
           <DoorsOpenTime variant="dark" size="lg" className="ml-auto shrink-0" />
         </div>
       </div>

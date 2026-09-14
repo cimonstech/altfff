@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/reduced-motion";
@@ -185,7 +186,7 @@ export default function Hero() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const [gooEnabled, setGooEnabled] = useState<boolean | null>(null);
-  const { openExhibitModal, openVisitorModal } = useSiteModals();
+  const { openExhibitModal } = useSiteModals();
   const { sizes: wordFontSizes } = useMaterialWordSizes(
     // Desktop-specific order: start with cotton, place kente near the end
     ((): string[] => {
@@ -584,14 +585,13 @@ export default function Hero() {
               A day of fibres, dyes, weaves and the people behind them
             </p>
             <div className="flex w-full flex-nowrap items-center gap-3 md:w-auto md:gap-5">
-              <button
-                type="button"
-                onClick={openVisitorModal}
+              <Link
+                href="/visit"
                 className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gold bg-gold px-6 py-3 text-[0.9625rem] font-medium text-paper transition-colors hover:border-gold-deep hover:bg-gold-deep"
               >
                 Register your visit
                 <span aria-hidden>&gt;</span>
-              </button>
+              </Link>
               <DoorsOpenTime variant="dark" size="lg" className="ml-auto shrink-0 md:ml-0" />
             </div>
           </div>
