@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isCheckinStaffAllowedAdminPath } from "@/lib/adminRoles";
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/set-password"];
 
@@ -47,6 +48,24 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);
+  }
+
+  if (isAdminRoute && !isPublicAdminRoute && user) {
+    const { data: profile } = await supabase
+      .from("admin_profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.role === "checkin_staff" && !isCheckinStaffAllowedAdminPath(pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/forbidden";
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value);
+      });
+      return redirectResponse;
+    }
   }
 
   return supabaseResponse;

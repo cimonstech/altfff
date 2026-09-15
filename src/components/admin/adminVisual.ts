@@ -10,12 +10,14 @@ import {
   ScrollText,
   Shield,
   ScanLine,
+  ClipboardList,
 } from "lucide-react";
 import type { AdminCardAccent } from "@/components/admin/AdminCard";
 
 /** Shared icons so Overview cards and sidebar nav stay visually aligned. */
 export const ADMIN_SECTION_ICONS: Record<string, LucideIcon> = {
   "/admin": LayoutDashboard,
+  "/admin/checkin-overview": ClipboardList,
   "/admin/exhibitors": BriefcaseBusiness,
   "/admin/sponsors": Handshake,
   "/admin/visitors": Users,

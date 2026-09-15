@@ -10,7 +10,7 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
-import { sendSms } from "@/lib/sms";
+import { buildDoorWelcomeSms, sendSms } from "@/lib/sms";
 import {
   DuplicateRegistrationError,
   VISITOR_BLOCKING_STATUSES,
@@ -47,9 +47,7 @@ function buildWalkInConfirmationEmail(fullName: string): { subject: string; text
 }
 
 function buildWalkInConfirmationSms(fullName: string): string {
-  const name = fullName.trim();
-  const greeting = name ? `Hi ${name.split(/\s+/)[0]}, ` : "";
-  return `${greeting}Welcome to Alt.FFF! You're registered for today (${EVENT.tradeFairDateLabel}). Enjoy the fair.`;
+  return buildDoorWelcomeSms(fullName);
 }
 
 export async function POST(request: Request) {

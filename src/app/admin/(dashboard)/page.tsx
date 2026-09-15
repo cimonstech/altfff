@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import AdminCard, { type AdminCardAccent } from "@/components/admin/AdminCard";
 import PublicFormsToggleGate from "@/components/admin/PublicFormsToggleGate";
+import CheckInOverviewLive from "@/components/admin/CheckInOverviewLive";
+import { fetchCheckInOverviewCounts } from "@/lib/checkInOverview";
 import {
   ADMIN_SECTION_ICONS,
   OVERVIEW_ACCENTS,
@@ -62,41 +64,28 @@ async function getCounts(entity: Entity) {
   return { total, perStatus };
 }
 
-async function getCheckInStats() {
+async function getCheckInOverview() {
   const supabase = await createClient();
-  const [{ count: approved }, { count: checkedIn }] = await Promise.all([
-    supabase
-      .from("visitor_registrations")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "confirmed"),
-    supabase
-      .from("visitor_registrations")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "confirmed")
-      .not("checked_in_at", "is", null),
-  ]);
-  return { approved: approved ?? 0, checkedIn: checkedIn ?? 0 };
+  return fetchCheckInOverviewCounts(supabase);
 }
 
 export default async function AdminOverviewPage() {
-  const [results, checkIn] = await Promise.all([
+  const [results, checkInCounts] = await Promise.all([
     Promise.all(ENTITIES.map((e) => getCounts(e))),
-    getCheckInStats(),
+    getCheckInOverview(),
   ]);
 
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Overview</h1>
 
-      {checkIn.approved > 0 && (
-        <p className="mt-3 inline-flex rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink">
-          Day-of check-in: {checkIn.checkedIn} of {checkIn.approved} approved visitors
-        </p>
-      )}
+      <div className="mt-6">
+        <CheckInOverviewLive initialCounts={checkInCounts} variant="embed" />
+      </div>
 
       <PublicFormsToggleGate />
 
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {ENTITIES.map((entity, i) => {
           const { total, perStatus } = results[i];
           // Only show statuses with at least one row, so a mostly-empty

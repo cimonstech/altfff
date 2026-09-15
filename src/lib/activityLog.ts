@@ -14,6 +14,7 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   sponsor_form_toggled: "Sponsor form toggled",
   exhibitor_form_toggled: "Exhibitor form toggled",
   visit_form_toggled: "Visit form toggled",
+  visitor_checked_in: "Visitor checked in",
 };
 
 export const ACTIVITY_ACTIONS = Object.keys(ACTIVITY_ACTION_LABELS);
@@ -91,6 +92,14 @@ export function formatActivitySummary(
     case "visit_form_toggled": {
       const form = isFormToggleForm(details.form) ? details.form : null;
       if (form) return formatFormToggleActivitySummary(form, details.enabled);
+      break;
+    }
+    case "visitor_checked_in": {
+      const who = str(details.name) || str(details.email);
+      const method = str(details.method);
+      if (who && method === "manual_lookup") return `Checked in ${who} (name/email lookup)`;
+      if (who && method === "qr") return `Checked in ${who} (QR)`;
+      if (who) return `Checked in ${who}`;
       break;
     }
   }

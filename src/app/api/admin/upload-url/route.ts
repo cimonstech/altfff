@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/adminAuth";
 import { getR2Client, R2_BUCKET_NAME } from "@/lib/r2";
 import { buildNewsImageKey, isOwnedR2Key } from "@/lib/r2Storage";
 import { decodeFileHeaderBase64, verifyImageMagicBytes } from "@/lib/imageMagicBytes";
@@ -25,19 +25,13 @@ function sanitizeFilename(name: string): string {
     .slice(0, 100);
 }
 
-async function requireAdmin(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ ok: false, error: "Not authenticated." }, { status: 401 }) };
-
-  const { data: profile } = await supabase.from("admin_profiles").select("id").eq("id", user.id).single();
-  if (!profile) return { error: NextResponse.json({ ok: false, error: "Forbidden." }, { status: 403 }) };
+async function requireUploadAdmin(request: Request) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth;
 
   const rate = await checkAdminRateLimit(
     request,
-    user.id,
+    auth.user.id,
     ADMIN_RATE_LIMITS.uploadUrl,
     "admin/upload-url",
   );
@@ -45,7 +39,7 @@ async function requireAdmin(request: Request) {
     return { error: NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 }) };
   }
 
-  return { user };
+  return { user: auth.user };
 }
 
 type UploadRequestPayload = {
@@ -56,7 +50,7 @@ type UploadRequestPayload = {
 };
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireUploadAdmin(request);
   if ("error" in auth) return auth.error;
 
   let body: UploadRequestPayload;
@@ -116,7 +110,7 @@ type DeleteRequestPayload = {
  * sit around orphaned.
  */
 export async function DELETE(request: Request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireUploadAdmin(request);
   if ("error" in auth) return auth.error;
 
   let body: DeleteRequestPayload;

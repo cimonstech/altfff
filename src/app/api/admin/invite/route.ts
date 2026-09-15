@@ -10,12 +10,12 @@ type InvitePayload = {
   email?: unknown;
   full_name?: unknown;
   // Optional - the admin_profiles trigger only ever inserts with the
-  // column default ('admin'), so a super_admin invite needs a follow-up
+  // column default ('admin'), so a non-default role needs a follow-up
   // update via the service-role client below.
   role?: unknown;
 };
 
-const VALID_ROLES = ["admin", "super_admin"] as const;
+const VALID_ROLES = ["admin", "super_admin", "checkin_staff"] as const;
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -97,8 +97,8 @@ export async function POST(request: Request) {
 
   // The on_auth_user_created trigger already inserted the admin_profiles
   // row (with the column default role, 'admin') by this point - only need
-  // to touch it if the requester chose 'super_admin' specifically.
-  if (role === "super_admin" && invited.user?.id) {
+  // to touch it when the requester chose a non-default role.
+  if (role !== "admin" && invited.user?.id) {
     const { error: roleError } = await adminClient
       .from("admin_profiles")
       .update({ role })

@@ -1,17 +1,33 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/adminAuth";
-import { formatCheckInTime, normalizeCheckInToken, visitorDisplayName } from "@/lib/visitorVetting";
+import { requireCheckInAccess } from "@/lib/adminAuth";
+import { normalizeCheckInToken } from "@/lib/visitorVetting";
+import {
+  isVisitorId,
+  performVisitorCheckIn,
+  sendCheckInWelcomeSms,
+  type CheckInOutcome,
+  type CheckInVisitor,
+} from "@/lib/visitorCheckIn";
 import { ADMIN_RATE_LIMITS, checkAdminRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 const TOKEN_MAX_LEN = 128;
+const VISITOR_CHECKIN_SELECT =
+  "id, email, full_name, phone, status, source, checked_in_at, checked_in_by_email";
 
-type CheckInBody = { token?: unknown };
+type CheckInBody = { token?: unknown; visitorId?: unknown };
+
+function jsonCheckIn(outcome: CheckInOutcome, visitor?: CheckInVisitor) {
+  if (visitor && outcome.body.ok && outcome.body.result === "checked_in") {
+    after(() => sendCheckInWelcomeSms(visitor));
+  }
+  return NextResponse.json(outcome.body, { status: outcome.httpStatus });
+}
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireCheckInAccess();
   if ("error" in auth) return auth.error;
 
   const rate = await checkAdminRateLimit(
@@ -31,7 +47,53 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, result: "invalid", message: "Invalid request body." }, { status: 400 });
   }
 
-  const token = normalizeCheckInToken(typeof body.token === "string" ? body.token : "");
+  const rawVisitorId = typeof body.visitorId === "string" ? body.visitorId.trim() : "";
+  const rawToken = typeof body.token === "string" ? body.token : "";
+
+  if (rawVisitorId && rawToken.trim()) {
+    return NextResponse.json(
+      { ok: false, result: "invalid", message: "Send a QR token or a visitor id, not both." },
+      { status: 400 },
+    );
+  }
+
+  const supabase = await createClient();
+
+  if (rawVisitorId) {
+    if (!isVisitorId(rawVisitorId)) {
+      return NextResponse.json({ ok: false, result: "invalid", message: "Unrecognised visitor." });
+    }
+
+    const { data: visitor, error: fetchError } = await supabase
+      .from("visitor_registrations")
+      .select(VISITOR_CHECKIN_SELECT)
+      .eq("id", rawVisitorId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("Check-in lookup by id failed:", fetchError);
+      return NextResponse.json({ ok: false, result: "error", message: "Lookup failed. Try again." }, { status: 500 });
+    }
+
+    if (!visitor) {
+      return NextResponse.json({ ok: false, result: "invalid", message: "Unrecognised visitor." });
+    }
+
+    const row = visitor as CheckInVisitor;
+    if (row.source === "walk_in") {
+      return NextResponse.json({
+        ok: false,
+        result: "invalid",
+        message: "Walk-in registrations are not checked in through this lookup.",
+        name: row.full_name || row.email,
+      });
+    }
+
+    const outcome = await performVisitorCheckIn(supabase, auth.user, row, "manual_lookup");
+    return jsonCheckIn(outcome, row);
+  }
+
+  const token = normalizeCheckInToken(rawToken);
   if (!token || token.length > TOKEN_MAX_LEN) {
     return NextResponse.json({
       ok: false,
@@ -40,11 +102,9 @@ export async function POST(request: Request) {
     });
   }
 
-  const supabase = await createClient();
-
   const { data: visitor, error: fetchError } = await supabase
     .from("visitor_registrations")
-    .select("id, email, full_name, status, checked_in_at, checked_in_by_email")
+    .select(VISITOR_CHECKIN_SELECT)
     .eq("qr_token", token)
     .maybeSingle();
 
@@ -61,95 +121,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const name = visitorDisplayName(visitor);
-
-  if (visitor.status === "declined") {
-    return NextResponse.json({
-      ok: false,
-      result: "declined",
-      message: "This registration was declined.",
-      name,
-    });
-  }
-
-  if (visitor.status === "registered") {
-    return NextResponse.json({
-      ok: false,
-      result: "pending",
-      message: "Not approved yet - pending admin review.",
-      name,
-    });
-  }
-
-  if (visitor.status === "cancelled") {
-    return NextResponse.json({
-      ok: false,
-      result: "cancelled",
-      message: "This registration was cancelled.",
-      name,
-    });
-  }
-
-  if (visitor.checked_in_at) {
-    return NextResponse.json({
-      ok: false,
-      result: "already_checked_in",
-      message: `Already checked in at ${formatCheckInTime(visitor.checked_in_at)}.`,
-      name,
-      checkedInAt: visitor.checked_in_at,
-      checkedInBy: visitor.checked_in_by_email,
-    });
-  }
-
-  if (visitor.status !== "confirmed") {
-    return NextResponse.json({
-      ok: false,
-      result: "invalid",
-      message: "This QR code cannot be used for check-in.",
-      name,
-    });
-  }
-
-  const now = new Date().toISOString();
-  const { data: updated, error: updateError } = await supabase
-    .from("visitor_registrations")
-    .update({
-      checked_in_at: now,
-      checked_in_by: auth.user.id,
-      checked_in_by_email: auth.user.email,
-    })
-    .eq("id", visitor.id)
-    .eq("status", "confirmed")
-    .is("checked_in_at", null)
-    .select("id, full_name, email, checked_in_at")
-    .single();
-
-  if (updateError || !updated) {
-    // Race: another scan may have won - re-fetch for already-checked-in message.
-    const { data: again } = await supabase
-      .from("visitor_registrations")
-      .select("full_name, email, checked_in_at, checked_in_by_email")
-      .eq("id", visitor.id)
-      .single();
-    if (again?.checked_in_at) {
-      return NextResponse.json({
-        ok: false,
-        result: "already_checked_in",
-        message: `Already checked in at ${formatCheckInTime(again.checked_in_at)}.`,
-        name: visitorDisplayName(again),
-        checkedInAt: again.checked_in_at,
-        checkedInBy: again.checked_in_by_email,
-      });
-    }
-    console.error("Check-in update failed:", updateError);
-    return NextResponse.json({ ok: false, result: "error", message: "Check-in failed. Try again." }, { status: 500 });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    result: "checked_in",
-    message: "Checked in successfully.",
-    name: visitorDisplayName(updated),
-    checkedInAt: updated.checked_in_at,
-  });
+  const row = visitor as CheckInVisitor;
+  const outcome = await performVisitorCheckIn(supabase, auth.user, row, "qr");
+  return jsonCheckIn(outcome, row);
 }

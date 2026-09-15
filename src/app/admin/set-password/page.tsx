@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { adminHomePath } from "@/lib/adminRoles";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -180,7 +181,13 @@ export default function SetPasswordPage() {
         return;
       }
 
-      router.push("/admin");
+      const { data: profile } = await supabase
+        .from("admin_profiles")
+        .select("role")
+        .eq("id", sessionAfter.user.id)
+        .maybeSingle();
+
+      router.push(adminHomePath(profile?.role));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save your password. Try again.");

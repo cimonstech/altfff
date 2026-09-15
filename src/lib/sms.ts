@@ -122,6 +122,18 @@ async function callFishAfrica(
  * (zero retries), justified because this now carries real paid-exhibitor
  * and sponsor communications, not just fire-and-forget notifications.
  */
+/** First token of a full name — what door SMS should use for {{name}}. */
+export function firstNameForSms(fullName: string | null | undefined): string {
+  return fullName?.trim().split(/\s+/)[0] ?? "";
+}
+
+/** Shared walk-in + pre-registered check-in SMS. Uses first name only. */
+export function buildDoorWelcomeSms(fullName: string | null | undefined): string {
+  const first = firstNameForSms(fullName);
+  const welcome = first ? `Welcome ${first}!` : "Welcome!";
+  return `${welcome} 🎉 You're officially checked in. Explore our curated experience zones and join the conversation online #AltFFF2026.`;
+}
+
 export async function sendSms(
   phone: string,
   message: string,

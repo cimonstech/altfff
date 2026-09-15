@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AdminCard from "@/components/admin/AdminCard";
+import type { CheckInAccessRole } from "@/lib/adminRoles";
 
 export default function InviteAdminForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState<"admin" | "super_admin">("admin");
+  const [role, setRole] = useState<CheckInAccessRole>("admin");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -80,11 +81,12 @@ export default function InviteAdminForm() {
           <select
             id="invite-role"
             value={role}
-            onChange={(e) => setRole(e.target.value as "admin" | "super_admin")}
+            onChange={(e) => setRole(e.target.value as CheckInAccessRole)}
             className="mt-1 min-h-11 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
           >
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
+            <option value="checkin_staff">Check-in Staff</option>
           </select>
         </div>
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { adminHomePath } from "@/lib/adminRoles";
 
 /**
  * Existing invited admins only - no public self-registration anywhere.
@@ -30,10 +31,8 @@ export default function AdminLoginPage() {
       return;
     }
 
-    // Log the login. RLS ("admins can insert own activity log entries")
-    // permits this insert as long as actor_id matches the signed-in user
-    // and they already have an admin_profiles row (created by the
-    // on_auth_user_created trigger when they were invited).
+    // Log the login. RLS permits this insert for admins and for
+    // checkin_staff (login + check-in actions only).
     const { error: logError } = await supabase.from("activity_logs").insert({
       actor_id: data.user.id,
       actor_email: data.user.email,
@@ -44,7 +43,13 @@ export default function AdminLoginPage() {
       console.error("Failed to log admin login:", logError);
     }
 
-    router.push("/admin");
+    const { data: profile } = await supabase
+      .from("admin_profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    router.push(adminHomePath(profile?.role));
     router.refresh();
   };
 

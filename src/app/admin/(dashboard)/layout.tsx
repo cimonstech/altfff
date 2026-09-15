@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminSidebar, { type AdminNavItem } from "@/components/admin/AdminSidebar";
 import AdminLayoutExtras from "@/components/admin/AdminLayoutExtras";
+import { formatAdminRoleLabel } from "@/lib/adminRoles";
 
 const NAV_ITEMS: AdminNavItem[] = [
   { label: "Overview", href: "/admin" },
@@ -28,6 +29,12 @@ const NAV_ITEMS: AdminNavItem[] = [
   },
   { label: "News", href: "/admin/news" },
   { label: "Communications", href: "/admin/communications" },
+  { label: "Check-in Overview", href: "/admin/checkin-overview" },
+  { label: "Check-in", href: "/admin/checkin" },
+];
+
+const CHECKIN_STAFF_NAV_ITEMS: AdminNavItem[] = [
+  { label: "Check-in Overview", href: "/admin/checkin-overview" },
   { label: "Check-in", href: "/admin/checkin" },
 ];
 
@@ -68,7 +75,8 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     .single();
 
   const isSuperAdmin = profile?.role === "super_admin";
-  const coreNavItems = NAV_ITEMS;
+  const isCheckinStaff = profile?.role === "checkin_staff";
+  const coreNavItems = isCheckinStaff ? CHECKIN_STAFF_NAV_ITEMS : NAV_ITEMS;
   const superAdminNavItems = isSuperAdmin ? SUPER_ADMIN_NAV_ITEMS : [];
   const navItems = [...coreNavItems, ...superAdminNavItems];
 
@@ -87,7 +95,8 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     badgesByHref[item.href] = badgeCounts[i];
   });
 
-  const userLabel = `${profile?.full_name || user.email}${isSuperAdmin ? " · Super Admin" : ""}`;
+  const roleLabel = formatAdminRoleLabel(profile?.role);
+  const userLabel = `${profile?.full_name || user.email}${roleLabel ? ` · ${roleLabel}` : ""}`;
 
   return (
     <div className="flex min-h-screen flex-col bg-paper md:flex-row">

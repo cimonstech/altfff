@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/adminAuth";
 import { publishToQueue } from "@/lib/qstash";
 import { processRecipient } from "@/lib/communicationDelivery";
 import {
@@ -20,19 +21,13 @@ export const runtime = "nodejs";
 // real pagination limit (matches AdminDataTable's own 500-row cap logic).
 const RECIPIENT_CAP = 2000;
 
-async function requireAdmin(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: NextResponse.json({ ok: false, error: "Not authenticated." }, { status: 401 }) };
-
-  const { data: profile } = await supabase.from("admin_profiles").select("id").eq("id", user.id).single();
-  if (!profile) return { error: NextResponse.json({ ok: false, error: "Forbidden." }, { status: 403 }) };
+async function requireCommunicationsAdmin(request: Request) {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth;
 
   const rate = await checkAdminRateLimit(
     request,
-    user.id,
+    auth.user.id,
     ADMIN_RATE_LIMITS.communicationsSend,
     "admin/communications/send",
   );
@@ -40,7 +35,8 @@ async function requireAdmin(request: Request) {
     return { error: NextResponse.json({ ok: false, error: RATE_LIMIT_ERROR_MESSAGE }, { status: 429 }) };
   }
 
-  return { user, supabase };
+  const supabase = await createClient();
+  return { user: auth.user, supabase };
 }
 
 type SendPayload = {
@@ -71,7 +67,7 @@ type ResolvedRecipient = {
 };
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin(request);
+  const auth = await requireCommunicationsAdmin(request);
   if ("error" in auth) return auth.error;
   const { user, supabase } = auth;
 
