@@ -6,7 +6,11 @@ import type { AuthChangeEvent, RealtimeChannel, Session } from "@supabase/supaba
 import { ScanLine } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import AdminCard from "@/components/admin/AdminCard";
-import { fetchCheckInOverviewCounts, type CheckInOverviewCounts } from "@/lib/checkInOverview";
+import {
+  checkInOverviewListHref,
+  fetchCheckInOverviewCounts,
+  type CheckInOverviewCounts,
+} from "@/lib/checkInOverview";
 
 export type { CheckInOverviewCounts };
 
@@ -42,9 +46,12 @@ async function refetchOverviewCounts(
 export default function CheckInOverviewLive({
   initialCounts,
   variant = "page",
+  compact = false,
 }: {
   initialCounts: CheckInOverviewCounts;
   variant?: "page" | "embed";
+  /** Denser cards for the main admin Overview page. */
+  compact?: boolean;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [counts, setCounts] = useState(initialCounts);
@@ -252,13 +259,23 @@ export default function CheckInOverviewLive({
   }, [supabase, scheduleRefetch]);
 
   const remaining = Math.max(0, counts.preRegisteredConfirmed - counts.checkedIn);
+  const cardPadding = compact ? "sm" : "md";
+  const countClass = compact ? "text-2xl" : "text-3xl";
+  const helperClass = compact ? "mt-1 text-xs text-ink/55" : "mt-2 text-sm text-ink/55";
+  const gridClass =
+    compact && variant === "embed"
+      ? "mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3"
+      : `${variant === "embed" ? "mt-4" : "mt-6"} grid grid-cols-1 gap-5 sm:grid-cols-3`;
+
   const heading = variant === "embed" ? (
-    <div>
-      <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-ink">Check-in</h2>
-      <p className="mt-2 max-w-[65ch] text-sm text-indigo">
-        Live door counts. These update as people check in — no refresh needed.
-      </p>
-    </div>
+    compact ? null : (
+      <div>
+        <h2 className="font-display text-xl font-extrabold uppercase tracking-tight text-ink">Check-in</h2>
+        <p className="mt-2 max-w-[65ch] text-sm text-indigo">
+          Live door counts. These update as people check in — no refresh needed.
+        </p>
+      </div>
+    )
   ) : (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">
@@ -274,35 +291,43 @@ export default function CheckInOverviewLive({
     <div>
       {heading}
 
-      <div className={`${variant === "embed" ? "mt-4" : "mt-6"} grid grid-cols-1 gap-5 sm:grid-cols-3`}>
-        <AdminCard accent="indigo">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+      <div className={gridClass}>
+        <AdminCard accent="indigo" href={checkInOverviewListHref("preRegistered")} padding={cardPadding}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">
             Confirmed pre-registered
           </p>
-          <p className="mt-1 font-display text-3xl font-extrabold text-ink">{counts.preRegisteredConfirmed}</p>
-          <p className="mt-2 text-sm text-ink/55">The potential pool for today.</p>
-        </AdminCard>
-        <AdminCard accent="forest">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">Checked in so far</p>
-          <p className="mt-1 font-display text-3xl font-extrabold text-ink">{counts.checkedIn}</p>
-          <p className="mt-2 text-sm text-ink/55">
-            {remaining} of the confirmed pool still to arrive.
+          <p className={`mt-0.5 font-display font-extrabold text-ink ${countClass}`}>
+            {counts.preRegisteredConfirmed}
           </p>
+          {!compact && (
+            <p className={helperClass}>The potential pool for today. Tap to view list.</p>
+          )}
         </AdminCard>
-        <AdminCard accent="gold">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">Walk-in registrations</p>
-          <p className="mt-1 font-display text-3xl font-extrabold text-ink">{counts.walkIns}</p>
-          <p className="mt-2 text-sm text-ink/55">On-site sign-ups, not QR check-in.</p>
+        <AdminCard accent="forest" href={checkInOverviewListHref("checkedIn")} padding={cardPadding}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">Checked in so far</p>
+          <p className={`mt-0.5 font-display font-extrabold text-ink ${countClass}`}>{counts.checkedIn}</p>
+          {!compact && (
+            <p className={helperClass}>
+              {remaining} of the confirmed pool still to arrive. Tap to view list.
+            </p>
+          )}
+        </AdminCard>
+        <AdminCard accent="gold" href={checkInOverviewListHref("walkIns")} padding={cardPadding}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">Walk-in registrations</p>
+          <p className={`mt-0.5 font-display font-extrabold text-ink ${countClass}`}>{counts.walkIns}</p>
+          {!compact && <p className={helperClass}>On-site sign-ups. Tap to view list.</p>}
         </AdminCard>
       </div>
 
-      <Link
-        href="/admin/checkin"
-        className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
-      >
-        <ScanLine className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
-        Open check-in scanner
-      </Link>
+      {!compact && (
+        <Link
+          href="/admin/checkin"
+          className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-opacity hover:opacity-85"
+        >
+          <ScanLine className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
+          Open check-in scanner
+        </Link>
+      )}
     </div>
   );
 }

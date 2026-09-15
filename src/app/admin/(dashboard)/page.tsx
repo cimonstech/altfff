@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import AdminCard, { type AdminCardAccent } from "@/components/admin/AdminCard";
 import PublicFormsToggleGate from "@/components/admin/PublicFormsToggleGate";
 import CheckInOverviewLive from "@/components/admin/CheckInOverviewLive";
+import AdminOverviewCharts from "@/components/admin/AdminOverviewCharts";
 import { fetchCheckInOverviewCounts } from "@/lib/checkInOverview";
+import { fetchAdminOverviewChartData } from "@/lib/adminOverviewCharts";
 import {
   ADMIN_SECTION_ICONS,
   OVERVIEW_ACCENTS,
@@ -64,55 +66,48 @@ async function getCounts(entity: Entity) {
   return { total, perStatus };
 }
 
-async function getCheckInOverview() {
-  const supabase = await createClient();
-  return fetchCheckInOverviewCounts(supabase);
-}
-
 export default async function AdminOverviewPage() {
-  const [results, checkInCounts] = await Promise.all([
+  const supabase = await createClient();
+  const [results, checkInCounts, chartData] = await Promise.all([
     Promise.all(ENTITIES.map((e) => getCounts(e))),
-    getCheckInOverview(),
+    fetchCheckInOverviewCounts(supabase),
+    fetchAdminOverviewChartData(supabase),
   ]);
 
   return (
     <div>
       <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-ink">Overview</h1>
 
-      <div className="mt-6">
-        <CheckInOverviewLive initialCounts={checkInCounts} variant="embed" />
+      <div className="mt-5">
+        <CheckInOverviewLive initialCounts={checkInCounts} variant="embed" compact />
       </div>
 
-      <PublicFormsToggleGate />
-
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {ENTITIES.map((entity, i) => {
           const { total, perStatus } = results[i];
-          // Only show statuses with at least one row, so a mostly-empty
-          // table doesn't print a wall of "0" lines.
           const nonZero = perStatus.filter((s) => s.count > 0);
           const Icon = ADMIN_SECTION_ICONS[entity.href];
 
           return (
-            <AdminCard key={entity.table} href={entity.href} accent={entity.accent}>
-              <div className="flex items-start justify-between gap-3">
+            <AdminCard key={entity.table} href={entity.href} accent={entity.accent} padding="sm">
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">{entity.label}</p>
-                  <p className="mt-1 font-display text-3xl font-extrabold text-ink">{total}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">{entity.label}</p>
+                  <p className="mt-0.5 font-display text-2xl font-extrabold text-ink">{total}</p>
                 </div>
                 {Icon && (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-paper text-ink/55">
-                    <Icon className="h-[18px] w-[18px]" aria-hidden="true" strokeWidth={1.75} />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-paper text-ink/55">
+                    <Icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
                   </span>
                 )}
               </div>
 
               {nonZero.length > 0 ? (
-                <ul className="mt-4 flex flex-wrap gap-1.5">
+                <ul className="mt-2 flex flex-wrap gap-1">
                   {nonZero.map((s) => (
                     <li key={s.status}>
                       <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold leading-none ${adminStatusPillClass(s.status)}`}
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold leading-none ${adminStatusPillClass(s.status)}`}
                       >
                         {s.count} {formatAdminStatusLabel(s.status)}
                       </span>
@@ -120,11 +115,17 @@ export default async function AdminOverviewPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-4 text-sm text-ink/50">No records yet.</p>
+                <p className="mt-2 text-xs text-ink/50">No records yet.</p>
               )}
             </AdminCard>
           );
         })}
+      </div>
+
+      <AdminOverviewCharts initialData={chartData} />
+
+      <div className="mt-8">
+        <PublicFormsToggleGate />
       </div>
     </div>
   );

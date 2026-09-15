@@ -20,6 +20,7 @@ export default function AdminCard({
   className = "",
   accent = "none",
   href,
+  onClick,
   padding = "md",
 }: {
   children: ReactNode;
@@ -27,16 +28,22 @@ export default function AdminCard({
   accent?: AdminCardAccent;
   /** When set, the card is a navigation link (whole surface clickable). */
   href?: string;
+  /** When set, the card opens an action (e.g. detail modal). Mutually exclusive with href. */
+  onClick?: () => void;
   padding?: "none" | "sm" | "md" | "lg";
 }) {
   const pad =
     padding === "none" ? "p-0" : padding === "sm" ? "p-3" : padding === "lg" ? "p-6" : "p-5";
   const accentClass = accent === "none" ? "" : `border-t-4 ${ACCENT_TOP[accent]}`;
+  const interactiveClass =
+    href || onClick
+      ? "block w-full text-left transition-colors hover:bg-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+      : "";
   const classes = [
     "rounded-md border border-hairline bg-surface",
     pad,
     accentClass,
-    href ? "block transition-colors hover:bg-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" : "",
+    interactiveClass,
     className,
   ]
     .filter(Boolean)
@@ -47,6 +54,14 @@ export default function AdminCard({
       <Link href={href} className={classes}>
         {children}
       </Link>
+    );
+  }
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={classes}>
+        {children}
+      </button>
     );
   }
 

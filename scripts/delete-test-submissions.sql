@@ -48,6 +48,14 @@ as $$
       or p_email ilike 'vetting-test-%@%'
       or p_email ilike 'guard-test-%@%'
       or p_email ilike 'decline-test-%@%'
+      or p_email ilike 'burst-%@%'
+      or p_email ilike 'staff-verify-%@%'
+      or p_email ilike 'checkin-%@%'
+      or p_email ilike 'race15-%@%'
+      or p_email ilike 'race2-%@%'
+      or p_email ilike 'shared-%@%'
+      or p_email ilike 'shared30-%@%'
+      or p_email ilike 'diag-%@%'
 
       -- One-offs from earlier manual / script runs (extend this list if needed)
       or lower(p_email) in (
