@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
@@ -48,6 +48,81 @@ function buildWalkInConfirmationEmail(fullName: string): { subject: string; text
 
 function buildWalkInConfirmationSms(fullName: string): string {
   return buildDoorWelcomeSms(fullName);
+}
+
+type WalkInConfirmationPayload = {
+  email: string;
+  fullName: string;
+  phone: string;
+};
+
+/** Fail-open confirmation email + SMS after the registration row is saved. */
+async function sendWalkInConfirmationComms({
+  email,
+  fullName,
+  phone,
+}: WalkInConfirmationPayload): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  if (apiKey && fromEmail) {
+    try {
+      const resend = new Resend(apiKey);
+      const { subject, textBody } = buildWalkInConfirmationEmail(fullName);
+      const { data: sendData, error: sendError } = await resend.emails.send({
+        from: `Alt.FFF <${fromEmail}>`,
+        to: email,
+        replyTo: "enquiries@altfff.com",
+        subject,
+        text: textBody,
+        html: buildEmailHtml({ heading: "Welcome to Alt.FFF", bodyHtml: textToHtml(textBody) }),
+      });
+      if (sendError) {
+        console.error("Resend error (walk-in registration):", sendError);
+        reportServerError(sendError, {
+          route: "/api/walk-in-registrations",
+          kind: "email",
+          extra: { op: "submitter_confirmation" },
+        });
+      } else {
+        console.log("Resend accepted (walk-in registration), message id:", sendData?.id);
+      }
+    } catch (err) {
+      console.error("Walk-in registration confirmation email failed:", err);
+      reportServerError(err, {
+        route: "/api/walk-in-registrations",
+        kind: "email",
+        extra: { op: "resend_throw" },
+      });
+    }
+  } else {
+    console.error(
+      !apiKey
+        ? "RESEND_API_KEY is not set - walk-in confirmation email was not sent."
+        : "RESEND_FROM_EMAIL is not set - walk-in confirmation email was not sent.",
+    );
+  }
+
+  try {
+    const smsMessage = buildWalkInConfirmationSms(fullName);
+    const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome");
+    if (!smsResult.success) {
+      console.error("[walk-in] SMS failed (registration still saved):", smsResult.error);
+      reportServerError(new Error(smsResult.error ?? "Walk-in SMS failed"), {
+        route: "/api/walk-in-registrations",
+        kind: "sms",
+        extra: { op: "walk_in_confirmation", failOpen: true },
+      });
+    } else {
+      console.log("[walk-in] SMS accepted for walk-in confirmation.");
+    }
+  } catch (err) {
+    console.error("[walk-in] SMS threw (registration still saved):", err);
+    reportServerError(err, {
+      route: "/api/walk-in-registrations",
+      kind: "sms",
+      extra: { op: "walk_in_confirmation_throw", failOpen: true },
+    });
+  }
 }
 
 export async function POST(request: Request) {
@@ -161,67 +236,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL;
-  if (apiKey && fromEmail) {
-    try {
-      const resend = new Resend(apiKey);
-      const { subject, textBody } = buildWalkInConfirmationEmail(fullName);
-      const { data: sendData, error: sendError } = await resend.emails.send({
-        from: `Alt.FFF <${fromEmail}>`,
-        to: email,
-        replyTo: "enquiries@altfff.com",
-        subject,
-        text: textBody,
-        html: buildEmailHtml({ heading: "Welcome to Alt.FFF", bodyHtml: textToHtml(textBody) }),
-      });
-      if (sendError) {
-        console.error("Resend error (walk-in registration):", sendError);
-        reportServerError(sendError, {
-          route: "/api/walk-in-registrations",
-          kind: "email",
-          extra: { op: "submitter_confirmation" },
-        });
-      } else {
-        console.log("Resend accepted (walk-in registration), message id:", sendData?.id);
-      }
-    } catch (err) {
-      console.error("Walk-in registration confirmation email failed:", err);
-      reportServerError(err, {
-        route: "/api/walk-in-registrations",
-        kind: "email",
-        extra: { op: "resend_throw" },
-      });
-    }
-  } else {
-    console.error(
-      !apiKey
-        ? "RESEND_API_KEY is not set - walk-in confirmation email was not sent."
-        : "RESEND_FROM_EMAIL is not set - walk-in confirmation email was not sent.",
-    );
-  }
-
-  try {
-    const smsMessage = buildWalkInConfirmationSms(fullName);
-    const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome");
-    if (!smsResult.success) {
-      console.error("[walk-in] SMS failed (registration still saved):", smsResult.error);
-      reportServerError(new Error(smsResult.error ?? "Walk-in SMS failed"), {
-        route: "/api/walk-in-registrations",
-        kind: "sms",
-        extra: { op: "walk_in_confirmation", failOpen: true },
-      });
-    } else {
-      console.log("[walk-in] SMS accepted for walk-in confirmation.");
-    }
-  } catch (err) {
-    console.error("[walk-in] SMS threw (registration still saved):", err);
-    reportServerError(err, {
-      route: "/api/walk-in-registrations",
-      kind: "sms",
-      extra: { op: "walk_in_confirmation_throw", failOpen: true },
-    });
-  }
+  after(() => sendWalkInConfirmationComms({ email, fullName, phone }));
 
   return NextResponse.json({ ok: true });
 }

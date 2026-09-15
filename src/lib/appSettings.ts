@@ -25,14 +25,14 @@ const FAIL_CLOSED: FormToggleState = {
   visit: false,
 };
 
-async function readFormToggleValues(): Promise<FormToggleState> {
+async function readFormToggleValues(): Promise<FormToggleState | null> {
   const supabase = createAnonClient();
   const keys = Object.values(FORM_TOGGLE_SETTING_KEYS);
   const { data, error } = await supabase.from("app_settings").select("key, value").in("key", keys);
 
   if (error) {
     console.error("[app_settings] failed to read form toggles:", error.message);
-    return FAIL_CLOSED;
+    return null;
   }
 
   const byKey = new Map((data ?? []).map((row) => [row.key, row.value === true]));
@@ -56,7 +56,13 @@ async function isFormEnabled(form: FormToggleForm): Promise<boolean> {
   return data?.value === true;
 }
 
+/** Fail-closed snapshot for submit gates and SSR fallbacks. */
 export async function readFormToggleState(): Promise<FormToggleState> {
+  return (await readFormToggleValues()) ?? FAIL_CLOSED;
+}
+
+/** Display/client snapshot — null means the read failed, not that forms are off. */
+export async function tryReadFormToggleState(): Promise<FormToggleState | null> {
   return readFormToggleValues();
 }
 

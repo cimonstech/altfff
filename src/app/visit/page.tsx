@@ -10,7 +10,6 @@ import VisitRegisterForm from "@/components/VisitRegisterForm";
 import { EventStructuredData } from "@/components/structured-data";
 import { buildMetadata } from "@/lib/metadata";
 import { EVENT } from "@/lib/constants";
-import { isVisitFormEnabled } from "@/lib/appSettings";
 
 export const metadata: Metadata = buildMetadata({
   title: "Visit Alt.FFF 2026 - Plan Your Visit",
@@ -26,9 +25,7 @@ const VALUE_PROPS = [
   EVENT.tradeFairDateLabel,
 ];
 
-export default async function VisitPage() {
-  const visitFormEnabled = await isVisitFormEnabled();
-
+export default function VisitPage() {
   return (
     <>
       <EventStructuredData />
@@ -54,7 +51,7 @@ export default async function VisitPage() {
               event.
             </p>
             <div className="mt-10">
-              <VisitRegisterForm formsEnabled={visitFormEnabled} />
+              <VisitRegisterForm />
             </div>
           </div>
         </section>

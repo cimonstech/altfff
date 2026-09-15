@@ -9,16 +9,13 @@ export { RATE_LIMIT_ERROR_MESSAGE };
  * Public form rate limits. Easy to retune without hunting magic numbers:
  * 5 attempts / 10 minutes is loose enough for a human fixing validation
  * errors, tight enough to stop a script hammering an endpoint.
+ *
+ * Walk-in uses a higher per-IP ceiling — venue WiFi often shares one public
+ * IP across a cluster registering at the door.
  */
 export const RATE_LIMIT_MAX_REQUESTS = 5;
+export const WALK_IN_RATE_LIMIT_MAX_REQUESTS = 30;
 export const RATE_LIMIT_WINDOW = "10 m" as const;
-
-/** Admin routes — authenticated but still capped against scripted abuse. */
-export const ADMIN_RATE_LIMITS = {
-  communicationsSend: { max: 10, window: "10 m" as const, prefix: "altfff:admin:comms" },
-  uploadUrl: { max: 30, window: "10 m" as const, prefix: "altfff:admin:upload" },
-  checkin: { max: 120, window: "10 m" as const, prefix: "altfff:admin:checkin" },
-} as const;
 
 export type PublicFormRoute =
   | "contact"
@@ -26,6 +23,28 @@ export type PublicFormRoute =
   | "sponsor-inquiries"
   | "visitor-registrations"
   | "walk-in-registrations";
+
+/** Per-route public limits (defaults to RATE_LIMIT_MAX_REQUESTS when omitted). */
+export const PUBLIC_FORM_RATE_LIMITS: Record<
+  PublicFormRoute,
+  { max: number; window: typeof RATE_LIMIT_WINDOW }
+> = {
+  contact: { max: RATE_LIMIT_MAX_REQUESTS, window: RATE_LIMIT_WINDOW },
+  "exhibitor-applications": { max: RATE_LIMIT_MAX_REQUESTS, window: RATE_LIMIT_WINDOW },
+  "sponsor-inquiries": { max: RATE_LIMIT_MAX_REQUESTS, window: RATE_LIMIT_WINDOW },
+  "visitor-registrations": { max: RATE_LIMIT_MAX_REQUESTS, window: RATE_LIMIT_WINDOW },
+  "walk-in-registrations": { max: WALK_IN_RATE_LIMIT_MAX_REQUESTS, window: RATE_LIMIT_WINDOW },
+};
+
+/**
+ * Admin check-in: scans every few seconds during a rush, plus name lookups on
+ * the same bucket — err generous so staff never hit 429 mid-shift.
+ */
+export const ADMIN_RATE_LIMITS = {
+  communicationsSend: { max: 10, window: "10 m" as const, prefix: "altfff:admin:comms" },
+  uploadUrl: { max: 30, window: "10 m" as const, prefix: "altfff:admin:upload" },
+  checkin: { max: 600, window: "10 m" as const, prefix: "altfff:admin:checkin" },
+} as const;
 
 /**
  * Lazy construction - same build-safety pattern as qstash/r2/supabase
@@ -39,11 +58,11 @@ export type PublicFormRoute =
  * pattern of hard failures taught that lesson. Rate limiting is a
  * safety net, not a hard dependency of the submit path.
  */
-let cachedLimiter: Ratelimit | null = null;
 let missingEnvWarned = false;
+const publicLimiterCache = new Map<string, Ratelimit>();
 const adminLimiterCache = new Map<string, Ratelimit>();
 
-function getLimiter(): Ratelimit | null {
+function getPublicLimiter(max: number, window: Duration): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
@@ -56,15 +75,19 @@ function getLimiter(): Ratelimit | null {
     return null;
   }
 
-  if (!cachedLimiter) {
-    cachedLimiter = new Ratelimit({
-      redis: new Redis({ url, token }),
-      limiter: Ratelimit.slidingWindow(RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW),
-      prefix: "altfff:form",
-      analytics: false,
-    });
+  const cacheKey = `${max}:${window}`;
+  if (!publicLimiterCache.has(cacheKey)) {
+    publicLimiterCache.set(
+      cacheKey,
+      new Ratelimit({
+        redis: new Redis({ url, token }),
+        limiter: Ratelimit.slidingWindow(max, window),
+        prefix: "altfff:form",
+        analytics: false,
+      }),
+    );
   }
-  return cachedLimiter;
+  return publicLimiterCache.get(cacheKey)!;
 }
 
 function getAdminLimiter(max: number, window: Duration, prefix: string): Ratelimit | null {
@@ -127,7 +150,8 @@ export async function checkPublicFormRateLimit(
   request: Request,
   route: PublicFormRoute,
 ): Promise<{ success: boolean }> {
-  const limiter = getLimiter();
+  const config = PUBLIC_FORM_RATE_LIMITS[route];
+  const limiter = getPublicLimiter(config.max, config.window);
   if (!limiter) return { success: true };
 
   const ip = getClientIp(request);

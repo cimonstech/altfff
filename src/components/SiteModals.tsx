@@ -47,21 +47,32 @@ export function SiteModalsProvider({
 
   const refreshFormToggles = useCallback(async () => {
     const next = await fetchFormToggleStateClient();
-    setFormToggles(next);
+    if (next) setFormToggles(next);
     return next;
   }, []);
 
   const openExhibitModal = useCallback(() => {
     void (async () => {
       const toggles = await refreshFormToggles();
-      setOpen(toggles.exhibitor ? "exhibit" : "closed");
+      if (toggles) {
+        setOpen(toggles.exhibitor ? "exhibit" : "closed");
+        return;
+      }
+      // Unconfirmed read — don't treat an outage as "applications closed".
+      setFormToggles((prev) => ({ ...prev, exhibitor: true }));
+      setOpen("exhibit");
     })();
   }, [refreshFormToggles]);
 
   const openVisitorModal = useCallback(() => {
     void (async () => {
       const toggles = await refreshFormToggles();
-      setOpen(toggles.visit ? "visitor" : "closed");
+      if (toggles) {
+        setOpen(toggles.visit ? "visitor" : "closed");
+        return;
+      }
+      setFormToggles((prev) => ({ ...prev, visit: true }));
+      setOpen("visitor");
     })();
   }, [refreshFormToggles]);
 
