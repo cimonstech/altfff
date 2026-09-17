@@ -631,25 +631,51 @@ function History({ refreshToken }: { refreshToken: number }) {
 function HistoryDetail({ log, supabase }: { log: CommunicationLogRow; supabase: ReturnType<typeof createClient> }) {
   const [recipients, setRecipients] = useState<RecipientRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
+
+  const loadRecipients = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("communication_recipients")
+      .select("id, recipient_email, recipient_phone, recipient_name, status, sent_at, error_message")
+      .eq("communication_id", log.id)
+      .order("created_at", { ascending: true });
+    if (error) console.error("Failed to load recipient breakdown:", error);
+    setRecipients((data ?? []) as RecipientRow[]);
+    setLoading(false);
+  }, [supabase, log.id]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("communication_recipients")
-        .select("id, recipient_email, recipient_phone, recipient_name, status, sent_at, error_message")
-        .eq("communication_id", log.id)
-        .order("created_at", { ascending: true });
-      if (cancelled) return;
-      if (error) console.error("Failed to load recipient breakdown:", error);
-      setRecipients((data ?? []) as RecipientRow[]);
-      setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, log.id]);
+    void loadRecipients();
+  }, [loadRecipients]);
+
+  const failedCount = recipients.filter((r) => r.status === "failed").length;
+
+  const handleRetryFailed = async () => {
+    setRetrying(true);
+    setRetryMessage(null);
+    try {
+      const res = await fetch("/api/admin/communications/retry-failed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ communicationId: log.id }),
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string; queuedCount?: number; retriedCount?: number };
+      if (!res.ok || !data.ok) {
+        setRetryMessage(data.error ?? "Retry failed.");
+        return;
+      }
+      setRetryMessage(
+        `Retry queued for ${data.queuedCount ?? data.retriedCount ?? failedCount} recipient(s). Delivery runs in the background.`,
+      );
+      await loadRecipients();
+    } catch {
+      setRetryMessage("Retry failed — check your connection and try again.");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const handleExportCsv = () => {
     const headers = ["Recipient", "Email", "Phone", "Status", "Sent At", "Error"];
@@ -678,19 +704,34 @@ function HistoryDetail({ log, supabase }: { log: CommunicationLogRow; supabase: 
         {formatDateTime(log.created_at)} · status: {log.status} · sent by: {formatSenderLabel(log)}
       </p>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
           Recipients{!loading ? ` (${recipients.length})` : ""}
+          {!loading && failedCount > 0 ? ` · ${failedCount} failed` : ""}
         </p>
-        <button
-          type="button"
-          onClick={handleExportCsv}
-          disabled={loading || recipients.length === 0}
-          className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-1.5 text-xs font-medium text-ink hover:bg-paper disabled:opacity-50"
-        >
-          Export CSV
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {failedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => void handleRetryFailed()}
+              disabled={loading || retrying}
+              className="inline-flex min-h-11 items-center rounded-full border border-madder/30 bg-madder/5 px-4 py-1.5 text-xs font-medium text-madder hover:bg-madder/10 disabled:opacity-50"
+            >
+              {retrying ? "Retrying…" : `Retry failed (${failedCount})`}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={loading || recipients.length === 0}
+            className="inline-flex min-h-11 items-center rounded-full border border-hairline px-4 py-1.5 text-xs font-medium text-ink hover:bg-paper disabled:opacity-50"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
+
+      {retryMessage && <p className="mt-3 text-sm text-ink/70">{retryMessage}</p>}
 
       <div className="mt-3">
         {loading ? (

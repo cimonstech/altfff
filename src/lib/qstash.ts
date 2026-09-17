@@ -25,9 +25,23 @@ function getQstashClient(): Client {
   return cachedClient;
 }
 
+type PublishOptions = {
+  /** Whole seconds before QStash delivers the message (used to stagger bulk sends). */
+  delaySeconds?: number;
+};
+
 /** Publishes a JSON payload to an absolute path on this deployment via QStash. */
-export async function publishToQueue(path: string, body: unknown): Promise<{ messageId: string }> {
+export async function publishToQueue(
+  path: string,
+  body: unknown,
+  options?: PublishOptions,
+): Promise<{ messageId: string }> {
   const url = `${getSiteUrl()}${path}`;
-  const result = await getQstashClient().publishJSON({ url, body });
+  const delay = options?.delaySeconds;
+  const result = await getQstashClient().publishJSON({
+    url,
+    body,
+    ...(typeof delay === "number" && delay > 0 ? { delay } : {}),
+  });
   return { messageId: result.messageId };
 }

@@ -1,8 +1,65 @@
 import { Resend } from "resend";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSms } from "@/lib/sms";
-import { interpolateMergeFields, type Channel } from "@/lib/communications";
+import {
+  AUDIENCE_CONFIG,
+  getMergeFieldValues,
+  interpolateMergeFields,
+  type AudienceType,
+  type Channel,
+} from "@/lib/communications";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
+
+/** Resend free/pro default: 10 requests/sec — stay under that when queueing bulk sends. */
+export const RESEND_SENDS_PER_SECOND = 8;
+
+export class CommunicationRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CommunicationRateLimitError";
+  }
+}
+
+function isResendRateLimitError(message: string): boolean {
+  return /too many requests/i.test(message) || /rate limit/i.test(message);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendCommunicationEmail(
+  resend: Resend,
+  params: {
+    fromEmail: string;
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  },
+): Promise<{ id?: string }> {
+  const maxAttempts = 4;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const { data, error } = await resend.emails.send({
+      from: `Alt.FFF <${params.fromEmail}>`,
+      to: params.to,
+      subject: params.subject,
+      text: params.text,
+      html: params.html,
+    });
+    if (!error) return { id: data?.id };
+
+    if (isResendRateLimitError(error.message) && attempt < maxAttempts - 1) {
+      await sleep(400 * (attempt + 1));
+      continue;
+    }
+    if (isResendRateLimitError(error.message)) {
+      throw new CommunicationRateLimitError(error.message);
+    }
+    throw new Error(error.message);
+  }
+  throw new CommunicationRateLimitError("Email rate limit exceeded.");
+}
 
 /**
  * SERVER-ONLY. Delivers one communication to one recipient and updates its
@@ -54,10 +111,8 @@ export async function processRecipient(
       } else {
         try {
           const resend = new Resend(apiKey);
-          // TEMPORARY: RESEND_FROM_EMAIL is a borrowed-domain sender address,
-          // same as every other outbound email route in this project.
-          const { data: sendData, error: sendError } = await resend.emails.send({
-            from: `Alt.FFF <${fromEmail}>`,
+          const sendData = await sendCommunicationEmail(resend, {
+            fromEmail,
             to: email,
             subject: interpolatedSubject || "Alt.FFF",
             text: interpolatedBody,
@@ -66,12 +121,10 @@ export async function processRecipient(
               bodyHtml: textToHtml(interpolatedBody),
             }),
           });
-          if (sendError) errors.push(`Email: ${sendError.message}`);
-          else {
-            anySucceeded = true;
-            console.log("Resend accepted (communication):", params.communicationId, sendData?.id);
-          }
+          anySucceeded = true;
+          console.log("Resend accepted (communication):", params.communicationId, sendData.id);
         } catch (err) {
+          if (err instanceof CommunicationRateLimitError) throw err;
           errors.push(`Email: ${err instanceof Error ? err.message : "send failed"}`);
         }
       }
@@ -110,6 +163,40 @@ export async function processRecipient(
   }
 
   await recomputeCommunicationStatus(supabase, params.communicationId);
+}
+
+/** Rebuild merge fields for a failed recipient retry (name snapshot + table re-fetch when needed). */
+export async function resolveRetryMergeFields(
+  supabase: SupabaseClient,
+  audienceType: string,
+  recipient: {
+    recipient_email: string | null;
+    recipient_name: string | null;
+  },
+): Promise<Record<string, string>> {
+  const fallback = { name: recipient.recipient_name ?? "" };
+
+  if (audienceType === "custom") return fallback;
+
+  const audience = audienceType as AudienceType;
+  if (!(audience in AUDIENCE_CONFIG)) return fallback;
+
+  const config = AUDIENCE_CONFIG[audience];
+  if (!recipient.recipient_email) return fallback;
+
+  const { data } = await supabase
+    .from(config.table)
+    .select(config.selectColumns)
+    .eq("email", recipient.recipient_email)
+    .maybeSingle();
+
+  if (!data) return fallback;
+  return getMergeFieldValues(audience, data as unknown as Record<string, unknown>);
+}
+
+export function queueDelaySecondsForIndex(index: number, sendsEmail: boolean): number {
+  if (!sendsEmail) return 0;
+  return Math.floor(index / RESEND_SENDS_PER_SECOND);
 }
 
 async function recomputeCommunicationStatus(supabase: SupabaseClient, communicationId: string): Promise<void> {

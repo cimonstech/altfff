@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/adminAuth";
 import { publishToQueue } from "@/lib/qstash";
-import { processRecipient } from "@/lib/communicationDelivery";
+import { processRecipient, queueDelaySecondsForIndex } from "@/lib/communicationDelivery";
 import {
   AUDIENCE_CONFIG,
   AUDIENCE_TYPES,
@@ -262,14 +262,19 @@ export async function POST(request: Request) {
   // clean JSON response, never an uncaught crash.
   let queuedCount = 0;
   let failedCount = 0;
+  const sendsEmail = channel === "email" || channel === "both";
   try {
     const results = await Promise.allSettled(
-      jobs.map((job) =>
-        publishToQueue("/api/admin/communications/process-recipient", {
-          communicationId: log.id,
-          recipientId: job.recipientId,
-          mergeFields: job.mergeFields,
-        }),
+      jobs.map((job, index) =>
+        publishToQueue(
+          "/api/admin/communications/process-recipient",
+          {
+            communicationId: log.id,
+            recipientId: job.recipientId,
+            mergeFields: job.mergeFields,
+          },
+          { delaySeconds: queueDelaySecondsForIndex(index, sendsEmail) },
+        ),
       ),
     );
 
