@@ -15,6 +15,7 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   exhibitor_form_toggled: "Exhibitor form toggled",
   visit_form_toggled: "Visit form toggled",
   visitor_checked_in: "Visitor checked in",
+  visitor_confirmation_resent: "Visitor confirmation resent",
 };
 
 export const ACTIVITY_ACTIONS = Object.keys(ACTIVITY_ACTION_LABELS);
@@ -100,6 +101,15 @@ export function formatActivitySummary(
       if (who && method === "manual_lookup") return `Checked in ${who} (name/email lookup)`;
       if (who && method === "qr") return `Checked in ${who} (QR)`;
       if (who) return `Checked in ${who}`;
+      break;
+    }
+    case "visitor_confirmation_resent": {
+      const who = str(details.name) || str(details.email);
+      if (who) {
+        return details.email_sent === false
+          ? `Resent confirmation to ${who} (email failed)`
+          : `Resent confirmation to ${who}`;
+      }
       break;
     }
   }

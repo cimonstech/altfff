@@ -18,8 +18,8 @@ type Props = {
 };
 
 export default function VisitorDetailPanel({ row, onRowUpdated, compact = false }: Props) {
-  const [busy, setBusy] = useState<"approve" | "decline" | null>(null);
-  const [lastFailedAction, setLastFailedAction] = useState<"approve" | "decline" | null>(null);
+  const [busy, setBusy] = useState<"approve" | "decline" | "resend" | null>(null);
+  const [lastAction, setLastAction] = useState<"approve" | "decline" | "resend" | null>(null);
   const [actionMessage, setActionMessage] = useState<{ tone: "ok" | "warn" | "error"; text: string } | null>(
     null,
   );
@@ -28,6 +28,8 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
   const source = typeof row.source === "string" ? row.source : "pre_registered";
   const isWalkIn = source === "walk_in";
   const id = row.id as string;
+  const qrToken = typeof row.qr_token === "string" ? row.qr_token.trim() : "";
+  const canResendConfirmation = status === "confirmed" && qrToken.length > 0;
   const qrIssuedAt = typeof row.qr_issued_at === "string" ? row.qr_issued_at : null;
   const checkedInAt = typeof row.checked_in_at === "string" ? row.checked_in_at : null;
   const checkedInBy = typeof row.checked_in_by_email === "string" ? row.checked_in_by_email : null;
@@ -38,7 +40,7 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
 
     setBusy(action);
     setActionMessage(null);
-    setLastFailedAction(null);
+    setLastAction(null);
     try {
       const res = await fetch(`/api/admin/visitors/${id}/${action}`, { method: "POST" });
       const data = (await res.json()) as {
@@ -48,11 +50,12 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
         warning?: string;
       };
       if (!res.ok || !data.ok || !data.row) {
-        setLastFailedAction(action);
+        setLastAction(action);
         setActionMessage({ tone: "error", text: data.error || `${label} failed.` });
         return;
       }
       onRowUpdated(data.row);
+      setLastAction(action);
       if (data.warning) {
         setActionMessage({ tone: "warn", text: data.warning });
       } else {
@@ -62,8 +65,48 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
         });
       }
     } catch {
-      setLastFailedAction(action);
+      setLastAction(action);
       setActionMessage({ tone: "error", text: `${label} failed - network error.` });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runResendConfirmation = async () => {
+    if (
+      !window.confirm(
+        "Resend the original confirmation email with the same QR code and PDF ticket? Their existing entry code will not change.",
+      )
+    ) {
+      return;
+    }
+
+    setBusy("resend");
+    setActionMessage(null);
+    setLastAction(null);
+    try {
+      const res = await fetch(`/api/admin/visitors/${id}/resend-confirmation`, { method: "POST" });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        row?: Record<string, unknown>;
+        error?: string;
+        warning?: string;
+      };
+      if (!res.ok || !data.ok) {
+        setLastAction("resend");
+        setActionMessage({ tone: "error", text: data.error || "Resend failed." });
+        return;
+      }
+      if (data.row) onRowUpdated(data.row);
+      setLastAction("resend");
+      if (data.warning) {
+        setActionMessage({ tone: "warn", text: data.warning });
+      } else {
+        setActionMessage({ tone: "ok", text: "Confirmation email resent with the same QR code." });
+      }
+    } catch {
+      setLastAction("resend");
+      setActionMessage({ tone: "error", text: "Resend failed - network error." });
     } finally {
       setBusy(null);
     }
@@ -118,14 +161,44 @@ export default function VisitorDetailPanel({ row, onRowUpdated, compact = false 
               {busy === "decline" ? "Declining…" : "Decline"}
             </button>
           </div>
-          {actionMessage?.tone === "error" && lastFailedAction && (
+          {actionMessage?.tone === "error" && (lastAction === "approve" || lastAction === "decline") && (
             <InlineErrorMessage
               className="mt-2"
               message={actionMessage.text}
-              onRetry={() => void runAction(lastFailedAction)}
+              onRetry={() => lastAction && void runAction(lastAction)}
             />
           )}
-          {actionMessage && actionMessage.tone !== "error" && (
+          {actionMessage && actionMessage.tone !== "error" && (lastAction === "approve" || lastAction === "decline") && (
+            <p className={`mt-2 text-sm ${messageClass}`}>{actionMessage.text}</p>
+          )}
+        </div>
+      )}
+
+      {canResendConfirmation && (
+        <div className="rounded-md border border-forest/30 bg-forest/10 p-4">
+          <p className="text-sm font-medium text-ink">Confirmed visitor</p>
+          <p className="mt-1 text-xs text-ink/60">
+            Resend the original confirmation email with the same QR code and PDF ticket. This does not issue a new
+            entry code.
+          </p>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => void runResendConfirmation()}
+              disabled={busy !== null}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-forest px-5 py-2 text-sm font-semibold text-paper hover:opacity-90 disabled:opacity-50"
+            >
+              {busy === "resend" ? "Sending…" : "Resend confirmation email"}
+            </button>
+          </div>
+          {actionMessage?.tone === "error" && lastAction === "resend" && (
+            <InlineErrorMessage
+              className="mt-2"
+              message={actionMessage.text}
+              onRetry={() => void runResendConfirmation()}
+            />
+          )}
+          {actionMessage && lastAction === "resend" && actionMessage.tone !== "error" && (
             <p className={`mt-2 text-sm ${messageClass}`}>{actionMessage.text}</p>
           )}
         </div>

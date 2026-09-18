@@ -141,6 +141,13 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
   }
 }
 
+/** Re-send the original approval email using the visitor's existing qr_token (no DB changes). */
+export async function resendVisitorConfirmationEmail(visitor: VisitorRow): Promise<boolean> {
+  const token = visitor.qr_token?.trim();
+  if (!token) return false;
+  return sendVisitorApprovedEmail(visitor, token);
+}
+
 export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boolean> {
   const client = resendClient();
   if (!client) {
