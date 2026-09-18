@@ -2,6 +2,12 @@ import QRCode from "qrcode";
 import { Resend } from "resend";
 import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, escapeHtml, textToHtml } from "@/lib/emailTemplate";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 import { reportServerError } from "@/lib/sentryReport";
 import { generateVisitorTicketPdf } from "@/lib/visitorTicketPdf";
 
@@ -62,10 +68,42 @@ export async function qrCodePngForToken(token: string): Promise<Buffer> {
   });
 }
 
-export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: string): Promise<boolean> {
+export type VisitorApprovedEmailOptions = {
+  messageType?: string;
+  batchId?: string | null;
+};
+
+function resolveApprovedEmailOptions(
+  messageTypeOrOptions?: string | VisitorApprovedEmailOptions,
+): VisitorApprovedEmailOptions {
+  if (typeof messageTypeOrOptions === "string") {
+    return { messageType: messageTypeOrOptions };
+  }
+  return messageTypeOrOptions ?? {};
+}
+
+export async function sendVisitorApprovedEmail(
+  visitor: VisitorRow,
+  qrToken: string,
+  messageTypeOrOptions?: string | VisitorApprovedEmailOptions,
+): Promise<boolean> {
+  const { messageType = MESSAGE_TYPES.visitorApprovalQr, batchId = null } =
+    resolveApprovedEmailOptions(messageTypeOrOptions);
   const client = resendClient();
   if (!client) {
     console.error("RESEND is not configured - visitor approval QR email was not sent.");
+    logMessageFireAndForget({
+      channel: "email",
+      messageType,
+      status: "failed",
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Your Alt.FFF visit is confirmed - QR code inside",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      batchId,
+      errorDetail: "Email sending is not configured.",
+    });
     return false;
   }
 
@@ -127,8 +165,31 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
         kind: "email",
         extra: { op: "visitor_approved", visitor_id: visitor.id },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType,
+        status: emailStatusFromResendError(error),
+        recipientEmail: visitor.email,
+        recipientName: visitor.full_name,
+        subjectOrSummary: "Your Alt.FFF visit is confirmed - QR code inside",
+        relatedTable: "visitor_registrations",
+        relatedId: visitor.id,
+        batchId,
+        errorDetail: error.message,
+      });
       return false;
     }
+    logMessageFireAndForget({
+      channel: "email",
+      messageType,
+      status: "sent",
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Your Alt.FFF visit is confirmed - QR code inside",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      batchId,
+    });
     return true;
   } catch (err) {
     console.error("Visitor approval email failed:", err);
@@ -136,6 +197,18 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
       route: "visitor-vetting",
       kind: "email",
       extra: { op: "visitor_approved_throw", visitor_id: visitor.id },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Your Alt.FFF visit is confirmed - QR code inside",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      batchId,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
     return false;
   }
@@ -145,7 +218,7 @@ export async function sendVisitorApprovedEmail(visitor: VisitorRow, qrToken: str
 export async function resendVisitorConfirmationEmail(visitor: VisitorRow): Promise<boolean> {
   const token = visitor.qr_token?.trim();
   if (!token) return false;
-  return sendVisitorApprovedEmail(visitor, token);
+  return sendVisitorApprovedEmail(visitor, token, MESSAGE_TYPES.visitorConfirmationResend);
 }
 
 export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boolean> {
@@ -185,8 +258,29 @@ export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boo
         kind: "email",
         extra: { op: "visitor_declined", visitor_id: visitor.id },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.visitorDeclined,
+        status: emailStatusFromResendError(error),
+        recipientEmail: visitor.email,
+        recipientName: visitor.full_name,
+        subjectOrSummary: "Update on your Alt.FFF registration",
+        relatedTable: "visitor_registrations",
+        relatedId: visitor.id,
+        errorDetail: error.message,
+      });
       return false;
     }
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.visitorDeclined,
+      status: "sent",
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Update on your Alt.FFF registration",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+    });
     return true;
   } catch (err) {
     console.error("Visitor decline email failed:", err);
@@ -194,6 +288,17 @@ export async function sendVisitorDeclinedEmail(visitor: VisitorRow): Promise<boo
       route: "visitor-vetting",
       kind: "email",
       extra: { op: "visitor_declined_throw", visitor_id: visitor.id },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.visitorDeclined,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Update on your Alt.FFF registration",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
     return false;
   }

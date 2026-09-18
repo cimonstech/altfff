@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AdminUser } from "@/lib/adminAuth";
 import { formatCheckInTime, visitorDisplayName } from "@/lib/visitorVetting";
 import { buildDoorWelcomeSms, sendSms } from "@/lib/sms";
+import { MESSAGE_TYPES } from "@/lib/messageLog";
 import { reportServerError } from "@/lib/sentryReport";
 
 export type CheckInMethod = "qr" | "manual_lookup";
@@ -227,7 +228,14 @@ export async function sendCheckInWelcomeSms(visitor: CheckInVisitor): Promise<vo
   if (!phone) return;
 
   try {
-    const result = await sendSms(phone, buildCheckInWelcomeSms(visitor.full_name), "AltFFF Check-in Welcome");
+    const result = await sendSms(phone, buildCheckInWelcomeSms(visitor.full_name), "AltFFF Check-in Welcome", {
+      messageType: MESSAGE_TYPES.checkInWelcomeSms,
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Check-in welcome SMS",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+    });
     if (!result.success) {
       console.error("[check-in] SMS failed (visitor still checked in):", result.error);
       reportServerError(new Error(result.error ?? "Check-in SMS failed"), {

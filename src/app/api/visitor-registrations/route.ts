@@ -25,6 +25,12 @@ import {
   withRegistrationEmailLock,
 } from "@/lib/registrationDuplicates";
 import { isVisitFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 
 export const runtime = "nodejs";
 
@@ -101,8 +107,9 @@ export async function POST(request: Request) {
   } = parsed.data;
   const newsletterOptIn = parseNewsletterOptIn(newsletter);
 
+  let registrationId: string;
   try {
-    await withRegistrationEmailLock("visitor", email, async () => {
+    registrationId = await withRegistrationEmailLock("visitor", email, async () => {
       const existing = await findBlockingRegistrationByEmail(
         "visitor_registrations",
         email,
@@ -113,22 +120,28 @@ export async function POST(request: Request) {
       }
 
       const supabase = createAnonClient();
-      const { error: insertError } = await supabase.from("visitor_registrations").insert({
-        email,
-        full_name: fullName || null,
-        phone: phone || null,
-        company_name: companyName || null,
-        social_media_website: socialMediaWebsite || null,
-        country: resolveCountryValue(country, countryOther),
-        interest: resolveInterestValue(interest, interestOther),
-        business_type: businessType || null,
-        heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
-        newsletter_opt_in: newsletterOptIn,
-      });
+      const { data: inserted, error: insertError } = await supabase
+        .from("visitor_registrations")
+        .insert({
+          email,
+          full_name: fullName || null,
+          phone: phone || null,
+          company_name: companyName || null,
+          social_media_website: socialMediaWebsite || null,
+          country: resolveCountryValue(country, countryOther),
+          interest: resolveInterestValue(interest, interestOther),
+          business_type: businessType || null,
+          heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
+          newsletter_opt_in: newsletterOptIn,
+        })
+        .select("id")
+        .single();
 
-      if (insertError) {
-        throw insertError;
+      if (insertError || !inserted) {
+        throw insertError ?? new Error("visitor insert returned no row");
       }
+
+      return inserted.id as string;
     });
   } catch (err) {
     if (err instanceof DuplicateRegistrationError) {
@@ -171,6 +184,17 @@ export async function POST(request: Request) {
         ? "RESEND_API_KEY is not set - visitor registration confirmation email was not sent."
         : "RESEND_FROM_EMAIL is not set - visitor registration confirmation email was not sent.",
     );
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.visitorRegistrationConfirmation,
+      status: "failed",
+      recipientEmail: email,
+      recipientName: fullName,
+      subjectOrSummary: "Alt.FFF visit registration received",
+      relatedTable: "visitor_registrations",
+      relatedId: registrationId,
+      errorDetail: "Email sending is not configured.",
+    });
     return NextResponse.json({ ok: true });
   }
 
@@ -206,8 +230,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "submitter_confirmation" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.visitorRegistrationConfirmation,
+        status: emailStatusFromResendError(sendError),
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "Alt.FFF visit registration received",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+        errorDetail: sendError.message,
+      });
     } else {
       console.log("Resend accepted (visitor registration), message id:", sendData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.visitorRegistrationConfirmation,
+        status: "sent",
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "Alt.FFF visit registration received",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+      });
     }
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
@@ -241,8 +286,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "internal_alert" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.visitorRegistrationInternal,
+        status: emailStatusFromResendError(internalError),
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: fullName,
+        subjectOrSummary: "New visitor registration received",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+        errorDetail: internalError.message,
+      });
     } else {
       console.log("Resend accepted (visitor internal alert), message id:", internalData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.visitorRegistrationInternal,
+        status: "sent",
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: fullName,
+        subjectOrSummary: "New visitor registration received",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+      });
     }
   } catch (err) {
     console.error("Visitor registration confirmation email failed:", err);
@@ -250,6 +316,17 @@ export async function POST(request: Request) {
       route: "/api/visitor-registrations",
       kind: "email",
       extra: { op: "resend_throw" },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.visitorRegistrationConfirmation,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: email,
+      recipientName: fullName,
+      subjectOrSummary: "Alt.FFF visit registration received",
+      relatedTable: "visitor_registrations",
+      relatedId: registrationId,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
   }
 

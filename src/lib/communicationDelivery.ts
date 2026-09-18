@@ -8,6 +8,11 @@ import {
   type AudienceType,
   type Channel,
 } from "@/lib/communications";
+import {
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 
 /** Resend free/pro default: 10 requests/sec — stay under that when queueing bulk sends. */
@@ -82,7 +87,7 @@ export async function processRecipient(
 ): Promise<void> {
   const { data: recipient, error: recipientError } = await supabase
     .from("communication_recipients")
-    .select("recipient_email, recipient_phone")
+    .select("recipient_email, recipient_phone, recipient_name")
     .eq("id", params.recipientId)
     .single();
 
@@ -93,6 +98,11 @@ export async function processRecipient(
 
   const interpolatedBody = interpolateMergeFields(params.body, params.mergeFields);
   const interpolatedSubject = params.subject ? interpolateMergeFields(params.subject, params.mergeFields) : null;
+
+  const recipientName =
+    (typeof recipient.recipient_name === "string" ? recipient.recipient_name : null) ||
+    params.mergeFields.name ||
+    null;
 
   const errors: string[] = [];
   let attempted = false;
@@ -108,6 +118,17 @@ export async function processRecipient(
       const fromEmail = process.env.RESEND_FROM_EMAIL;
       if (!apiKey || !fromEmail) {
         errors.push("Email sending is not configured.");
+        logMessageFireAndForget({
+          channel: "email",
+          messageType: MESSAGE_TYPES.bulkCommunicationEmail,
+          status: "failed",
+          recipientEmail: email,
+          recipientName,
+          subjectOrSummary: interpolatedSubject || "Alt.FFF",
+          relatedTable: "communication_recipients",
+          relatedId: params.recipientId,
+          errorDetail: "Email sending is not configured.",
+        });
       } else {
         try {
           const resend = new Resend(apiKey);
@@ -123,9 +144,44 @@ export async function processRecipient(
           });
           anySucceeded = true;
           console.log("Resend accepted (communication):", params.communicationId, sendData.id);
+          logMessageFireAndForget({
+            channel: "email",
+            messageType: MESSAGE_TYPES.bulkCommunicationEmail,
+            status: "sent",
+            recipientEmail: email,
+            recipientName,
+            subjectOrSummary: interpolatedSubject || "Alt.FFF",
+            relatedTable: "communication_recipients",
+            relatedId: params.recipientId,
+          });
         } catch (err) {
-          if (err instanceof CommunicationRateLimitError) throw err;
-          errors.push(`Email: ${err instanceof Error ? err.message : "send failed"}`);
+          if (err instanceof CommunicationRateLimitError) {
+            logMessageFireAndForget({
+              channel: "email",
+              messageType: MESSAGE_TYPES.bulkCommunicationEmail,
+              status: "quota_exceeded",
+              recipientEmail: email,
+              recipientName,
+              subjectOrSummary: interpolatedSubject || "Alt.FFF",
+              relatedTable: "communication_recipients",
+              relatedId: params.recipientId,
+              errorDetail: err.message,
+            });
+            throw err;
+          }
+          const detail = err instanceof Error ? err.message : "send failed";
+          errors.push(`Email: ${detail}`);
+          logMessageFireAndForget({
+            channel: "email",
+            messageType: MESSAGE_TYPES.bulkCommunicationEmail,
+            status: emailStatusFromThrownError(err),
+            recipientEmail: email,
+            recipientName,
+            subjectOrSummary: interpolatedSubject || "Alt.FFF",
+            relatedTable: "communication_recipients",
+            relatedId: params.recipientId,
+            errorDetail: detail,
+          });
         }
       }
     }
@@ -137,7 +193,14 @@ export async function processRecipient(
       errors.push("No phone number on file.");
     } else {
       attempted = true;
-      const result = await sendSms(phone, interpolatedBody, `communication-${params.communicationId}`);
+      const result = await sendSms(phone, interpolatedBody, `communication-${params.communicationId}`, {
+        messageType: MESSAGE_TYPES.bulkCommunicationSms,
+        recipientEmail: recipient.recipient_email as string | null,
+        recipientName,
+        subjectOrSummary: interpolatedSubject || interpolatedBody.slice(0, 120),
+        relatedTable: "communication_recipients",
+        relatedId: params.recipientId,
+      });
       if (result.success) anySucceeded = true;
       else errors.push(`SMS: ${result.error ?? "send failed"}`);
     }

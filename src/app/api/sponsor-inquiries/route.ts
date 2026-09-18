@@ -13,6 +13,12 @@ import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { resolveCountryValue } from "@/lib/countries";
 import { resolveHeardAboutValue } from "@/lib/heardAboutSources";
 import { isSponsorFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 
 export const runtime = "nodejs";
 
@@ -89,27 +95,37 @@ export async function POST(request: Request) {
   // "JWT expired" incident that motivates this. Public form inserts are
   // anonymous by design and must not inherit browser session cookies.
   const supabase = createAnonClient();
-  const { error: insertError } = await supabase.from("sponsor_inquiries").insert({
-    email,
-    full_name: fullName,
-    phone,
-    company_name: company,
-    job_title: jobTitle,
-    country: resolveCountryValue(country, country_other),
-    nature_of_business: businessNature,
-    linkedin_handle: linkedin,
-    heard_about_us: resolveHeardAboutValue(hearAbout, hearAbout_other),
-    newsletter_opt_in: newsletterOptIn,
-  });
+  const { data: inserted, error: insertError } = await supabase
+    .from("sponsor_inquiries")
+    .insert({
+      email,
+      full_name: fullName,
+      phone,
+      company_name: company,
+      job_title: jobTitle,
+      country: resolveCountryValue(country, country_other),
+      nature_of_business: businessNature,
+      linkedin_handle: linkedin,
+      heard_about_us: resolveHeardAboutValue(hearAbout, hearAbout_other),
+      newsletter_opt_in: newsletterOptIn,
+    })
+    .select("id")
+    .single();
 
-  if (insertError) {
+  if (insertError || !inserted) {
     console.error("Sponsor inquiry insert failed:", insertError);
-    reportServerError(insertError, { route: "/api/sponsor-inquiries", kind: "db", extra: { op: "insert" } });
+    reportServerError(insertError ?? new Error("sponsor insert returned no row"), {
+      route: "/api/sponsor-inquiries",
+      kind: "db",
+      extra: { op: "insert" },
+    });
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
   }
+
+  const inquiryId = inserted.id as string;
 
   if (newsletterOptIn) {
     scheduleMailchimpSync({
@@ -168,8 +184,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "submitter_confirmation" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.sponsorInquiryConfirmation,
+        status: emailStatusFromResendError(sendError),
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "We've received your Alt.FFF sponsorship inquiry",
+        relatedTable: "sponsor_inquiries",
+        relatedId: inquiryId,
+        errorDetail: sendError.message,
+      });
     } else {
       console.log("Resend accepted (sponsor inquiry), message id:", sendData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.sponsorInquiryConfirmation,
+        status: "sent",
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "We've received your Alt.FFF sponsorship inquiry",
+        relatedTable: "sponsor_inquiries",
+        relatedId: inquiryId,
+      });
     }
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
@@ -197,8 +234,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "internal_alert" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.sponsorInquiryInternal,
+        status: emailStatusFromResendError(internalError),
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: fullName,
+        subjectOrSummary: "New sponsor inquiry received",
+        relatedTable: "sponsor_inquiries",
+        relatedId: inquiryId,
+        errorDetail: internalError.message,
+      });
     } else {
       console.log("Resend accepted (sponsor internal alert), message id:", internalData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.sponsorInquiryInternal,
+        status: "sent",
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: fullName,
+        subjectOrSummary: "New sponsor inquiry received",
+        relatedTable: "sponsor_inquiries",
+        relatedId: inquiryId,
+      });
     }
   } catch (err) {
     console.error("Sponsor inquiry confirmation email failed:", err);
@@ -206,6 +264,17 @@ export async function POST(request: Request) {
       route: "/api/sponsor-inquiries",
       kind: "email",
       extra: { op: "resend_throw" },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.sponsorInquiryConfirmation,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: email,
+      recipientName: fullName,
+      subjectOrSummary: "We've received your Alt.FFF sponsorship inquiry",
+      relatedTable: "sponsor_inquiries",
+      relatedId: inquiryId,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
   }
 

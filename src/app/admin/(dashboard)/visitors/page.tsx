@@ -2,6 +2,7 @@
 
 import AdminDataTable from "@/components/admin/AdminDataTable";
 import WalkInRegistrationToggle from "@/components/admin/WalkInRegistrationToggle";
+import BulkConfirmationResendPanel from "@/components/admin/BulkConfirmationResendPanel";
 import {
   formatVisitorSourceLabel,
   visitorSourcePillClass,
@@ -34,6 +35,7 @@ export default function AdminVisitorsPage() {
       </p>
       <div className="mt-6 space-y-6">
         <WalkInRegistrationToggle />
+        <BulkConfirmationResendPanel />
         <AdminDataTable
           table="visitor_registrations"
           entityLabel="Visitor Registration"

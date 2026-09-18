@@ -25,6 +25,12 @@ import {
   withRegistrationEmailLock,
 } from "@/lib/registrationDuplicates";
 import { isExhibitorFormEnabled, FORM_CLOSED_API_ERROR } from "@/lib/appSettings";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 
 export const runtime = "nodejs";
 
@@ -86,8 +92,9 @@ export async function POST(request: Request) {
       ? EXHIBITOR_PACKAGE_MAP[space as keyof typeof EXHIBITOR_PACKAGE_MAP]
       : null;
 
+  let applicationId: string;
   try {
-    await withRegistrationEmailLock("exhibitor", email, async () => {
+    applicationId = await withRegistrationEmailLock("exhibitor", email, async () => {
       const existing = await findBlockingRegistrationByEmail(
         "exhibitor_applications",
         email,
@@ -98,23 +105,29 @@ export async function POST(request: Request) {
       }
 
       const supabase = createAnonClient();
-      const { error: insertError } = await supabase.from("exhibitor_applications").insert({
-        email,
-        full_name: name || null,
-        phone: phone || null,
-        company_name: company || null,
-        job_title: title || null,
-        nature_of_business: nature || null,
-        business_location: based || null,
-        country: resolveCountryValue(country, country_other),
-        package_type: packageType,
-        heard_about_us: resolveHeardAboutValue(hear, hear_other),
-        newsletter_opt_in: newsletterOptIn,
-      });
+      const { data: inserted, error: insertError } = await supabase
+        .from("exhibitor_applications")
+        .insert({
+          email,
+          full_name: name || null,
+          phone: phone || null,
+          company_name: company || null,
+          job_title: title || null,
+          nature_of_business: nature || null,
+          business_location: based || null,
+          country: resolveCountryValue(country, country_other),
+          package_type: packageType,
+          heard_about_us: resolveHeardAboutValue(hear, hear_other),
+          newsletter_opt_in: newsletterOptIn,
+        })
+        .select("id")
+        .single();
 
-      if (insertError) {
-        throw insertError;
+      if (insertError || !inserted) {
+        throw insertError ?? new Error("exhibitor insert returned no row");
       }
+
+      return inserted.id as string;
     });
   } catch (err) {
     if (err instanceof DuplicateRegistrationError) {
@@ -197,8 +210,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "submitter_confirmation" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.exhibitorApplicationConfirmation,
+        status: emailStatusFromResendError(sendError),
+        recipientEmail: email,
+        recipientName: name,
+        subjectOrSummary: "We've received your Alt.FFF exhibitor application",
+        relatedTable: "exhibitor_applications",
+        relatedId: applicationId,
+        errorDetail: sendError.message,
+      });
     } else {
       console.log("Resend accepted (exhibitor application), message id:", sendData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.exhibitorApplicationConfirmation,
+        status: "sent",
+        recipientEmail: email,
+        recipientName: name,
+        subjectOrSummary: "We've received your Alt.FFF exhibitor application",
+        relatedTable: "exhibitor_applications",
+        relatedId: applicationId,
+      });
     }
 
     // Internal team alert - alongside the submitter confirmation, not instead of it.
@@ -226,8 +260,29 @@ export async function POST(request: Request) {
         kind: "email",
         extra: { op: "internal_alert" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.exhibitorApplicationInternal,
+        status: emailStatusFromResendError(internalError),
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: name,
+        subjectOrSummary: "New exhibitor application received",
+        relatedTable: "exhibitor_applications",
+        relatedId: applicationId,
+        errorDetail: internalError.message,
+      });
     } else {
       console.log("Resend accepted (exhibitor internal alert), message id:", internalData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.exhibitorApplicationInternal,
+        status: "sent",
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: name,
+        subjectOrSummary: "New exhibitor application received",
+        relatedTable: "exhibitor_applications",
+        relatedId: applicationId,
+      });
     }
   } catch (err) {
     console.error("Exhibitor application confirmation email failed:", err);
@@ -235,6 +290,17 @@ export async function POST(request: Request) {
       route: "/api/exhibitor-applications",
       kind: "email",
       extra: { op: "resend_throw" },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.exhibitorApplicationConfirmation,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: email,
+      recipientName: name,
+      subjectOrSummary: "We've received your Alt.FFF exhibitor application",
+      relatedTable: "exhibitor_applications",
+      relatedId: applicationId,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
   }
 

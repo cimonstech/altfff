@@ -8,6 +8,12 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 
 export const runtime = "nodejs";
 
@@ -75,22 +81,33 @@ export async function POST(request: Request) {
   // "JWT expired" incident that motivates this. Public form inserts are
   // anonymous by design and must not inherit browser session cookies.
   const supabase = createAnonClient();
-  const { error: insertError } = await supabase.from("contact_messages").insert({
-    first_name: firstName,
-    last_name: lastName,
-    email,
-    phone: phone || null,
-    message,
-    newsletter_opt_in: newsletterOptIn,
-  });
-  if (insertError) {
+  const contactName = `${firstName} ${lastName}`.trim();
+  const { data: inserted, error: insertError } = await supabase
+    .from("contact_messages")
+    .insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone: phone || null,
+      message,
+      newsletter_opt_in: newsletterOptIn,
+    })
+    .select("id")
+    .single();
+  if (insertError || !inserted) {
     console.error("Contact message insert failed:", insertError);
-    reportServerError(insertError, { route: "/api/contact", kind: "db", extra: { op: "insert" } });
+    reportServerError(insertError ?? new Error("contact insert returned no row"), {
+      route: "/api/contact",
+      kind: "db",
+      extra: { op: "insert" },
+    });
     return NextResponse.json(
       { ok: false, error: "Sorry, something went wrong on our end. Please email us directly." },
       { status: 500 },
     );
   }
+
+  const contactId = inserted.id as string;
 
   if (newsletterOptIn) {
     scheduleMailchimpSync({
@@ -113,11 +130,23 @@ export async function POST(request: Request) {
         ? "RESEND_API_KEY is not set - contact form email was not sent."
         : "RESEND_FROM_EMAIL is not set - contact form email was not sent.",
     );
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.contactInternal,
+      status: "failed",
+      recipientEmail: "enquiries@altfff.com",
+      recipientName: contactName,
+      subjectOrSummary: `New contact form enquiry from ${contactName}`,
+      relatedTable: "contact_messages",
+      relatedId: contactId,
+      errorDetail: "Email sending is not configured.",
+    });
     return NextResponse.json({ ok: true });
   }
 
   try {
     const resend = new Resend(apiKey);
+    const subject = `New contact form enquiry from ${firstName} ${lastName}`;
     // TEMPORARY: RESEND_FROM_EMAIL currently points at a verified address on
     // a borrowed Resend account (AgroTalentHub's), not altfff.com - the
     // client's own domain isn't verified in Resend yet. Once it is, change
@@ -126,7 +155,7 @@ export async function POST(request: Request) {
       from: `Alt.FFF Website <${fromEmail}>`,
       to: "enquiries@altfff.com",
       replyTo: email,
-      subject: `New contact form enquiry from ${firstName} ${lastName}`,
+      subject,
       text: [
         `Name: ${firstName} ${lastName}`,
         `Email: ${email}`,
@@ -140,12 +169,44 @@ export async function POST(request: Request) {
     if (sendError) {
       console.error("Resend error (contact form):", sendError);
       reportServerError(sendError, { route: "/api/contact", kind: "email", extra: { op: "resend" } });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.contactInternal,
+        status: emailStatusFromResendError(sendError),
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: contactName,
+        subjectOrSummary: subject,
+        relatedTable: "contact_messages",
+        relatedId: contactId,
+        errorDetail: sendError.message,
+      });
     } else {
       console.log("Resend accepted (contact form), message id:", sendData?.id);
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.contactInternal,
+        status: "sent",
+        recipientEmail: "enquiries@altfff.com",
+        recipientName: contactName,
+        subjectOrSummary: subject,
+        relatedTable: "contact_messages",
+        relatedId: contactId,
+      });
     }
   } catch (err) {
     console.error("Contact form email send failed:", err);
     reportServerError(err, { route: "/api/contact", kind: "email", extra: { op: "resend_throw" } });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.contactInternal,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: "enquiries@altfff.com",
+      recipientName: contactName,
+      subjectOrSummary: `New contact form enquiry from ${contactName}`,
+      relatedTable: "contact_messages",
+      relatedId: contactId,
+      errorDetail: err instanceof Error ? err.message : "send failed",
+    });
   }
 
   return NextResponse.json({ ok: true });

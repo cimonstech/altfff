@@ -16,6 +16,7 @@ export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
   visit_form_toggled: "Visit form toggled",
   visitor_checked_in: "Visitor checked in",
   visitor_confirmation_resent: "Visitor confirmation resent",
+  bulk_confirmation_resend: "Bulk confirmation resend",
 };
 
 export const ACTIVITY_ACTIONS = Object.keys(ACTIVITY_ACTION_LABELS);
@@ -28,6 +29,7 @@ const TABLE_LABELS: Record<string, string> = {
   news_posts: "News posts",
   admin_profiles: "Admin profiles",
   communication_log: "Communications",
+  bulk_confirmation_resend_batch: "Bulk confirmation resend",
   app_settings: "App settings",
 };
 
@@ -109,6 +111,17 @@ export function formatActivitySummary(
         return details.email_sent === false
           ? `Resent confirmation to ${who} (email failed)`
           : `Resent confirmation to ${who}`;
+      }
+      break;
+    }
+    case "bulk_confirmation_resend": {
+      const count = details.recipient_count;
+      const mode = str(details.mode);
+      if (typeof count === "number") {
+        if (mode === "resume_quota") {
+          return `Resumed bulk confirmation resend for ${count} quota-exceeded recipient${count === 1 ? "" : "s"}`;
+        }
+        return `Started bulk confirmation resend for ${count} confirmed visitor${count === 1 ? "" : "s"}`;
       }
       break;
     }

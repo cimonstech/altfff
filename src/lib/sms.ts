@@ -1,3 +1,15 @@
+import {
+  logMessageFireAndForget,
+  smsStatusFromResult,
+  type LogMessageInput,
+} from "@/lib/messageLog";
+
+/** Optional message_log metadata — omit to skip logging (legacy call sites). */
+export type SmsLogContext = Omit<
+  LogMessageInput,
+  "channel" | "status" | "errorDetail" | "recipientPhone" | "sentAt"
+>;
+
 /**
  * SERVER-ONLY. Uses FISH_AFRICA_APP_SECRET (a real credential) - only ever
  * import this from Route Handlers, never from a client component.
@@ -138,14 +150,45 @@ export async function sendSms(
   phone: string,
   message: string,
   campaignName: string,
+  logContext?: SmsLogContext,
 ): Promise<{ success: boolean; error?: string }> {
   const formattedPhone = formatPhoneForSms(phone);
 
   const first = await callFishAfrica(formattedPhone, message, campaignName);
-  if (first.ok) return { success: true };
-  if (!first.retryable) return { success: false, error: first.error };
+  if (first.ok) {
+    if (logContext) {
+      logMessageFireAndForget({
+        ...logContext,
+        channel: "sms",
+        recipientPhone: phone,
+        status: "sent",
+      });
+    }
+    return { success: true };
+  }
+  if (!first.retryable) {
+    if (logContext) {
+      logMessageFireAndForget({
+        ...logContext,
+        channel: "sms",
+        recipientPhone: phone,
+        status: smsStatusFromResult(false),
+        errorDetail: first.error,
+      });
+    }
+    return { success: false, error: first.error };
+  }
 
   await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
   const second = await callFishAfrica(formattedPhone, message, campaignName);
+  if (logContext) {
+    logMessageFireAndForget({
+      ...logContext,
+      channel: "sms",
+      recipientPhone: phone,
+      status: smsStatusFromResult(second.ok),
+      errorDetail: second.ok ? null : second.error,
+    });
+  }
   return second.ok ? { success: true } : { success: false, error: second.error };
 }

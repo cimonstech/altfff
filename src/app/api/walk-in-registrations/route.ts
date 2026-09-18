@@ -12,6 +12,12 @@ import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { buildDoorWelcomeSms, sendSms } from "@/lib/sms";
 import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
+import {
   DuplicateRegistrationError,
   VISITOR_BLOCKING_STATUSES,
   VISITOR_DUPLICATE_EMAIL_MESSAGE,
@@ -51,6 +57,7 @@ function buildWalkInConfirmationSms(fullName: string): string {
 }
 
 type WalkInConfirmationPayload = {
+  registrationId: string;
   email: string;
   fullName: string;
   phone: string;
@@ -58,6 +65,7 @@ type WalkInConfirmationPayload = {
 
 /** Fail-open confirmation email + SMS after the registration row is saved. */
 async function sendWalkInConfirmationComms({
+  registrationId,
   email,
   fullName,
   phone,
@@ -83,8 +91,29 @@ async function sendWalkInConfirmationComms({
           kind: "email",
           extra: { op: "submitter_confirmation" },
         });
+        logMessageFireAndForget({
+          channel: "email",
+          messageType: MESSAGE_TYPES.walkInConfirmationEmail,
+          status: emailStatusFromResendError(sendError),
+          recipientEmail: email,
+          recipientName: fullName,
+          subjectOrSummary: "Welcome to Alt.FFF",
+          relatedTable: "visitor_registrations",
+          relatedId: registrationId,
+          errorDetail: sendError.message,
+        });
       } else {
         console.log("Resend accepted (walk-in registration), message id:", sendData?.id);
+        logMessageFireAndForget({
+          channel: "email",
+          messageType: MESSAGE_TYPES.walkInConfirmationEmail,
+          status: "sent",
+          recipientEmail: email,
+          recipientName: fullName,
+          subjectOrSummary: "Welcome to Alt.FFF",
+          relatedTable: "visitor_registrations",
+          relatedId: registrationId,
+        });
       }
     } catch (err) {
       console.error("Walk-in registration confirmation email failed:", err);
@@ -93,6 +122,17 @@ async function sendWalkInConfirmationComms({
         kind: "email",
         extra: { op: "resend_throw" },
       });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.walkInConfirmationEmail,
+        status: emailStatusFromThrownError(err),
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "Welcome to Alt.FFF",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+        errorDetail: err instanceof Error ? err.message : "send failed",
+      });
     }
   } else {
     console.error(
@@ -100,11 +140,29 @@ async function sendWalkInConfirmationComms({
         ? "RESEND_API_KEY is not set - walk-in confirmation email was not sent."
         : "RESEND_FROM_EMAIL is not set - walk-in confirmation email was not sent.",
     );
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.walkInConfirmationEmail,
+      status: "failed",
+      recipientEmail: email,
+      recipientName: fullName,
+      subjectOrSummary: "Welcome to Alt.FFF",
+      relatedTable: "visitor_registrations",
+      relatedId: registrationId,
+      errorDetail: "Email sending is not configured.",
+    });
   }
 
   try {
     const smsMessage = buildWalkInConfirmationSms(fullName);
-    const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome");
+    const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome", {
+      messageType: MESSAGE_TYPES.walkInConfirmationSms,
+      recipientEmail: email,
+      recipientName: fullName,
+      subjectOrSummary: "Walk-in welcome SMS",
+      relatedTable: "visitor_registrations",
+      relatedId: registrationId,
+    });
     if (!smsResult.success) {
       console.error("[walk-in] SMS failed (registration still saved):", smsResult.error);
       reportServerError(new Error(smsResult.error ?? "Walk-in SMS failed"), {
@@ -182,8 +240,9 @@ export async function POST(request: Request) {
   const newsletterOptIn = parseNewsletterOptIn(newsletter);
   const now = new Date().toISOString();
 
+  let registrationId: string;
   try {
-    await withRegistrationEmailLock("visitor", email, async () => {
+    registrationId = await withRegistrationEmailLock("visitor", email, async () => {
       const existing = await findBlockingRegistrationByEmail(
         "visitor_registrations",
         email,
@@ -194,20 +253,26 @@ export async function POST(request: Request) {
       }
 
       const supabase = createAnonClient();
-      const { error: insertError } = await supabase.from("visitor_registrations").insert({
-        email,
-        full_name: fullName,
-        phone,
-        company_name: companyName || null,
-        source: "walk_in",
-        status: "confirmed",
-        status_updated_at: now,
-        newsletter_opt_in: newsletterOptIn,
-      });
+      const { data: inserted, error: insertError } = await supabase
+        .from("visitor_registrations")
+        .insert({
+          email,
+          full_name: fullName,
+          phone,
+          company_name: companyName || null,
+          source: "walk_in",
+          status: "confirmed",
+          status_updated_at: now,
+          newsletter_opt_in: newsletterOptIn,
+        })
+        .select("id")
+        .single();
 
-      if (insertError) {
-        throw insertError;
+      if (insertError || !inserted) {
+        throw insertError ?? new Error("walk-in insert returned no row");
       }
+
+      return inserted.id as string;
     });
   } catch (err) {
     if (err instanceof DuplicateRegistrationError) {
@@ -236,7 +301,7 @@ export async function POST(request: Request) {
     });
   }
 
-  after(() => sendWalkInConfirmationComms({ email, fullName, phone }));
+  after(() => sendWalkInConfirmationComms({ registrationId, email, fullName, phone }));
 
   return NextResponse.json({ ok: true });
 }

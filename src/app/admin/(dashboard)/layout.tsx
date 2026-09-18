@@ -29,6 +29,7 @@ const NAV_ITEMS: AdminNavItem[] = [
   },
   { label: "News", href: "/admin/news" },
   { label: "Communications", href: "/admin/communications" },
+  { label: "Message Log", href: "/admin/messages" },
   { label: "Check-in Overview", href: "/admin/checkin-overview" },
   { label: "Check-in", href: "/admin/checkin" },
 ];

@@ -6,10 +6,9 @@ import { normalizeCheckInToken, QR_TOKEN_PREFIX } from "@/lib/qrToken";
 
 type ScanResult =
   | { kind: "idle" }
-  | { kind: "loading" }
-  | { kind: "success"; name: string; message: string }
-  | { kind: "warning"; name?: string; message: string }
-  | { kind: "error"; name?: string; message: string };
+  | { kind: "feedback"; tone: FeedbackTone; headline: string; name?: string; detail: string };
+
+type FeedbackTone = "loading" | "success" | "warning" | "error";
 
 type CheckInStats = { approved: number; checkedIn: number };
 
@@ -79,6 +78,63 @@ function formatLookupTime(iso: string): string {
   return d.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 }
 
+const ERROR_HEADLINES: Record<string, string> = {
+  invalid: "Invalid code",
+  declined: "Declined",
+  pending: "Not approved",
+  cancelled: "Cancelled",
+  error: "Check-in failed",
+};
+
+function resolveCheckInFeedback(data: {
+  ok?: boolean;
+  result?: string;
+  message?: string;
+  name?: string;
+}): Omit<Extract<ScanResult, { kind: "feedback" }>, "kind"> {
+  const detail = data.message?.trim() || "Unknown response.";
+  const name = data.name?.trim() || undefined;
+
+  if (data.ok && data.result === "checked_in") {
+    return { tone: "success", headline: "Checked in", name: name || "Visitor", detail };
+  }
+
+  if (data.result === "already_checked_in") {
+    return { tone: "warning", headline: "Checked already", name, detail };
+  }
+
+  const headline = ERROR_HEADLINES[data.result ?? ""] ?? "Cannot check in";
+  return { tone: "error", headline, name, detail };
+}
+
+function feedbackBannerClasses(tone: FeedbackTone): string {
+  switch (tone) {
+    case "loading":
+      return "border-ink/25 bg-ink/5 text-ink";
+    case "success":
+      return "border-forest bg-forest text-paper";
+    case "warning":
+      return "border-gold bg-gold text-ink";
+    case "error":
+      return "border-madder bg-madder text-paper";
+  }
+}
+
+function cameraFrameClasses(tone: FeedbackTone | "idle"): string {
+  switch (tone) {
+    case "loading":
+      return "border-ink/40 ring-4 ring-ink/10";
+    case "success":
+      return "border-forest ring-4 ring-forest/40";
+    case "warning":
+      return "border-gold ring-4 ring-gold/50";
+    case "error":
+      return "border-madder ring-4 ring-madder/40";
+    default:
+      return "border-ink/30";
+  }
+}
+
 export default function AdminCheckInPage() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const processingRef = useRef(false);
@@ -117,11 +173,9 @@ export default function AdminCheckInPage() {
       },
       visitorId?: string,
     ) => {
-      const message = data.message || "Unknown response.";
-      const name = data.name;
+      setResult({ kind: "feedback", ...resolveCheckInFeedback(data) });
 
       if (data.ok && data.result === "checked_in") {
-        setResult({ kind: "success", name: name || "Visitor", message });
         if (visitorId) {
           const checkedInAt = data.checkedInAt ?? new Date().toISOString();
           setLookupResults((prev) =>
@@ -131,19 +185,14 @@ export default function AdminCheckInPage() {
           );
         }
         void refreshStats();
-      } else if (data.result === "already_checked_in") {
-        setResult({ kind: "warning", name, message });
-        if (visitorId && data.checkedInAt) {
-          setLookupResults((prev) =>
-            prev
-              ? prev.map((row) =>
-                  row.id === visitorId ? { ...row, checked_in_at: data.checkedInAt ?? row.checked_in_at } : row,
-                )
-              : prev,
-          );
-        }
-      } else {
-        setResult({ kind: "error", name, message });
+      } else if (data.result === "already_checked_in" && visitorId && data.checkedInAt) {
+        setLookupResults((prev) =>
+          prev
+            ? prev.map((row) =>
+                row.id === visitorId ? { ...row, checked_in_at: data.checkedInAt ?? row.checked_in_at } : row,
+              )
+            : prev,
+        );
       }
     },
     [refreshStats],
@@ -155,7 +204,7 @@ export default function AdminCheckInPage() {
       processingRef.current = true;
       const visitorId = "visitorId" in payload ? payload.visitorId : undefined;
       if (visitorId) setCheckingInId(visitorId);
-      setResult({ kind: "loading" });
+      setResult({ kind: "feedback", tone: "loading", headline: "Checking…", detail: "Please wait." });
 
       try {
         const res = await fetch("/api/admin/checkin", {
@@ -172,7 +221,12 @@ export default function AdminCheckInPage() {
         };
         applyCheckInResponse(data, visitorId);
       } catch {
-        setResult({ kind: "error", message: "Network error - try again." });
+        setResult({
+          kind: "feedback",
+          tone: "error",
+          headline: "Connection error",
+          detail: "Network error — try again.",
+        });
       } finally {
         processingRef.current = false;
         setCheckingInId(null);
@@ -266,30 +320,44 @@ export default function AdminCheckInPage() {
     };
   }, [startCamera]);
 
-  const resultPanel =
-    result.kind === "idle" ? null : result.kind === "loading" ? (
-      <div className="rounded-xl border-2 border-ink/20 bg-ink/5 p-6 text-center">
-        <p className="text-lg font-semibold text-ink">Checking…</p>
-      </div>
-    ) : result.kind === "success" ? (
-      <div className="rounded-xl border-2 border-forest bg-forest/10 p-6 text-center">
-        <p className="text-sm font-bold uppercase tracking-wide text-forest">Checked in</p>
-        <p className="mt-2 font-display text-2xl font-extrabold uppercase text-ink">{result.name}</p>
-        <p className="mt-2 text-base text-ink/80">{result.message}</p>
-      </div>
-    ) : result.kind === "warning" ? (
-      <div className="rounded-xl border-2 border-gold bg-gold/15 p-6 text-center">
-        <p className="text-sm font-bold uppercase tracking-wide text-gold-deep">Already checked in</p>
+  const feedbackTone: FeedbackTone | "idle" = result.kind === "feedback" ? result.tone : "idle";
+
+  const statusBanner =
+    result.kind === "feedback" ? (
+      <div
+        role="status"
+        aria-live="assertive"
+        className={`rounded-xl border-2 px-4 py-5 text-center sm:px-6 sm:py-6 ${feedbackBannerClasses(result.tone)}`}
+      >
+        <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight sm:text-4xl">
+          {result.headline}
+        </p>
         {result.name && (
-          <p className="mt-2 font-display text-xl font-extrabold uppercase text-ink">{result.name}</p>
+          <p
+            className={`mt-3 text-xl font-semibold sm:text-2xl ${
+              result.tone === "success" || result.tone === "error" ? "text-paper/95" : "text-ink"
+            }`}
+          >
+            {result.name}
+          </p>
         )}
-        <p className="mt-2 text-base font-medium text-ink">{result.message}</p>
+        <p
+          className={`mt-2 text-sm sm:text-base ${
+            result.tone === "success"
+              ? "text-paper/85"
+              : result.tone === "error"
+                ? "text-paper/85"
+                : result.tone === "warning"
+                  ? "text-ink/75"
+                  : "text-ink/70"
+          }`}
+        >
+          {result.detail}
+        </p>
       </div>
     ) : (
-      <div className="rounded-xl border-2 border-madder bg-madder/10 p-6 text-center">
-        <p className="text-sm font-bold uppercase tracking-wide text-madder">Not admitted</p>
-        {result.name && <p className="mt-2 text-lg font-semibold text-ink">{result.name}</p>}
-        <p className="mt-2 text-base font-medium text-ink">{result.message}</p>
+      <div className="rounded-xl border border-hairline bg-surface px-4 py-3 text-center">
+        <p className="text-sm font-medium text-ink/55">Ready to scan</p>
       </div>
     );
 
@@ -323,16 +391,16 @@ export default function AdminCheckInPage() {
         </div>
       )}
 
-      <div className="mt-6 overflow-hidden rounded-xl border-2 border-ink bg-black">
+      <div className={`mt-6 overflow-hidden rounded-xl border-2 bg-black transition-colors ${cameraFrameClasses(feedbackTone)}`}>
         <div id={SCANNER_ID} className="w-full [&_video]:!w-full [&_video]:!object-cover" />
         {!cameraReady && !cameraError && (
           <p className="bg-black p-4 text-center text-sm text-paper/70">Starting camera…</p>
         )}
       </div>
 
-      <p className="mt-3 text-center text-xs text-ink/50">Point the camera at the QR code in the visitor&apos;s email.</p>
+      <div className="mt-4">{statusBanner}</div>
 
-      {resultPanel && <div className="mt-6">{resultPanel}</div>}
+      <p className="mt-3 text-center text-xs text-ink/50">Point the camera at the QR code in the visitor&apos;s email.</p>
 
       <section className="mt-8 rounded-xl border border-hairline bg-surface p-4" aria-labelledby="lost-qr-heading">
         <h2 id="lost-qr-heading" className="text-sm font-semibold text-ink">
@@ -415,7 +483,12 @@ export default function AdminCheckInPage() {
             const fd = new FormData(e.currentTarget);
             const code = String(fd.get("code") ?? "").trim();
             if (!code) {
-              setResult({ kind: "error", message: "Enter the entry code." });
+              setResult({
+                kind: "feedback",
+                tone: "error",
+                headline: "Enter code",
+                detail: "Type the entry code from the visitor's email.",
+              });
               window.setTimeout(() => setResult({ kind: "idle" }), 4000);
               return;
             }
