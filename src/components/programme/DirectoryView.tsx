@@ -1,8 +1,7 @@
-// components/programme/DirectoryView.tsx
 'use client';
 
 import styles from '@/styles/programme.module.css';
-import { GlassCard, LogoImage } from './ui';
+import { LogoImage } from './ui';
 import { directoryListings, partners } from '@/data/programme.data';
 
 function initialsFor(name: string) {
@@ -32,67 +31,67 @@ export function DirectoryView() {
       */}
       <div className={styles.listingGrid}>
         {directoryListings.map((listing) => (
-          <GlassCard className={styles.listingCard} key={listing.id}>
+          <div className={styles.listingItem} key={listing.id}>
             <LogoImage
               src={listing.logoSrc}
               alt={listing.name}
               fallbackText={initialsFor(listing.name)}
-              boxClassName={styles.listingLogo}
+              wrapClassName={`${styles.logoWrap} ${styles.logoWrapListing}`}
             />
             <h4>{listing.name}</h4>
-          </GlassCard>
+          </div>
         ))}
       </div>
 
       <div className={styles.sectionTitle}>Partners &amp; Sponsor</div>
 
-      <GlassCard className={styles.card} style={{ padding: 16 }}>
+      <div className={styles.partnerSection}>
         <div className={styles.partnerTierLabel}>Sponsor</div>
         <div className={styles.partnerGrid}>
           {sponsor.map((p) => (
-            <GlassCard className={styles.sponsorChip} key={p.id}>
+            <div className={styles.sponsorItem} key={p.id}>
               <div className={styles.sponsorLbl}>SPONSOR</div>
               <LogoImage
                 src={p.logoSrc}
                 alt={p.name}
                 fallbackText={initialsFor(p.name)}
-                boxClassName={styles.sponsorLogoBox}
+                wrapClassName={`${styles.logoWrap} ${styles.logoWrapSponsor}`}
               />
               <div className={styles.sponsorName}>{p.name}</div>
-            </GlassCard>
+            </div>
           ))}
         </div>
 
         <div className={styles.partnerTierLabel}>Partners</div>
         <div className={styles.partnerGrid}>
           {partnerTier.map((p) => (
-            <GlassCard className={styles.partnerChip} key={p.id}>
+            <div className={styles.partnerItem} key={p.id}>
               <LogoImage
                 src={p.logoSrc}
                 alt={p.name}
                 fallbackText={initialsFor(p.name)}
-                boxClassName={styles.partnerLogoBox}
+                wrapClassName={`${styles.logoWrap} ${styles.logoWrapPartner}`}
               />
               <div className={styles.partnerName}>{p.name}</div>
-            </GlassCard>
+            </div>
           ))}
         </div>
 
         <div className={styles.partnerTierLabel}>Supporters</div>
         <div className={styles.partnerGrid}>
           {supporterTier.map((p) => (
-            <GlassCard className={styles.partnerChip} key={p.id}>
+            <div className={styles.partnerItem} key={p.id}>
               <LogoImage
                 src={p.logoSrc}
                 alt={p.name}
                 fallbackText={initialsFor(p.name)}
-                boxClassName={styles.partnerLogoBox}
+                wrapClassName={`${styles.logoWrap} ${styles.logoWrapPartner}`}
               />
               <div className={styles.partnerName}>{p.name}</div>
-            </GlassCard>
+            </div>
           ))}
         </div>
-      </GlassCard>
+      </div>
     </div>
   );
 }

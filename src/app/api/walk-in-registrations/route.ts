@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { anonInsertWithId } from "@/lib/anonInsert";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
@@ -256,26 +257,16 @@ export async function POST(request: Request) {
       }
 
       const supabase = createAnonClient();
-      const { data: inserted, error: insertError } = await supabase
-        .from("visitor_registrations")
-        .insert({
-          email,
-          full_name: fullName,
-          phone,
-          company_name: companyName || null,
-          source: "walk_in",
-          status: "confirmed",
-          status_updated_at: now,
-          newsletter_opt_in: newsletterOptIn,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !inserted) {
-        throw insertError ?? new Error("walk-in insert returned no row");
-      }
-
-      return inserted.id as string;
+      return anonInsertWithId(supabase, "visitor_registrations", {
+        email,
+        full_name: fullName,
+        phone,
+        company_name: companyName || null,
+        source: "walk_in",
+        status: "confirmed",
+        status_updated_at: now,
+        newsletter_opt_in: newsletterOptIn,
+      });
     });
   } catch (err) {
     if (err instanceof DuplicateRegistrationError) {

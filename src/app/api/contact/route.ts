@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { anonInsertWithId } from "@/lib/anonInsert";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { DECOY_FIELD_NAME, evaluateBotSignals } from "@/lib/botProtection";
 import { checkPublicFormRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
@@ -82,21 +83,19 @@ export async function POST(request: Request) {
   // anonymous by design and must not inherit browser session cookies.
   const supabase = createAnonClient();
   const contactName = `${firstName} ${lastName}`.trim();
-  const { data: inserted, error: insertError } = await supabase
-    .from("contact_messages")
-    .insert({
+  let contactId: string;
+  try {
+    contactId = await anonInsertWithId(supabase, "contact_messages", {
       first_name: firstName,
       last_name: lastName,
       email,
       phone: phone || null,
       message,
       newsletter_opt_in: newsletterOptIn,
-    })
-    .select("id")
-    .single();
-  if (insertError || !inserted) {
+    });
+  } catch (insertError) {
     console.error("Contact message insert failed:", insertError);
-    reportServerError(insertError ?? new Error("contact insert returned no row"), {
+    reportServerError(insertError, {
       route: "/api/contact",
       kind: "db",
       extra: { op: "insert" },
@@ -106,8 +105,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-
-  const contactId = inserted.id as string;
 
   if (newsletterOptIn) {
     scheduleMailchimpSync({

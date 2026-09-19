@@ -48,6 +48,15 @@ export interface Speaker {
   name: string;
   role: string;
   bio: string;
-  initials: string; // fallback avatar text if no photo
+  initials: string; // fallback if no photo
   photoSrc?: string;
+}
+
+/** Named person appearing across the programme — hosts, speakers, facilitators, curators. */
+export interface ProgrammePerson {
+  id: string;
+  name: string;
+  role: string;
+  appearances: string[];
+  bio?: string;
 }

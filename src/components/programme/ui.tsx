@@ -49,18 +49,16 @@ export function LogoImage({
   src,
   alt,
   fallbackText,
-  boxClassName,
+  wrapClassName,
 }: {
   src: string;
   alt: string;
   fallbackText: string;
-  boxClassName: string;
+  wrapClassName: string;
 }) {
   return (
-    <div className={boxClassName}>
-      {/* Using plain <img> (not next/image) so onError swap works simply for this
-          fixed-size logo case. Swap to next/image with an onError handler if you
-          prefer automatic optimization. */}
+    <div className={wrapClassName}>
+      {/* Plain <img> so onError fallback works; logos keep their natural shape. */}
       <img
         src={src}
         alt={alt}
@@ -68,7 +66,7 @@ export function LogoImage({
           const target = e.currentTarget;
           target.style.display = 'none';
           const fallback = target.nextElementSibling as HTMLElement | null;
-          if (fallback) fallback.style.display = 'flex';
+          if (fallback) fallback.style.display = 'block';
         }}
       />
       <span className={styles.logoFallback}>{fallbackText}</span>

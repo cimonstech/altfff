@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { anonInsertWithId } from "@/lib/anonInsert";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
@@ -120,28 +121,18 @@ export async function POST(request: Request) {
       }
 
       const supabase = createAnonClient();
-      const { data: inserted, error: insertError } = await supabase
-        .from("visitor_registrations")
-        .insert({
-          email,
-          full_name: fullName || null,
-          phone: phone || null,
-          company_name: companyName || null,
-          social_media_website: socialMediaWebsite || null,
-          country: resolveCountryValue(country, countryOther),
-          interest: resolveInterestValue(interest, interestOther),
-          business_type: businessType || null,
-          heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
-          newsletter_opt_in: newsletterOptIn,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !inserted) {
-        throw insertError ?? new Error("visitor insert returned no row");
-      }
-
-      return inserted.id as string;
+      return anonInsertWithId(supabase, "visitor_registrations", {
+        email,
+        full_name: fullName || null,
+        phone: phone || null,
+        company_name: companyName || null,
+        social_media_website: socialMediaWebsite || null,
+        country: resolveCountryValue(country, countryOther),
+        interest: resolveInterestValue(interest, interestOther),
+        business_type: businessType || null,
+        heard_about_us: resolveHeardAboutValue(heardAboutUs, heardAboutUsOther),
+        newsletter_opt_in: newsletterOptIn,
+      });
     });
   } catch (err) {
     if (err instanceof DuplicateRegistrationError) {

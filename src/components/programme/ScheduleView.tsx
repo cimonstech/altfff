@@ -49,7 +49,7 @@ export function ScheduleView() {
       })}
 
       <div className={styles.sectionSub} style={{ marginTop: 14, textAlign: 'center' }}>
-        All day: Experience Hall · The Moving Loom · Green Artist Area · Trade Fair
+        Tap any session for the full timed breakdown.
       </div>
     </div>
   );

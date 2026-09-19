@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { anonInsertWithId } from "@/lib/anonInsert";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
@@ -95,9 +96,9 @@ export async function POST(request: Request) {
   // "JWT expired" incident that motivates this. Public form inserts are
   // anonymous by design and must not inherit browser session cookies.
   const supabase = createAnonClient();
-  const { data: inserted, error: insertError } = await supabase
-    .from("sponsor_inquiries")
-    .insert({
+  let inquiryId: string;
+  try {
+    inquiryId = await anonInsertWithId(supabase, "sponsor_inquiries", {
       email,
       full_name: fullName,
       phone,
@@ -108,13 +109,10 @@ export async function POST(request: Request) {
       linkedin_handle: linkedin,
       heard_about_us: resolveHeardAboutValue(hearAbout, hearAbout_other),
       newsletter_opt_in: newsletterOptIn,
-    })
-    .select("id")
-    .single();
-
-  if (insertError || !inserted) {
+    });
+  } catch (insertError) {
     console.error("Sponsor inquiry insert failed:", insertError);
-    reportServerError(insertError ?? new Error("sponsor insert returned no row"), {
+    reportServerError(insertError, {
       route: "/api/sponsor-inquiries",
       kind: "db",
       extra: { op: "insert" },
@@ -124,8 +122,6 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
-
-  const inquiryId = inserted.id as string;
 
   if (newsletterOptIn) {
     scheduleMailchimpSync({

@@ -1,5 +1,5 @@
 // data/programme.data.ts
-import type { ScheduleSession, Room, Listing, Partner, Speaker } from '@/types/programme';
+import type { ScheduleSession, Room, Listing, Partner, Speaker, ProgrammePerson } from '@/types/programme';
 
 export const keynoteSpeaker: Speaker = {
   id: 'afua-asare',
@@ -35,6 +35,15 @@ export const scheduleSessions: ScheduleSession[] = [
       { time: '10:20', label: 'Closing reflections', name: 'Apiorkor Ashong' },
       { time: '10:25', label: 'Official photo / transition', name: '—' },
     ],
+  },
+  {
+    id: 'trade-fair',
+    meta: 'ALL DAY · 10:30–20:00',
+    title: 'Trade Fair & Experience Zones',
+    subtitle: 'Manufacturers, materials, installations and country-led displays',
+    detailNote:
+      'Experience Hall, The Moving Loom, Green Artist Area and exhibitor listings remain open throughout the day alongside main-stage programming.',
+    detail: [],
   },
   {
     id: 'panel-one',
@@ -195,4 +204,199 @@ export const heroStats = [
   { num: '54', label: 'Countries' },
   { num: '1,500+', label: 'Buyers' },
   { num: '1', label: 'Day' },
+];
+
+export const programmePeople: ProgrammePerson[] = [
+  {
+    id: 'afua-asare',
+    name: 'Osafohene Dr. Afua Asabea Asare',
+    role: 'Strategist · Export & Trade Leader · Creative',
+    bio: keynoteSpeaker.bio,
+    appearances: ['Opening Ceremony — Keynote address', 'Closing Ceremony — One-day outcomes & reflections'],
+  },
+  {
+    id: 'apiorkor-ashong',
+    name: 'Apiorkor Seyiram Ashong',
+    role: 'Host & Moderator',
+    appearances: [
+      'Opening Ceremony — Host',
+      'Panel One — Moderator',
+      'Opening Ceremony — Closing reflections',
+    ],
+  },
+  {
+    id: 'makeba-boateng',
+    name: 'Makeba Boateng',
+    role: 'Founder & Director, Fashion Forum Africa',
+    appearances: [
+      'Opening Ceremony — Welcome & opening',
+      'Panel Two — Founder perspective',
+      'Closing Ceremony — Alt.FFF 2027 visionary closing',
+      'The Moving Loom — Interview With A Living Legend',
+    ],
+  },
+  {
+    id: 'francois-lawankila',
+    name: 'François Lawankila',
+    role: 'Kora Soloist',
+    appearances: ['Opening Ceremony — Kora performance', 'Main Stage — Second Kora Solo (14:30–15:00)'],
+  },
+  {
+    id: 'rex-owusu-marfo',
+    name: 'Mr. Rex Owusu Marfo',
+    role: 'Presidential Staffer & Coordinator, Black Star Experience',
+    appearances: ['Opening Ceremony — Speech', 'Closing Ceremony — Wider perspective / road ahead'],
+  },
+  {
+    id: 'gilbert-abeiku-aggrey',
+    name: 'Gilbert Abeiku Aggrey',
+    role: 'Ghana Tourism Authority',
+    appearances: ['Opening Ceremony — GTA address'],
+  },
+  {
+    id: 'uwem-utip',
+    name: 'Uwem Utip',
+    role: 'DIMO',
+    appearances: ['Opening Ceremony — Sponsor remarks'],
+  },
+  {
+    id: 'charlotte-kaliati',
+    name: 'Charlotte Tambala Kaliati',
+    role: 'AfCFTA Secretariat',
+    appearances: ['Panel One — Single African market for materials & fashion'],
+  },
+  {
+    id: 'gideon-aryeequaye',
+    name: 'Gideon Aryeequaye',
+    role: 'Creative Arts Agency Ghana',
+    appearances: ['Panel One — Accessing African markets'],
+  },
+  {
+    id: 'jacob-seddoh',
+    name: 'Jacob Seddoh',
+    role: 'Raniel Frights Logistics',
+    appearances: ['Panel One — Moving materials across borders'],
+  },
+  {
+    id: 'cynthia-eryuo',
+    name: 'Cynthia Eryuo',
+    role: 'Oakwood Green Africa (TBC)',
+    appearances: ['Panel One — Financing the material economy'],
+  },
+  {
+    id: 'ursula-ngonadi',
+    name: 'Ursula Ngonadi',
+    role: 'Alt.FFF Correspondent',
+    appearances: ['Main Stage — Alt.FFF Correspondent (13:00–13:05)'],
+  },
+  {
+    id: 'jessica-okwabi',
+    name: 'Jessica Okwabi',
+    role: 'JOK Consulting',
+    appearances: ['Workshop Room — Scale Up (13:15–14:00)'],
+  },
+  {
+    id: 'stella-amoatey',
+    name: 'Stella Niiney Amoatey',
+    role: 'Built Africa',
+    appearances: ['Workshop Room — Built Africa (14:15–15:00)'],
+  },
+  {
+    id: 'zeena-amini',
+    name: 'Zeena L. Amini',
+    role: 'Identity & Markets Workshop Facilitator',
+    appearances: [
+      'Workshop Room — How Can Identity Create Markets (15:15–16:00)',
+      'The Moving Loom — Africa-Local — What Is That?',
+    ],
+  },
+  {
+    id: 'ivy-prosper',
+    name: 'Ivy Prosper',
+    role: 'Host & Moderator',
+    appearances: [
+      'Panel Two — Moderator',
+      'Closing Ceremony — Host',
+      'Closing Ceremony — Welcome & closing framing',
+      'Closing Ceremony — Formal close',
+    ],
+  },
+  {
+    id: 'eyetsa-ocloo',
+    name: 'Eyetsa Lorraine Ocloo',
+    role: 'Head of Auxiliary Arts, Ghana Culture Forum',
+    appearances: ['Panel Two — Ghana Culture Forum perspective', 'Experience Hall — Cloth Section curator'],
+  },
+  {
+    id: 'audrey-forson',
+    name: 'Audrey Forson',
+    role: 'CEO, TEKURA Designs; President, IDDG',
+    appearances: ['Panel Two — TEKURA / IDDG perspective'],
+  },
+  {
+    id: 'nana-opoku',
+    name: 'Nana Opoku',
+    role: 'Nubuke Foundation',
+    appearances: ['Panel Two — Nubuke Foundation perspective'],
+  },
+  {
+    id: 'renee-neblett',
+    name: 'Renée C Neblett',
+    role: 'CEO & Creative Director, Kokrobitey Institute',
+    appearances: ['Panel Two — Kokrobitey Institute perspective'],
+  },
+  {
+    id: 'faith-senam-ocloo',
+    name: 'Faith Senam Ocloo',
+    role: 'Fashion Forum Africa',
+    appearances: ['Closing Ceremony — Partner recognition'],
+  },
+  {
+    id: 'george-lartey',
+    name: 'George Lartey',
+    role: 'Alt.FFF Team',
+    appearances: ['Closing Ceremony — Key learnings from the day'],
+  },
+  {
+    id: 'sammi-laryea',
+    name: 'Sammi Laryea',
+    role: 'Experience Hall Curator',
+    appearances: ['Experience Hall — Kofi Ansah Section'],
+  },
+  {
+    id: 'geez',
+    name: 'Geez',
+    role: 'Recycling Artist (Guadeloupe)',
+    appearances: ['Green Artist Area — Live installations'],
+  },
+  {
+    id: 'benjamin-arhin',
+    name: 'Dr. Benjamin Oduro Arhin Jnr',
+    role: 'Bnoskka',
+    appearances: ['The Moving Loom — Protecting African Creativity'],
+  },
+  {
+    id: 'esi',
+    name: 'Esi',
+    role: 'Facilitator',
+    appearances: ['The Moving Loom — Kokrobitey Institute & Repurposing'],
+  },
+  {
+    id: 'tetteh-adzedu',
+    name: 'Tetteh Adzedu',
+    role: 'Living Legend',
+    appearances: ['The Moving Loom — An Interview With A Living Legend'],
+  },
+  {
+    id: 'ghana-culture-forum',
+    name: 'Ghana Culture Forum',
+    role: 'Solidarity message',
+    appearances: ['Opening Ceremony — Solidarity message'],
+  },
+  {
+    id: 'diplomatic-representatives',
+    name: 'Diplomatic Representatives',
+    role: 'Barbados · Mozambique · Angola · Côte d\'Ivoire · UNESCO (TBC)',
+    appearances: ['Opening Ceremony — Diplomatic messages'],
+  },
 ];
