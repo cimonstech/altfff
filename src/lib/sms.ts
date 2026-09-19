@@ -3,6 +3,7 @@ import {
   smsStatusFromResult,
   type LogMessageInput,
 } from "@/lib/messageLog";
+import { getProgrammeUrl } from "@/lib/siteUrl";
 
 /** Optional message_log metadata — omit to skip logging (legacy call sites). */
 export type SmsLogContext = Omit<
@@ -159,7 +160,7 @@ export function firstNameForSms(fullName: string | null | undefined): string {
 export function buildDoorWelcomeSms(fullName: string | null | undefined): string {
   const first = firstNameForSms(fullName);
   const welcome = first ? `Welcome ${first}!` : "Welcome!";
-  return `${welcome} 🎉 You're officially checked in. Explore our curated experience zones and join the conversation online #AltFFF2026.`;
+  return `${welcome} 🎉 You're officially checked in. Explore our curated experience zones and join the conversation online #AltFFF2026. Today's programme: ${getProgrammeUrl()}`;
 }
 
 export async function sendSms(

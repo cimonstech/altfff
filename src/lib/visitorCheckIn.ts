@@ -5,6 +5,7 @@ import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
 import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { formatCheckInTime, visitorDisplayName } from "@/lib/visitorVetting";
 import { buildDoorWelcomeSms, sendSms, shouldSendDoorWelcomeSms } from "@/lib/sms";
+import { getProgrammeUrl } from "@/lib/siteUrl";
 import {
   emailStatusFromResendError,
   emailStatusFromThrownError,
@@ -237,6 +238,8 @@ function buildCheckInWelcomeEmail(fullName: string | null | undefined): { subjec
     `Welcome to Alt.FFF. You're checked in for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
     "",
     eventScheduleTextBlock(),
+    "",
+    `Today's programme (schedule, rooms, directory): ${getProgrammeUrl()}`,
     "",
     "Explore our curated experience zones and enjoy the fair.",
     "",

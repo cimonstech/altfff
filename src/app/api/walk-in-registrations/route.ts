@@ -12,6 +12,7 @@ import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
 import { buildDoorWelcomeSms, sendSms, shouldSendDoorWelcomeSms } from "@/lib/sms";
+import { getProgrammeUrl } from "@/lib/siteUrl";
 import {
   emailStatusFromResendError,
   emailStatusFromThrownError,
@@ -40,6 +41,8 @@ function buildWalkInConfirmationEmail(fullName: string): { subject: string; text
     `Welcome to Alt.FFF. You're registered for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
     "",
     eventScheduleTextBlock(),
+    "",
+    `Today's programme (schedule, rooms, directory): ${getProgrammeUrl()}`,
     "",
     "You're all set for today. No QR code is needed for walk-in registration.",
     "",

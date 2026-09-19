@@ -46,3 +46,8 @@ export function getSiteUrl(): string {
 
   return "http://localhost:3000";
 }
+
+/** Public event programme app — schedule, rooms, directory. */
+export function getProgrammeUrl(): string {
+  return `${getSiteUrl()}/programme`;
+}
