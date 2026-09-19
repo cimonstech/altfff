@@ -27,13 +27,14 @@ export type CheckInOverviewListRow = {
   id: string;
   full_name: string | null;
   email: string;
+  phone: string | null;
   checked_in_at: string | null;
   checked_in_by_email: string | null;
   created_at: string;
 };
 
 const LIST_SELECT =
-  "id, full_name, email, checked_in_at, checked_in_by_email, created_at";
+  "id, full_name, email, phone, checked_in_at, checked_in_by_email, created_at";
 
 export async function fetchCheckInOverviewCounts(
   supabase: SupabaseClient,

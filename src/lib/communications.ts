@@ -49,6 +49,38 @@ export const AUDIENCE_CONFIG: Record<AudienceType, AudienceConfig> = {
 
 export const AUDIENCE_TYPES = Object.keys(AUDIENCE_CONFIG) as AudienceType[];
 
+/** Visitor-only segment on top of status filters (Communications + Visitors table). */
+export type VisitorCheckInFilter = "all" | "checked_in" | "not_checked_in";
+
+export const VISITOR_CHECK_IN_FILTER_LABELS: Record<VisitorCheckInFilter, string> = {
+  all: "All check-in states",
+  checked_in: "Checked in",
+  not_checked_in: "Not checked in",
+};
+
+export function isVisitorCheckInFilter(value: string): value is VisitorCheckInFilter {
+  return value === "all" || value === "checked_in" || value === "not_checked_in";
+}
+
+type VisitorCheckInFilterableQuery = {
+  not: (column: string, operator: string, value: null) => VisitorCheckInFilterableQuery;
+  is: (column: string, value: null) => VisitorCheckInFilterableQuery;
+};
+
+/** Applies checked_in_at segmentation for visitor_registrations queries. */
+export function applyVisitorCheckInFilter<T extends VisitorCheckInFilterableQuery>(
+  query: T,
+  filter: VisitorCheckInFilter,
+): T {
+  if (filter === "checked_in") {
+    return query.not("checked_in_at", "is", null) as T;
+  }
+  if (filter === "not_checked_in") {
+    return query.is("checked_in_at", null) as T;
+  }
+  return query;
+}
+
 function str(value: unknown): string {
   return value === null || value === undefined ? "" : String(value);
 }

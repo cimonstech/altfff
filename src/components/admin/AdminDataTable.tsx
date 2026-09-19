@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Modal from "@/components/Modal";
-import { storePreloadedRecipients, type CustomRecipient } from "@/lib/communications";
+import { storePreloadedRecipients, applyVisitorCheckInFilter, VISITOR_CHECK_IN_FILTER_LABELS, type CustomRecipient, type VisitorCheckInFilter } from "@/lib/communications";
 import { adminStatusPillClass, formatAdminStatusLabel, ADMIN_TABLE_LIST_ICONS, ADMIN_LIST_EMPTY } from "@/components/admin/adminVisual";
 import VisitorDetailPanel from "@/components/admin/VisitorDetailPanel";
 import EmptyState from "@/components/ui/states/EmptyState";
@@ -102,18 +102,24 @@ type FilterOpts = {
   statusFilter: string;
   search: string;
   searchFields: string[];
+  checkInFilter: VisitorCheckInFilter | null;
 };
 
 type FilterableQuery = {
   eq: (column: string, value: string) => FilterableQuery;
   or: (filters: string) => FilterableQuery;
+  not: (column: string, operator: string, value: null) => FilterableQuery;
+  is: (column: string, value: null) => FilterableQuery;
 };
 
-/** Apply status + text search to a Supabase query builder. */
+/** Apply status + text search (+ optional visitor check-in) to a Supabase query builder. */
 function applyListFilters<T extends FilterableQuery>(query: T, opts: FilterOpts): T {
   let next: FilterableQuery = query;
   if (opts.statusFilter !== "all") {
     next = next.eq("status", opts.statusFilter);
+  }
+  if (opts.checkInFilter) {
+    next = applyVisitorCheckInFilter(next, opts.checkInFilter);
   }
   const q = opts.search.trim();
   if (q && opts.searchFields.length > 0) {
@@ -143,6 +149,7 @@ export default function AdminDataTable({
   titleField,
   getTitle,
   visitorVetting = false,
+  enableCheckInFilter = false,
   rowHeaderExtra,
 }: {
   /** Real Supabase table name. */
@@ -168,6 +175,8 @@ export default function AdminDataTable({
   getTitle?: (row: Record<string, unknown>) => React.ReactNode;
   /** Visitor registrations: Approve/Decline actions; status dropdown excludes confirmed/declined. */
   visitorVetting?: boolean;
+  /** visitor_registrations only: adds Checked in / Not checked in filter. */
+  enableCheckInFilter?: boolean;
   /** Extra badge(s) beside status on mobile list cards (e.g. walk-in vs pre-registered). */
   rowHeaderExtra?: (row: Record<string, unknown>) => React.ReactNode;
 }) {
@@ -181,6 +190,7 @@ export default function AdminDataTable({
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [checkInFilter, setCheckInFilter] = useState<VisitorCheckInFilter>("all");
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [currentAdmin, setCurrentAdmin] = useState<CurrentAdmin | null>(null);
   // One expanded card at a time keeps long lists scannable.
@@ -191,8 +201,13 @@ export default function AdminDataTable({
   const [statusErrors, setStatusErrors] = useState<Map<string, string>>(new Map());
 
   const filterOpts = useMemo(
-    () => ({ statusFilter, search, searchFields }),
-    [statusFilter, search, searchFields],
+    () => ({
+      statusFilter,
+      search,
+      searchFields,
+      checkInFilter: enableCheckInFilter ? checkInFilter : null,
+    }),
+    [statusFilter, search, searchFields, enableCheckInFilter, checkInFilter],
   );
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
@@ -331,7 +346,11 @@ export default function AdminDataTable({
           action: "export",
           target_table: table,
           details: {
-            filters: { search: search.trim() || null, status: statusFilter },
+            filters: {
+              search: search.trim() || null,
+              status: statusFilter,
+              checkIn: enableCheckInFilter ? checkInFilter : null,
+            },
             row_count: exportRows.length,
             capped: exportRows.length >= EXPORT_CAP,
           },
@@ -416,11 +435,17 @@ export default function AdminDataTable({
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
+    setCheckInFilter("all");
     setPage(0);
     setExpandedId(null);
   };
 
-  const hasActiveFilters = hasActiveListFilters(search, statusFilter);
+  const hasActiveFilters = hasActiveListFilters(
+    search,
+    statusFilter,
+    "all",
+    enableCheckInFilter ? checkInFilter : null,
+  );
   const listIcon = ADMIN_TABLE_LIST_ICONS[table];
   const emptyCopy = ADMIN_LIST_EMPTY[table] ?? {
     title: `No ${entityLabel.toLowerCase()} records yet`,
@@ -528,6 +553,26 @@ export default function AdminDataTable({
               </option>
             ))}
           </select>
+          {enableCheckInFilter && (
+            <select
+              value={checkInFilter}
+              onChange={(e) => {
+                setCheckInFilter(e.target.value as VisitorCheckInFilter);
+                setPage(0);
+                setExpandedId(null);
+              }}
+              className="min-h-11 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold sm:w-auto sm:text-sm"
+              aria-label="Check-in filter"
+            >
+              {(Object.entries(VISITOR_CHECK_IN_FILTER_LABELS) as [VisitorCheckInFilter, string][]).map(
+                ([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ),
+              )}
+            </select>
+          )}
           <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
             {selectedRows.size > 0 && (
               <button

@@ -6,11 +6,14 @@ import { processRecipient, queueDelaySecondsForIndex } from "@/lib/communication
 import {
   AUDIENCE_CONFIG,
   AUDIENCE_TYPES,
+  applyVisitorCheckInFilter,
   getMergeFieldValues,
   isValidCustomRecipient,
+  isVisitorCheckInFilter,
   type AudienceType,
   type Channel,
   type CustomRecipient,
+  type VisitorCheckInFilter,
 } from "@/lib/communications";
 import { reportServerError } from "@/lib/sentryReport";
 import { ADMIN_RATE_LIMITS, checkAdminRateLimit, RATE_LIMIT_ERROR_MESSAGE } from "@/lib/rateLimit";
@@ -42,6 +45,8 @@ async function requireCommunicationsAdmin(request: Request) {
 type SendPayload = {
   audience?: unknown;
   status?: unknown;
+  /** Visitor audience only: all | checked_in | not_checked_in */
+  checkInFilter?: unknown;
   channel?: unknown;
   subject?: unknown;
   body?: unknown;
@@ -80,6 +85,10 @@ export async function POST(request: Request) {
 
   const audience = typeof payload.audience === "string" ? payload.audience : "";
   const status = typeof payload.status === "string" ? payload.status : "all";
+  const checkInFilterRaw = typeof payload.checkInFilter === "string" ? payload.checkInFilter : "all";
+  const checkInFilter: VisitorCheckInFilter = isVisitorCheckInFilter(checkInFilterRaw)
+    ? checkInFilterRaw
+    : "all";
   const channel = typeof payload.channel === "string" ? payload.channel : "";
   const subject = typeof payload.subject === "string" ? payload.subject.trim() : "";
   const body = typeof payload.body === "string" ? payload.body.trim() : "";
@@ -147,6 +156,7 @@ export async function POST(request: Request) {
     // that actually gets used.
     let query = supabase.from(config.table).select(config.selectColumns).limit(RECIPIENT_CAP);
     if (status !== "all") query = query.eq("status", status);
+    if (audienceType === "visitor") query = applyVisitorCheckInFilter(query, checkInFilter);
     const { data: recipientsData, error: recipientsError } = await query;
     // config.selectColumns is a plain string, not a literal template, so
     // supabase-js can't statically infer row shape from it - cast through
@@ -176,7 +186,8 @@ export async function POST(request: Request) {
         mergeFields,
       };
     });
-    audienceFilter = { status };
+    audienceFilter =
+      audienceType === "visitor" ? { status, checkInFilter } : { status };
   }
 
   const { data: log, error: logError } = await supabase

@@ -41,6 +41,7 @@ export default function AdminVisitorsPage() {
           entityLabel="Visitor Registration"
           statuses={STATUSES}
           visitorVetting
+          enableCheckInFilter
           searchFields={["full_name", "email", "company_name"]}
           titleField="full_name"
           rowHeaderExtra={(row) => visitorSourceBadge(row.source)}

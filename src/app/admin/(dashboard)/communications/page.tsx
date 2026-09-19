@@ -6,11 +6,14 @@ import Modal from "@/components/Modal";
 import {
   AUDIENCE_CONFIG,
   AUDIENCE_TYPES,
+  applyVisitorCheckInFilter,
   getRecipientDisplayName,
   parseCustomRecipients,
   consumePreloadedRecipients,
+  VISITOR_CHECK_IN_FILTER_LABELS,
   type AudienceType,
   type CustomRecipient,
+  type VisitorCheckInFilter,
 } from "@/lib/communications";
 import AdminCard from "@/components/admin/AdminCard";
 import EmptyState from "@/components/ui/states/EmptyState";
@@ -50,6 +53,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
   const supabase = useMemo(() => createClient(), []);
   const [audience, setAudience] = useState<ComposeAudience>("exhibitor");
   const [status, setStatus] = useState("all");
+  const [checkInFilter, setCheckInFilter] = useState<VisitorCheckInFilter>("all");
   const [channel, setChannel] = useState<ChannelOption>("email");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -90,6 +94,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
   // audience's status value has no meaning for the new one's check constraint.
   useEffect(() => {
     setStatus("all");
+    setCheckInFilter("all");
     setPreviewOpen(false);
   }, [audience]);
 
@@ -100,6 +105,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
     // count it.
     let query = supabase.from(config.table).select("id", { count: "exact", head: true });
     if (status !== "all") query = query.eq("status", status);
+    if (audience === "visitor") query = applyVisitorCheckInFilter(query, checkInFilter);
     const { count, error } = await query;
     if (error) {
       console.error("Failed to count recipients:", error);
@@ -108,7 +114,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
       setRecipientCount(count ?? 0);
     }
     setCountLoading(false);
-  }, [supabase, config, status]);
+  }, [supabase, config, status, audience, checkInFilter]);
 
   useEffect(() => {
     if (isCustom) return;
@@ -144,6 +150,7 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
     setPreviewLoading(true);
     let query = supabase.from(config.table).select(config.selectColumns).limit(200);
     if (status !== "all") query = query.eq("status", status);
+    if (audience === "visitor") query = applyVisitorCheckInFilter(query, checkInFilter);
     const { data, error } = await query;
     if (error) {
       console.error("Failed to load recipient preview:", error);
@@ -164,7 +171,14 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
     try {
       const payload = isCustom
         ? { audience, channel, subject, body, recipients: customRecipients, customSource: customMode }
-        : { audience, status, channel, subject, body };
+        : {
+            audience,
+            status,
+            checkInFilter: audience === "visitor" ? checkInFilter : undefined,
+            channel,
+            subject,
+            body,
+          };
       const res = await fetch("/api/admin/communications/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,24 +269,47 @@ function ComposeForm({ onSent }: { onSent: () => void }) {
             )}
           </div>
         ) : (
-          <div>
-            <label htmlFor="status" className="block text-xs font-semibold uppercase tracking-wide text-ink/60">
-              Status filter
-            </label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="mt-1 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
-            >
-              <option value="all">All statuses</option>
-              {config!.statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div>
+              <label htmlFor="status" className="block text-xs font-semibold uppercase tracking-wide text-ink/60">
+                Status filter
+              </label>
+              <select
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="mt-1 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
+              >
+                <option value="all">All statuses</option>
+                {config!.statuses.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {audience === "visitor" && (
+              <div>
+                <label htmlFor="check-in-filter" className="block text-xs font-semibold uppercase tracking-wide text-ink/60">
+                  Check-in filter
+                </label>
+                <select
+                  id="check-in-filter"
+                  value={checkInFilter}
+                  onChange={(e) => setCheckInFilter(e.target.value as VisitorCheckInFilter)}
+                  className="mt-1 w-full rounded-md border border-hairline bg-paper px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
+                >
+                  {(Object.entries(VISITOR_CHECK_IN_FILTER_LABELS) as [VisitorCheckInFilter, string][]).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+            )}
+          </>
         )}
 
         <div>
