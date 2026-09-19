@@ -19,6 +19,7 @@ export default function WalkInRegisterForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [showBanner, setShowBanner] = useState(false);
+  const [successChannel, setSuccessChannel] = useState<"sms" | "email">("sms");
   const [formKey, setFormKey] = useState(0);
   const { fieldErrors, validateField, validateAll, applyServerFieldErrors, clearFieldErrors } =
     useZodFormErrors(walkInRegistrationSchema);
@@ -55,6 +56,7 @@ export default function WalkInRegisterForm() {
         ok?: boolean;
         error?: string;
         fieldErrors?: Record<string, string>;
+        confirmationChannel?: "sms" | "email";
       };
 
       if (res.status === 429) {
@@ -74,17 +76,18 @@ export default function WalkInRegisterForm() {
 
       if (!res.ok || !json.ok) {
         setStatus("error");
-        setErrorMessage(json.error || "Something went wrong. Please try again or ask staff for help.");
+        setErrorMessage(json.error || "Something went wrong. Please try again.");
         endSubmit();
         return;
       }
 
       setShowBanner(true);
+      setSuccessChannel(json.confirmationChannel === "email" ? "email" : "sms");
       setFormKey((k) => k + 1);
       setStatus("idle");
     } catch {
       setStatus("error");
-      setErrorMessage("Network error — please check your connection and try again.");
+      setErrorMessage("Network error. Please check your connection and try again.");
     } finally {
       endSubmit();
     }
@@ -149,13 +152,17 @@ export default function WalkInRegisterForm() {
           disabled={status === "submitting"}
           className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-gold px-6 py-3 text-sm font-bold uppercase tracking-wide text-paper hover:opacity-90 disabled:opacity-60"
         >
-          {status === "submitting" ? "Registering…" : "Register & enter"}
+          {status === "submitting" ? "Registering…" : "Register my visit"}
         </button>
       </form>
 
       {showBanner && (
         <SuccessBanner
-          message="You're registered — welcome to Alt.FFF. A confirmation has been sent to your email and phone."
+          message={
+            successChannel === "email"
+              ? "Welcome to Alt.FFF. You're all set for today. We've sent a confirmation to your email. See you inside!"
+              : "Welcome to Alt.FFF. You're all set for today. We've sent a confirmation text to your phone. See you inside!"
+          }
           onDismiss={() => setShowBanner(false)}
         />
       )}

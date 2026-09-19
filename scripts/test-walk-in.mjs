@@ -25,6 +25,20 @@ const email = arg("email", `walkin-test-${randomUUID().slice(0, 8)}@example.com`
 const phone = arg("phone", "+233241234567");
 const fullName = arg("name", "Walk-in Test User");
 
+function formatPhoneForSms(rawPhone) {
+  const stripped = rawPhone.replace(/[\s-]/g, "");
+  if (stripped.startsWith("+")) return stripped.slice(1);
+  if (stripped.startsWith("00")) return stripped.slice(2);
+  if (stripped.startsWith("0") && stripped.length === 10) return `233${stripped.slice(1)}`;
+  return stripped;
+}
+
+function isGhanaianPhoneForSms(rawPhone) {
+  const trimmed = rawPhone.trim();
+  if (!trimmed) return false;
+  return /^233\d{9}$/.test(formatPhoneForSms(trimmed));
+}
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -107,6 +121,13 @@ async function main() {
     process.exit(1);
   }
 
+  const expectedChannel = isGhanaianPhoneForSms(phone) ? "sms" : "email";
+  if (json.confirmationChannel !== expectedChannel) {
+    console.error(`FAIL confirmationChannel: expected ${expectedChannel}, got ${json.confirmationChannel ?? "(missing)"}`);
+    process.exit(1);
+  }
+  console.log("PASS confirmationChannel:", json.confirmationChannel);
+
   const { data: row, error } = await supabase
     .from("visitor_registrations")
     .select("id, email, full_name, source, status, qr_token, newsletter_opt_in")
@@ -134,7 +155,7 @@ async function main() {
   }
 
   if (failed) process.exit(1);
-  console.log("\nAll DB checks passed. Confirm email/SMS/Mailchimp manually for real addresses.");
+  console.log("\nAll DB checks passed. Confirm SMS (Ghana) or email (non-Ghana) manually for real addresses.");
 }
 
 main().catch((err) => {

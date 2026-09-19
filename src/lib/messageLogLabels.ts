@@ -17,6 +17,7 @@ const MESSAGE_TYPE_LABELS: Record<string, string> = {
   [MESSAGE_TYPES.bulkCommunicationEmail]: "Bulk communication (email)",
   [MESSAGE_TYPES.bulkCommunicationSms]: "Bulk communication (SMS)",
   [MESSAGE_TYPES.checkInWelcomeSms]: "Check-in welcome SMS",
+  [MESSAGE_TYPES.checkInWelcomeEmail]: "Check-in welcome email",
 };
 
 export const MESSAGE_TYPE_OPTIONS = Object.entries(MESSAGE_TYPE_LABELS).map(([value, label]) => ({

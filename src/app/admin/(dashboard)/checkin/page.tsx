@@ -135,6 +135,82 @@ function cameraFrameClasses(tone: FeedbackTone | "idle"): string {
   }
 }
 
+function CheckInStatusDisplay({
+  result,
+  variant = "full",
+}: {
+  result: ScanResult;
+  variant?: "full" | "compact";
+}) {
+  if (result.kind === "idle") {
+    if (variant === "compact") return null;
+    return (
+      <div className="rounded-xl border border-hairline bg-surface px-4 py-3 text-center">
+        <p className="text-sm font-medium text-ink/55">Ready to scan</p>
+      </div>
+    );
+  }
+
+  const { tone, headline, name, detail } = result;
+
+  if (variant === "compact") {
+    return (
+      <div
+        role="status"
+        aria-live="assertive"
+        className={`min-w-0 rounded-xl border-2 px-3 py-2 sm:max-w-xs ${feedbackBannerClasses(tone)}`}
+      >
+        <p className="font-display text-sm font-extrabold uppercase leading-tight tracking-tight sm:text-base">
+          {headline}
+        </p>
+        {name && (
+          <p
+            className={`mt-0.5 truncate text-xs font-semibold sm:text-sm ${
+              tone === "success" || tone === "error" ? "text-paper/95" : "text-ink"
+            }`}
+          >
+            {name}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      role="status"
+      aria-live="assertive"
+      className={`rounded-xl border-2 px-4 py-5 text-center sm:px-6 sm:py-6 ${feedbackBannerClasses(tone)}`}
+    >
+      <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight sm:text-4xl">
+        {headline}
+      </p>
+      {name && (
+        <p
+          className={`mt-3 text-xl font-semibold sm:text-2xl ${
+            tone === "success" || tone === "error" ? "text-paper/95" : "text-ink"
+          }`}
+        >
+          {name}
+        </p>
+      )}
+      <p
+        className={`mt-2 text-sm sm:text-base ${
+          tone === "success"
+            ? "text-paper/85"
+            : tone === "error"
+              ? "text-paper/85"
+              : tone === "warning"
+                ? "text-ink/75"
+                : "text-ink/70"
+        }`}
+      >
+        {detail}
+      </p>
+    </div>
+  );
+}
+
 export default function AdminCheckInPage() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const processingRef = useRef(false);
@@ -322,45 +398,6 @@ export default function AdminCheckInPage() {
 
   const feedbackTone: FeedbackTone | "idle" = result.kind === "feedback" ? result.tone : "idle";
 
-  const statusBanner =
-    result.kind === "feedback" ? (
-      <div
-        role="status"
-        aria-live="assertive"
-        className={`rounded-xl border-2 px-4 py-5 text-center sm:px-6 sm:py-6 ${feedbackBannerClasses(result.tone)}`}
-      >
-        <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight sm:text-4xl">
-          {result.headline}
-        </p>
-        {result.name && (
-          <p
-            className={`mt-3 text-xl font-semibold sm:text-2xl ${
-              result.tone === "success" || result.tone === "error" ? "text-paper/95" : "text-ink"
-            }`}
-          >
-            {result.name}
-          </p>
-        )}
-        <p
-          className={`mt-2 text-sm sm:text-base ${
-            result.tone === "success"
-              ? "text-paper/85"
-              : result.tone === "error"
-                ? "text-paper/85"
-                : result.tone === "warning"
-                  ? "text-ink/75"
-                  : "text-ink/70"
-          }`}
-        >
-          {result.detail}
-        </p>
-      </div>
-    ) : (
-      <div className="rounded-xl border border-hairline bg-surface px-4 py-3 text-center">
-        <p className="text-sm font-medium text-ink/55">Ready to scan</p>
-      </div>
-    );
-
   return (
     <div className="mx-auto max-w-xl">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -370,11 +407,14 @@ export default function AdminCheckInPage() {
             Scan visitor QR codes at the door, or look up an approved visitor who lost theirs.
           </p>
         </div>
-        {stats && (
-          <p className="rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink">
-            {stats.checkedIn} of {stats.approved} checked in
-          </p>
-        )}
+        <div className="flex flex-wrap items-stretch justify-end gap-2 sm:items-center sm:gap-3">
+          {stats && (
+            <p className="inline-flex min-h-11 items-center self-center rounded-full bg-surface px-4 py-2 text-sm font-semibold text-ink">
+              {stats.checkedIn} of {stats.approved} checked in
+            </p>
+          )}
+          <CheckInStatusDisplay result={result} variant="compact" />
+        </div>
       </div>
 
       {cameraError && (
@@ -398,7 +438,9 @@ export default function AdminCheckInPage() {
         )}
       </div>
 
-      <div className="mt-4">{statusBanner}</div>
+      <div className="mt-4">
+        <CheckInStatusDisplay result={result} variant="full" />
+      </div>
 
       <p className="mt-3 text-center text-xs text-ink/50">Point the camera at the QR code in the visitor&apos;s email.</p>
 

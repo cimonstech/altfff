@@ -1,0 +1,181 @@
+/* styles/programme.module.css */
+
+.root {
+  --ink: #0D220A;
+  --ink-deep: #081707;
+  --orange: #FF6800;
+  --orange-soft: #FF8A3D;
+  --cream: #F3ECE0;
+  --glass-fill: rgba(243, 236, 224, 0.10);
+  --glass-fill-strong: rgba(243, 236, 224, 0.16);
+  --glass-border: rgba(243, 236, 224, 0.22);
+  --muted: #B9C7B4;
+
+  font-family: 'Poppins', sans-serif;
+  background: radial-gradient(ellipse 140% 100% at 50% -10%, #1a3d16 0%, var(--ink) 45%, var(--ink-deep) 100%);
+  color: var(--cream);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Background watermark — uses the real logo mark PNG (cream/light variant for dark bg).
+   Place the file at /public/brand/mark-cream.png (or update the path below). */
+.bgMark {
+  position: fixed;
+  inset: 0;
+  background-image: url('/brand/mark-cream.png');
+  background-repeat: no-repeat;
+  background-position: 120% -10%;
+  background-size: 900px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.bgMarkSecondary {
+  composes: bgMark;
+  background-position: -30% 120%;
+  background-size: 700px;
+  opacity: 0.04;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 104px;
+}
+@media (min-width: 768px) { .app { max-width: 620px; } }
+@media (min-width: 1280px) { .app { max-width: 760px; } }
+
+/* ---------- Glass utility ---------- */
+.glass {
+  background: var(--glass-fill);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+}
+.glassStrong {
+  composes: glass;
+  background: var(--glass-fill-strong);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+}
+
+/* ---------- Header ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px 20px;
+  background: linear-gradient(180deg, rgba(13,34,10,0.92) 60%, rgba(13,34,10,0));
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand img { width: 30px; height: auto; }
+.brandText { font-family: 'Lora', serif; font-weight: 600; font-style: italic; font-size: 17px; color: var(--cream); }
+.brandText span { color: var(--orange); }
+.dayPill { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; padding: 7px 13px; border-radius: 999px; color: var(--orange); }
+
+/* ---------- Hero ---------- */
+.hero { padding: 8px 20px 20px 20px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: var(--orange); margin-bottom: 10px; }
+.hero h1 { font-family: 'Lora', serif; font-weight: 700; font-size: 30px; line-height: 1.15; margin-bottom: 8px; }
+.heroSub { font-size: 13.5px; color: var(--muted); line-height: 1.5; max-width: 320px; }
+.heroStats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; padding: 16px 12px; border-radius: 20px; }
+.stat { text-align: center; }
+.statNum { font-family: 'Lora', serif; font-weight: 700; font-size: 18px; color: var(--cream); }
+.statLbl { font-size: 9.5px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+
+/* ---------- Section shell ---------- */
+.view { padding: 4px 20px 20px 20px; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.sectionTitle { font-family: 'Lora', serif; font-weight: 700; font-size: 20px; margin: 22px 0 12px 0; color: var(--cream); }
+.sectionTitle:first-child { margin-top: 6px; }
+.sectionSub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+
+/* ---------- Card ---------- */
+.card { padding: 16px 18px; margin-bottom: 12px; }
+.cardRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; cursor: pointer; }
+.timeBadge { font-size: 11px; font-weight: 600; color: var(--orange); background: rgba(255,104,0,0.14); border: 1px solid rgba(255,104,0,0.3); padding: 4px 10px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; }
+.card h3 { font-family: 'Lora', serif; font-weight: 600; font-size: 15.5px; color: var(--cream); margin: 2px 0 4px 0; }
+.cardMeta { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.cardDesc { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+.chevron { transition: transform 0.2s ease; flex-shrink: 0; margin-top: 2px; opacity: 0.6; }
+.chevronOpen { transform: rotate(180deg); }
+.cardDetail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.cardDetailOpen { max-height: 900px; margin-top: 10px; }
+
+.miniRow { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid rgba(243,236,224,0.1); font-size: 12px; }
+.miniRow:first-child { border-top: none; padding-top: 0; }
+.miniRowLabel { color: var(--muted); width: 34px; flex-shrink: 0; }
+.miniRowMid { flex: 1; padding: 0 8px; }
+.miniRowName { color: var(--cream); font-weight: 500; text-align: right; }
+
+.pillList { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pill { font-size: 11px; padding: 6px 12px; border-radius: 999px; background: rgba(255,104,0,0.12); border: 1px solid rgba(255,104,0,0.28); color: var(--orange-soft); }
+
+/* ---------- Speaker card ---------- */
+.speakerCard { display: flex; gap: 12px; padding: 16px; margin-bottom: 12px; align-items: flex-start; }
+.avatar { width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0; background: linear-gradient(135deg, var(--orange), #C24E00); display: flex; align-items: center; justify-content: center; font-family: 'Lora', serif; font-weight: 700; font-size: 18px; color: white; overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.speakerCard h3 { font-family: 'Lora', serif; font-weight: 600; font-size: 14.5px; margin-bottom: 2px; }
+.speakerRole { font-size: 11.5px; color: var(--orange-soft); margin-bottom: 4px; }
+.speakerBio { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Directory listing (logo-only, no contact info per client request) ---------- */
+.listingGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.listingCard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 8px; text-align: center; }
+.listingLogo { width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0; background: rgba(243,236,224,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.listingLogo img { width: 100%; height: 100%; object-fit: cover; }
+.listingFallback { font-family: 'Lora', serif; font-weight: 700; font-size: 16px; color: var(--orange-soft); }
+.listingCard h4 { font-family: 'Lora', serif; font-size: 12px; font-weight: 600; color: var(--cream); line-height: 1.3; }
+
+/* ---------- Partner grid (logo-only) ---------- */
+.partnerTierLabel { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--orange); margin: 18px 0 10px 0; text-transform: uppercase; }
+.partnerTierLabel:first-of-type { margin-top: 4px; }
+.partnerGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.partnerChip { padding: 14px 8px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.partnerLogoBox { width: 48px; height: 48px; border-radius: 14px; background: rgba(243,236,224,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.partnerLogoBox img { width: 100%; height: 100%; object-fit: cover; }
+.partnerName { font-size: 10.5px; font-weight: 500; color: var(--cream); line-height: 1.25; }
+.sponsorChip { grid-column: span 3; padding: 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.sponsorLogoBox { width: 64px; height: 64px; border-radius: 16px; background: rgba(243,236,224,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.sponsorLogoBox img { width: 100%; height: 100%; object-fit: cover; }
+.sponsorLbl { font-size: 10px; letter-spacing: 0.08em; color: var(--orange); }
+.sponsorName { font-family: 'Lora', serif; font-weight: 700; font-size: 15px; color: var(--cream); }
+
+/* ---------- Room card ---------- */
+.roomCard { padding: 18px; margin-bottom: 14px; }
+.roomTag { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; color: var(--orange); margin-bottom: 6px; }
+.roomCard h3 { font-family: 'Lora', serif; font-weight: 700; font-size: 18px; margin-bottom: 8px; }
+.roomCard p { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+.subSession { border-top: 1px solid rgba(243,236,224,0.12); padding: 10px 0; }
+.subSession:first-of-type { border-top: none; }
+.subSessionRow { display: flex; justify-content: space-between; align-items: baseline; }
+.subSession h4 { font-family: 'Lora', serif; font-size: 13.5px; font-weight: 600; color: var(--cream); }
+.subSessionTime { font-size: 10.5px; color: var(--orange-soft); white-space: nowrap; }
+.subSessionFacilitator { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ---------- Floor plan zones ---------- */
+.zoneGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.zoneChip { padding: 10px 12px; font-size: 11px; text-align: center; color: var(--cream); }
+
+/* ---------- Bottom nav ---------- */
+.bottomNav { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: 4px; padding: 8px; border-radius: 999px; width: calc(100% - 40px); max-width: 440px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
+.navBtn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 4px 8px 4px; border-radius: 999px; border: none; background: transparent; color: var(--muted); font-family: 'Poppins', sans-serif; font-size: 9.5px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
+.navBtnActive { composes: navBtn; background: rgba(255,104,0,0.85); color: white; }
+.navBtn svg { width: 19px; height: 19px; }

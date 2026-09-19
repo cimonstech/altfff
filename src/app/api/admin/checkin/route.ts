@@ -5,7 +5,7 @@ import { normalizeCheckInToken } from "@/lib/visitorVetting";
 import {
   isVisitorId,
   performVisitorCheckIn,
-  sendCheckInWelcomeSms,
+  sendCheckInWelcomeComms,
   type CheckInOutcome,
   type CheckInVisitor,
 } from "@/lib/visitorCheckIn";
@@ -21,7 +21,7 @@ type CheckInBody = { token?: unknown; visitorId?: unknown };
 
 function jsonCheckIn(outcome: CheckInOutcome, visitor?: CheckInVisitor) {
   if (visitor && outcome.body.ok && outcome.body.result === "checked_in") {
-    after(() => sendCheckInWelcomeSms(visitor));
+    after(() => sendCheckInWelcomeComms(visitor));
   }
   return NextResponse.json(outcome.body, { status: outcome.httpStatus });
 }

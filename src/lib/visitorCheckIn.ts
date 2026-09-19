@@ -1,8 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 import type { AdminUser } from "@/lib/adminAuth";
+import { EVENT, eventScheduleTextBlock } from "@/lib/constants";
+import { buildEmailHtml, textToHtml } from "@/lib/emailTemplate";
 import { formatCheckInTime, visitorDisplayName } from "@/lib/visitorVetting";
-import { buildDoorWelcomeSms, sendSms } from "@/lib/sms";
-import { MESSAGE_TYPES } from "@/lib/messageLog";
+import { buildDoorWelcomeSms, sendSms, shouldSendDoorWelcomeSms } from "@/lib/sms";
+import {
+  emailStatusFromResendError,
+  emailStatusFromThrownError,
+  logMessageFireAndForget,
+  MESSAGE_TYPES,
+} from "@/lib/messageLog";
 import { reportServerError } from "@/lib/sentryReport";
 
 export type CheckInMethod = "qr" | "manual_lookup";
@@ -221,37 +229,142 @@ export function buildCheckInWelcomeSms(fullName: string | null | undefined): str
   return buildDoorWelcomeSms(fullName);
 }
 
-/** Fail-open welcome SMS for pre-registered door check-in. Walk-ins already got one at registration. */
-export async function sendCheckInWelcomeSms(visitor: CheckInVisitor): Promise<void> {
-  if (visitor.source === "walk_in") return;
-  const phone = visitor.phone?.trim();
-  if (!phone) return;
+function buildCheckInWelcomeEmail(fullName: string | null | undefined): { subject: string; textBody: string } {
+  const greeting = fullName?.trim() ? `Hi ${fullName.trim()},` : "Hi,";
+  const textBody = [
+    greeting,
+    "",
+    `Welcome to Alt.FFF. You're checked in for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
+    "",
+    eventScheduleTextBlock(),
+    "",
+    "Explore our curated experience zones and enjoy the fair.",
+    "",
+    "Questions? Reach us at enquiries@altfff.com.",
+  ].join("\n");
+  return { subject: "Welcome to Alt.FFF", textBody };
+}
 
-  try {
-    const result = await sendSms(phone, buildCheckInWelcomeSms(visitor.full_name), "AltFFF Check-in Welcome", {
-      messageType: MESSAGE_TYPES.checkInWelcomeSms,
-      recipientEmail: visitor.email,
-      recipientName: visitor.full_name,
-      subjectOrSummary: "Check-in welcome SMS",
-      relatedTable: "visitor_registrations",
-      relatedId: visitor.id,
-    });
-    if (!result.success) {
-      console.error("[check-in] SMS failed (visitor still checked in):", result.error);
-      reportServerError(new Error(result.error ?? "Check-in SMS failed"), {
+/** Fail-open welcome after pre-registered check-in — SMS for Ghana numbers, email otherwise. Walk-ins skip (already welcomed at registration). */
+export async function sendCheckInWelcomeComms(visitor: CheckInVisitor): Promise<void> {
+  if (visitor.source === "walk_in") return;
+
+  if (shouldSendDoorWelcomeSms(visitor.phone)) {
+    const phone = visitor.phone!.trim();
+    try {
+      const result = await sendSms(phone, buildCheckInWelcomeSms(visitor.full_name), "AltFFF Check-in Welcome", {
+        messageType: MESSAGE_TYPES.checkInWelcomeSms,
+        recipientEmail: visitor.email,
+        recipientName: visitor.full_name,
+        subjectOrSummary: "Check-in welcome SMS",
+        relatedTable: "visitor_registrations",
+        relatedId: visitor.id,
+      });
+      if (!result.success) {
+        console.error("[check-in] SMS failed (visitor still checked in):", result.error);
+        reportServerError(new Error(result.error ?? "Check-in SMS failed"), {
+          route: "/api/admin/checkin",
+          kind: "sms",
+          extra: { op: "check_in_welcome", visitor_id: visitor.id, failOpen: true },
+        });
+      } else {
+        console.log("[check-in] SMS accepted for pre-registered check-in.");
+      }
+    } catch (err) {
+      console.error("[check-in] SMS threw (visitor still checked in):", err);
+      reportServerError(err, {
         route: "/api/admin/checkin",
         kind: "sms",
-        extra: { op: "check_in_welcome", visitor_id: visitor.id, failOpen: true },
+        extra: { op: "check_in_welcome_throw", visitor_id: visitor.id, failOpen: true },
+      });
+    }
+    return;
+  }
+
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  if (!apiKey || !fromEmail) {
+    console.error(
+      !apiKey
+        ? "RESEND_API_KEY is not set - check-in welcome email was not sent."
+        : "RESEND_FROM_EMAIL is not set - check-in welcome email was not sent.",
+    );
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.checkInWelcomeEmail,
+      status: "failed",
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Welcome to Alt.FFF",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      errorDetail: "Email sending is not configured.",
+    });
+    return;
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    const { subject, textBody } = buildCheckInWelcomeEmail(visitor.full_name);
+    const { data: sendData, error: sendError } = await resend.emails.send({
+      from: `Alt.FFF <${fromEmail}>`,
+      to: visitor.email,
+      replyTo: "enquiries@altfff.com",
+      subject,
+      text: textBody,
+      html: buildEmailHtml({ heading: "Welcome to Alt.FFF", bodyHtml: textToHtml(textBody) }),
+    });
+    if (sendError) {
+      console.error("[check-in] Resend error (welcome email):", sendError);
+      reportServerError(sendError, {
+        route: "/api/admin/checkin",
+        kind: "email",
+        extra: { op: "check_in_welcome_email", visitor_id: visitor.id, failOpen: true },
+      });
+      logMessageFireAndForget({
+        channel: "email",
+        messageType: MESSAGE_TYPES.checkInWelcomeEmail,
+        status: emailStatusFromResendError(sendError),
+        recipientEmail: visitor.email,
+        recipientName: visitor.full_name,
+        subjectOrSummary: subject,
+        relatedTable: "visitor_registrations",
+        relatedId: visitor.id,
+        errorDetail: sendError.message,
       });
       return;
     }
-    console.log("[check-in] SMS accepted for pre-registered check-in.");
+    console.log("[check-in] Welcome email accepted, message id:", sendData?.id);
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.checkInWelcomeEmail,
+      status: "sent",
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: subject,
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+    });
   } catch (err) {
-    console.error("[check-in] SMS threw (visitor still checked in):", err);
+    console.error("[check-in] Welcome email threw (visitor still checked in):", err);
     reportServerError(err, {
       route: "/api/admin/checkin",
-      kind: "sms",
-      extra: { op: "check_in_welcome_throw", visitor_id: visitor.id, failOpen: true },
+      kind: "email",
+      extra: { op: "check_in_welcome_email_throw", visitor_id: visitor.id, failOpen: true },
+    });
+    logMessageFireAndForget({
+      channel: "email",
+      messageType: MESSAGE_TYPES.checkInWelcomeEmail,
+      status: emailStatusFromThrownError(err),
+      recipientEmail: visitor.email,
+      recipientName: visitor.full_name,
+      subjectOrSummary: "Welcome to Alt.FFF",
+      relatedTable: "visitor_registrations",
+      relatedId: visitor.id,
+      errorDetail: err instanceof Error ? err.message : "send failed",
     });
   }
 }
+
+/** @deprecated Use sendCheckInWelcomeComms */
+export const sendCheckInWelcomeSms = sendCheckInWelcomeComms;

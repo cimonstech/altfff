@@ -13,7 +13,7 @@ export const FORM_CLOSED_API_ERROR = FORM_CLOSED_MESSAGE;
 export const WALK_IN_REGISTRATION_SETTING_KEY = "walk_in_registration_enabled";
 
 export const WALK_IN_REGISTRATION_CLOSED_MESSAGE =
-  "Walk-in registration opens at the event. Please check with staff at the door if you need help.";
+  "Registration isn't open on this page right now. Please try again shortly. It opens when doors open.";
 
 export const WALK_IN_REGISTRATION_CLOSED_API_ERROR = "Walk-in registration is not open yet.";
 

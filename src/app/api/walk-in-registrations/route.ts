@@ -10,7 +10,7 @@ import { parseWithSchema } from "@/lib/validation/parse";
 import { reportServerError } from "@/lib/sentryReport";
 import { parseNewsletterOptIn, scheduleMailchimpSync } from "@/lib/mailchimp";
 import { emailDomainValidationResponse } from "@/lib/publicFormEmailCheck";
-import { buildDoorWelcomeSms, sendSms } from "@/lib/sms";
+import { buildDoorWelcomeSms, sendSms, shouldSendDoorWelcomeSms } from "@/lib/sms";
 import {
   emailStatusFromResendError,
   emailStatusFromThrownError,
@@ -36,7 +36,7 @@ function buildWalkInConfirmationEmail(fullName: string): { subject: string; text
   const textBody = [
     greeting,
     "",
-    `Welcome to Alt.FFF — you're registered for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
+    `Welcome to Alt.FFF. You're registered for ${EVENT.tradeFairDateLabel} at ${EVENT.venue}.`,
     "",
     eventScheduleTextBlock(),
     "",
@@ -63,13 +63,45 @@ type WalkInConfirmationPayload = {
   phone: string;
 };
 
-/** Fail-open confirmation email + SMS after the registration row is saved. */
+/** Fail-open confirmation after the registration row is saved — SMS for Ghana numbers, email otherwise. */
 async function sendWalkInConfirmationComms({
   registrationId,
   email,
   fullName,
   phone,
 }: WalkInConfirmationPayload): Promise<void> {
+  if (shouldSendDoorWelcomeSms(phone)) {
+    try {
+      const smsMessage = buildWalkInConfirmationSms(fullName);
+      const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome", {
+        messageType: MESSAGE_TYPES.walkInConfirmationSms,
+        recipientEmail: email,
+        recipientName: fullName,
+        subjectOrSummary: "Walk-in welcome SMS",
+        relatedTable: "visitor_registrations",
+        relatedId: registrationId,
+      });
+      if (!smsResult.success) {
+        console.error("[walk-in] SMS failed (registration still saved):", smsResult.error);
+        reportServerError(new Error(smsResult.error ?? "Walk-in SMS failed"), {
+          route: "/api/walk-in-registrations",
+          kind: "sms",
+          extra: { op: "walk_in_confirmation", failOpen: true },
+        });
+      } else {
+        console.log("[walk-in] SMS accepted for walk-in confirmation.");
+      }
+    } catch (err) {
+      console.error("[walk-in] SMS threw (registration still saved):", err);
+      reportServerError(err, {
+        route: "/api/walk-in-registrations",
+        kind: "sms",
+        extra: { op: "walk_in_confirmation_throw", failOpen: true },
+      });
+    }
+    return;
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.RESEND_FROM_EMAIL;
   if (apiKey && fromEmail) {
@@ -150,35 +182,6 @@ async function sendWalkInConfirmationComms({
       relatedTable: "visitor_registrations",
       relatedId: registrationId,
       errorDetail: "Email sending is not configured.",
-    });
-  }
-
-  try {
-    const smsMessage = buildWalkInConfirmationSms(fullName);
-    const smsResult = await sendSms(phone, smsMessage, "AltFFF Walk-in Welcome", {
-      messageType: MESSAGE_TYPES.walkInConfirmationSms,
-      recipientEmail: email,
-      recipientName: fullName,
-      subjectOrSummary: "Walk-in welcome SMS",
-      relatedTable: "visitor_registrations",
-      relatedId: registrationId,
-    });
-    if (!smsResult.success) {
-      console.error("[walk-in] SMS failed (registration still saved):", smsResult.error);
-      reportServerError(new Error(smsResult.error ?? "Walk-in SMS failed"), {
-        route: "/api/walk-in-registrations",
-        kind: "sms",
-        extra: { op: "walk_in_confirmation", failOpen: true },
-      });
-    } else {
-      console.log("[walk-in] SMS accepted for walk-in confirmation.");
-    }
-  } catch (err) {
-    console.error("[walk-in] SMS threw (registration still saved):", err);
-    reportServerError(err, {
-      route: "/api/walk-in-registrations",
-      kind: "sms",
-      extra: { op: "walk_in_confirmation_throw", failOpen: true },
     });
   }
 }
@@ -303,5 +306,8 @@ export async function POST(request: Request) {
 
   after(() => sendWalkInConfirmationComms({ registrationId, email, fullName, phone }));
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    confirmationChannel: shouldSendDoorWelcomeSms(phone) ? "sms" : "email",
+  });
 }

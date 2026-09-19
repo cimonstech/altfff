@@ -55,6 +55,22 @@ export function formatPhoneForSms(rawPhone: string): string {
   return stripped;
 }
 
+/** True when the number can be delivered via Fish Africa as a Ghana mobile (233 + 9 digits). */
+export function isGhanaianPhoneForSms(rawPhone: string): boolean {
+  const trimmed = rawPhone.trim();
+  if (!trimmed) return false;
+  return /^233\d{9}$/.test(formatPhoneForSms(trimmed));
+}
+
+/** Door welcome (walk-in registration + pre-registered check-in): SMS for Ghana numbers, email otherwise. */
+export function shouldSendDoorWelcomeSms(phone: string | null | undefined): boolean {
+  const trimmed = phone?.trim();
+  return !!trimmed && isGhanaianPhoneForSms(trimmed);
+}
+
+/** @deprecated Use shouldSendDoorWelcomeSms */
+export const shouldSendWalkInConfirmationSms = shouldSendDoorWelcomeSms;
+
 function isSuccessStatus(status: unknown): boolean {
   return status === "queued" || status === "sent";
 }

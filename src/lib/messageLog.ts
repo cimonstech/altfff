@@ -24,6 +24,7 @@ export const MESSAGE_TYPES = {
   bulkCommunicationEmail: "bulk_communication_email",
   bulkCommunicationSms: "bulk_communication_sms",
   checkInWelcomeSms: "check_in_welcome_sms",
+  checkInWelcomeEmail: "check_in_welcome_email",
 } as const;
 
 export type MessageType = (typeof MESSAGE_TYPES)[keyof typeof MESSAGE_TYPES];
