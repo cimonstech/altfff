@@ -1,0 +1,262 @@
+@import "tailwindcss";
+
+:root {
+  /* Design tokens - Alt.FFF */
+  --paper: #f6f1e7; /* page background (calico) */
+  --surface: #efe7d8; /* cards and nav fill (raw cotton) */
+  --ink: #015347; /* primary text (indigo-black) -previously; 171c26 */
+  --indigo: #c5810a; /* secondary text and dark surfaces */
+  /* Brand accents - sampled directly from pixel data in the official
+     Exhibitors_Pack_ALT_FFF_June_2026.pdf, authoritative (not estimated). */
+  --gold: #da8e06; /* primary accent - fills and large type only */
+  /* Darkened ~32% in HSL lightness from --gold (43.9% → 30.0%) for small
+     text-on-paper contrast. A straight 25-30% reduction (landing around
+     L≈31-32%, contrast ~4.3-4.4:1) fell short of WCAG AA; extended to
+     L=30.0% to actually clear it - verified: #956104 on #F6F1E7 is a
+     4.68:1 contrast ratio (AA requires 4.5:1 for small text). */
+  --gold-deep: #956104;
+  --madder: #ca902b; /* secondary accent */
+  --forest: #007563; /* sparing third accent */
+  --hairline: rgba(23, 28, 38, 0.14); /* borders and dividers */
+
+  /* Font aliases (populated by next/font on <html>) */
+  --font-display: var(--font-bricolage), "Arial Black", sans-serif;
+  --font-body: var(--font-archivo), Arial, sans-serif;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-indigo: var(--indigo);
+  --color-gold: var(--gold);
+  --color-gold-deep: var(--gold-deep);
+  --color-madder: var(--madder);
+  --color-forest: var(--forest);
+  --color-hairline: var(--hairline);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+/* Display type is never italic. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-display {
+  font-style: normal;
+}
+
+/* Gold focus ring on every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* Africa map country states */
+.africa-country-path {
+  fill: rgba(30, 42, 74, 0.08);
+  stroke: rgba(30, 42, 74, 0.28);
+  stroke-width: 0.75;
+  pointer-events: none;
+}
+.africa-participating {
+  fill: color-mix(in srgb, var(--gold) 32%, transparent);
+  stroke: var(--gold-deep);
+  stroke-width: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    fill 0.25s ease,
+    stroke 0.25s ease;
+}
+.africa-participating:hover,
+.africa-participating:focus-visible,
+.africa-participating[data-selected],
+.africa-island-group:hover .africa-participating,
+.africa-island-group:focus-visible .africa-participating {
+  fill: color-mix(in srgb, var(--gold) 55%, transparent);
+  stroke: var(--gold);
+}
+
+/* Textile-tier countries (materials-education zoom feature): must accept
+   pointer events even when not a participant (muted fill, pointer-events:
+   none by default). The in-place scale-from-centroid is done by hand in
+   JS (AfricaMap.tsx) via an explicit translate/scale/translate matrix
+   using each country's known SVG-space centroid - deliberately no
+   transform-box/transform-origin here: fill-box shifts the element's own
+   transform coordinate frame to its bounding-box origin, which would
+   silently reinterpret those hand-computed absolute coordinates in the
+   wrong space. */
+.africa-textile {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Lenis smooth-scroll integration */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* News article rich text - shared by the Tiptap editor (admin) and the
+   public article page's rendered content_html, so both actually look the
+   same. Needed because Tailwind's preflight strips default browser
+   styling from headings/lists/blockquotes/links, and no typography plugin
+   is installed in this project. */
+.rich-text h2 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.rich-text h3 {
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.rich-text p {
+  margin-top: 1em;
+  line-height: 1.7;
+}
+.rich-text ul,
+.rich-text ol {
+  margin-top: 1em;
+  padding-left: 1.5em;
+}
+.rich-text ul {
+  list-style: disc;
+}
+.rich-text ol {
+  list-style: decimal;
+}
+.rich-text li + li {
+  margin-top: 0.35em;
+}
+.rich-text blockquote {
+  margin-top: 1em;
+  padding-left: 1em;
+  border-left: 3px solid var(--gold);
+  color: var(--indigo);
+  font-style: italic;
+}
+.rich-text a {
+  color: var(--gold-deep);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-text img {
+  margin-top: 1em;
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+.rich-text > *:first-child {
+  margin-top: 0;
+}
+
+/* International phone input (PhoneInput.tsx, wraps react-phone-number-input)
+   - substantially repaints the library's own stylesheet to match this
+   site's underline/floating-label form inputs, same approach as .rich-text
+   above for Tiptap output. */
+.alt-phone-input {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  width: 100%;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 0.5rem;
+}
+.alt-phone-input .PhoneInputCountry {
+  margin-right: 0;
+  align-self: flex-end;
+  margin-bottom: 0.125rem;
+}
+.alt-phone-input .PhoneInputCountrySelect {
+  color: var(--ink);
+}
+.alt-phone-input .PhoneInputCountryIcon {
+  width: 1.4em;
+  height: 1.4em;
+  box-shadow: none;
+}
+.alt-phone-input .PhoneInputCountryIconImg {
+  border-radius: 2px;
+}
+.alt-phone-input .PhoneInputCountrySelectArrow {
+  color: rgba(23, 28, 38, 0.4);
+  opacity: 1;
+}
+.alt-phone-input__number {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0 0 0;
+  font-size: 1rem;
+  color: var(--ink);
+  outline: none;
+}
+@media (min-width: 768px) {
+  .alt-phone-input__number {
+    font-size: 0.875rem;
+  }
+}
+
+/* About hero headline - left staircase on mobile, right on desktop */
+.about-headline-line {
+  text-align: left;
+  padding-left: var(--line-indent);
+}
+@media (min-width: 768px) {
+  .about-headline-line {
+    text-align: right;
+    padding-left: 0;
+    padding-right: var(--line-indent);
+  }
+}
+
+/* Keep the back-to-top control and footer clear of the guide's mobile dock. */
+@media (max-width: 767px) {
+  body:has([data-trade-guide]) .back-to-top {
+    bottom: 5.75rem;
+  }
+  body:has([data-trade-guide]) footer {
+    padding-bottom: 5.5rem;
+  }
+}
+
