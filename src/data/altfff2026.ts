@@ -100,7 +100,7 @@ export const DAY_CHAPTERS: DayChapter[] = [
 /** Figures from the day, shown before the running order. */
 export const FAIR_STATS = [
   { value: "150+", label: "Visitors" },
-  { value: "10", label: "Exhibitors" },
+  { value: "22", label: "Exhibitors" },
   { value: "4", label: "Rooms" },
   { value: "1", label: "Saturday" },
 ];
