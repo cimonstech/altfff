@@ -1,0 +1,5 @@
+Why not just drop the await?
+On Vercel/serverless, if you fire-and-forget without after(), 
+the function can shut down as soon as the response is sent, and background work may never finish. 
+after() tells the platform: keep this invocation alive long enough to run this callback after responding.
+
