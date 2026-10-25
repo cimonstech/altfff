@@ -37,9 +37,9 @@ export async function generateMetadata({
   if (!article) return {};
 
   return buildMetadata({
-    title: `${article.title} | Alt.FFF News`,
+    title: `${article.title} | Alt.FFF Blog`,
     description: article.excerpt ?? article.title,
-    path: `/news/${slug}`,
+    path: `/blog/${slug}`,
     ...(article.cover_image_url ? { image: article.cover_image_url } : {}),
   });
 }
@@ -62,8 +62,8 @@ export default async function NewsArticlePage({
       <main>
         <article className="bg-paper px-6 pb-20 pt-32 md:px-16 md:pt-40">
           <div className="mx-auto max-w-4xl">
-            <Link href="/news" className="text-sm font-semibold text-gold-deep hover:opacity-75">
-              &larr; Back to News
+            <Link href="/blog" className="text-sm font-semibold text-gold-deep hover:opacity-75">
+              &larr; Back to Blog
             </Link>
             <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-deep">
               {formatDate(date)}
@@ -96,10 +96,10 @@ export default async function NewsArticlePage({
             <ShareRow slug={article.slug} />
 
             <Link
-              href="/news"
+              href="/blog"
               className="mt-10 inline-block text-sm font-semibold text-gold-deep hover:opacity-75"
             >
-              &larr; Back to News
+              &larr; Back to Blog
             </Link>
           </div>
         </article>

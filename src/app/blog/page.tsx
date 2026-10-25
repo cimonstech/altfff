@@ -11,17 +11,17 @@ import { buildMetadata } from "@/lib/metadata";
 import type { NewsPost } from "@/lib/newsPost";
 
 export const metadata: Metadata = buildMetadata({
-  title: "News & Press | Alt.FFF 2026",
+  title: "Blog | Alt.FFF 2026",
   description:
-    "Announcements, stories, and press coverage from Alt.FFF, Ghana's first alternative fashion fabric fair.",
-  path: "/news",
+    "Announcements and stories from Alt.FFF, Ghana's first alternative fashion fabric fair.",
+  path: "/blog",
 });
 
 // Editor-driven content, not static build-time data - ISR so a newly
 // published or edited post shows up within a minute, no redeploy needed.
 export const revalidate = 60;
 
-export default async function NewsPage() {
+export default async function BlogPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("news_posts")
@@ -43,9 +43,9 @@ export default async function NewsPage() {
         <NewsHero latestTitles={posts.slice(0, 3).map((a) => a.title)} />
         {featured && <NewsFeatured article={featured} r2PublicUrl={r2PublicUrl} />}
         {posts.length === 0 ? (
-          <section aria-label="All news and press" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
+          <section aria-label="Blog posts" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
             <div className="mx-auto max-w-6xl">
-              <p className="text-sm text-indigo">No news yet, check back soon.</p>
+              <p className="text-sm text-indigo">No posts yet. Check back soon.</p>
             </div>
           </section>
         ) : (

@@ -208,7 +208,7 @@ export default function NewsPostForm({ postId }: { postId?: string }) {
           onChange={(e) => handleSlugChange(e.target.value)}
           className="mt-1 w-full rounded-md border border-hairline bg-surface px-3 py-2 text-base text-ink outline-none focus-visible:border-gold"
         />
-        <p className="mt-1 text-xs text-ink/50">altfff.com/news/{slug || "…"}</p>
+        <p className="mt-1 text-xs text-ink/50">altfff.com/blog/{slug || "…"}</p>
       </div>
 
       <div>

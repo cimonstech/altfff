@@ -32,7 +32,7 @@ export default function NewsHero({ latestTitles }: { latestTitles: string[] }) {
     <section
       ref={container}
       id="news-hero"
-      aria-label="News and press"
+      aria-label="Blog"
       className="relative overflow-hidden pb-0 pt-32 text-paper md:pt-40"
       style={{
         backgroundImage:
@@ -45,7 +45,7 @@ export default function NewsHero({ latestTitles }: { latestTitles: string[] }) {
 
       <div className="relative mx-auto max-w-3xl px-6 pb-14 md:px-16 md:pb-20">
         <h1 className="news-hero-in font-display text-[clamp(2.2rem,6vw,4rem)] font-extrabold uppercase leading-[1.02] tracking-tight">
-          News &amp; Press
+          Blog
         </h1>
         <p className="news-hero-in mt-5 max-w-[60ch] text-base leading-relaxed text-paper/80 md:text-lg">
           Announcements, stories, and coverage from Africa&apos;s first

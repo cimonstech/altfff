@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SITE } from "@/lib/constants";
 import { tradeShowEntries } from "@/data/tradeShowGuide";
 
-/** Keep published news URLs in sync with /news (ISR revalidate = 60). */
+/** Keep published blog URLs in sync with /blog (ISR revalidate = 60). */
 export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -23,7 +23,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE.url}/visit`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${SITE.url}/about`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE.url}/sponsorship`, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${SITE.url}/news`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE.url}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE.url}/media/in-the-news`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE.url}/trade-show-guide`, changeFrequency: "weekly", priority: 0.8 },
     ...tradeShowEntries.map((entry) => ({
       url: `${SITE.url}/trade-show-guide/${entry.id}`,
@@ -38,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const articlePages: MetadataRoute.Sitemap = posts.map((p) => ({
-    url: `${SITE.url}/news/${p.slug}`,
+    url: `${SITE.url}/blog/${p.slug}`,
     lastModified: p.published_at ?? p.created_at,
     changeFrequency: "monthly",
     priority: 0.5,

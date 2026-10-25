@@ -13,7 +13,6 @@ const ALL_LINKS = [
   { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
   { label: "Exhibiting", href: "/exhibiting", page: true },
-  { label: "News", href: "/news", page: true },
   { label: "Guide", href: "/trade-show-guide", page: true },
   { label: "Visit", href: "/visit", page: true },
   { label: "Sponsorship", href: "/sponsorship", page: true },
@@ -32,7 +31,6 @@ const LEFT_LINKS = [
   { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
   { label: "Exhibiting", href: "/exhibiting", page: true },
-  { label: "News", href: "/news", page: true },
 ];
 
 const RIGHT_LINKS = [
@@ -44,6 +42,11 @@ const RIGHT_LINKS = [
 const EVENT_LINKS = [
   { label: "Alt.FFF 2026", href: "/altfff2026" },
   { label: "Alt.FFF 2027", href: null },
+];
+
+const MEDIA_LINKS = [
+  { label: "Blog", href: "/blog" },
+  { label: "In the news", href: "/media/in-the-news" },
 ];
 
 const CHAMFER = 22;
@@ -82,7 +85,14 @@ export default function Nav() {
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
+  const [mediaOpen, setMediaOpen] = useState(false);
+  const [mediaMobileOpen, setMediaMobileOpen] = useState(false);
   const eventsButtonRef = useRef<HTMLButtonElement>(null);
+  const mediaButtonRef = useRef<HTMLButtonElement>(null);
+  const mediaPanelRef = useRef<HTMLDivElement>(null);
+  const mediaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mediaOpenedByHover = useRef(false);
+  const mediaFocusPending = useRef(false);
   const eventsPanelRef = useRef<HTMLDivElement>(null);
   const eventsCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventsOpenedByHover = useRef(false);
@@ -179,6 +189,63 @@ export default function Nav() {
       window.removeEventListener("scroll", onScroll);
     };
   }, [eventsOpen]);
+
+  const mediaActive = pathname.startsWith("/blog") || pathname.startsWith("/media/in-the-news");
+
+  const cancelMediaClose = () => {
+    if (mediaCloseTimer.current) {
+      clearTimeout(mediaCloseTimer.current);
+      mediaCloseTimer.current = null;
+    }
+  };
+
+  const scheduleMediaClose = () => {
+    cancelMediaClose();
+    mediaCloseTimer.current = setTimeout(() => setMediaOpen(false), 140);
+  };
+
+  const focusFirstMediaItem = () => {
+    mediaPanelRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  };
+
+  const openMediaFromKeyboard = () => {
+    mediaFocusPending.current = true;
+    setMediaOpen(true);
+  };
+
+  useEffect(() => {
+    setMediaOpen(false);
+    if (mediaActive) setMediaMobileOpen(true);
+  }, [pathname, mediaActive]);
+
+  useEffect(() => {
+    if (!mediaOpen || !mediaFocusPending.current) return;
+    mediaFocusPending.current = false;
+    focusFirstMediaItem();
+  }, [mediaOpen]);
+
+  useEffect(() => {
+    if (!mediaOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (mediaButtonRef.current?.contains(target) || mediaPanelRef.current?.contains(target)) return;
+      setMediaOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMediaOpen(false);
+      mediaButtonRef.current?.focus();
+    };
+    const onScroll = () => setMediaOpen(false);
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [mediaOpen]);
 
   // Overlay entrance: panel fades/slides in, links stagger up. Plain
   // opacity, not autoAlpha - the overlay is conditionally mounted (React
@@ -333,6 +400,54 @@ export default function Nav() {
                   </a>
                 );
               })}
+              <div
+                className="relative"
+                onMouseEnter={() => {
+                  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+                  cancelMediaClose();
+                  mediaOpenedByHover.current = true;
+                  setMediaOpen(true);
+                }}
+                onMouseLeave={() => {
+                  mediaOpenedByHover.current = false;
+                  scheduleMediaClose();
+                }}
+              >
+                <button
+                  ref={mediaButtonRef}
+                  type="button"
+                  aria-expanded={mediaOpen}
+                  aria-haspopup="menu"
+                  aria-controls="media-menu"
+                  onClick={() => {
+                    if (mediaOpenedByHover.current) {
+                      mediaOpenedByHover.current = false;
+                      setMediaOpen(true);
+                      return;
+                    }
+                    setMediaOpen((open) => !open);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowDown") {
+                      event.preventDefault();
+                      if (mediaOpen) focusFirstMediaItem();
+                      else openMediaFromKeyboard();
+                    } else if (event.key === "Escape") {
+                      setMediaOpen(false);
+                    } else if (event.key === "Tab" && mediaOpen && !event.shiftKey) {
+                      event.preventDefault();
+                      focusFirstMediaItem();
+                    }
+                  }}
+                  className={`${linkClass} ${mediaOpen || mediaActive ? "text-gold" : "text-ink"} ${mediaActive ? "underline decoration-gold decoration-2 underline-offset-4" : ""}`}
+                >
+                  Media
+                  <span
+                    aria-hidden
+                    className={`ml-1 inline-block h-1.5 w-1.5 translate-y-[-1px] border-b border-r border-current transition-transform ${mediaOpen ? "-rotate-45" : "rotate-45"}`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -453,6 +568,38 @@ export default function Nav() {
 
               return (
                 <span key={l.label} className="contents">
+                  {l.label === "Guide" && (
+                    <div className="mobile-nav-link py-2">
+                      <button
+                        type="button"
+                        aria-expanded={mediaMobileOpen}
+                        aria-haspopup="true"
+                        aria-controls="mobile-media-menu"
+                        onClick={() => setMediaMobileOpen((open) => !open)}
+                        className={`flex min-h-[44px] w-full items-center gap-3 py-2 text-left font-display text-3xl font-extrabold uppercase leading-tight transition-colors duration-200 hover:text-gold ${mediaActive ? "text-gold" : "text-paper"}`}
+                      >
+                        Media
+                        <span
+                          aria-hidden
+                          className={`inline-block h-2 w-2 border-b-2 border-r-2 border-current transition-transform ${mediaMobileOpen ? "-rotate-45" : "rotate-45"}`}
+                        />
+                      </button>
+                      {mediaMobileOpen && (
+                        <div id="mobile-media-menu" className="mt-1 flex flex-col gap-1 pl-4">
+                          {MEDIA_LINKS.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={closeMenu}
+                              className={`min-h-11 py-1 font-display text-xl font-extrabold uppercase leading-tight hover:text-gold ${pathname.startsWith(item.href) ? "text-gold" : "text-paper/80"}`}
+                            >
+                              {item.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {l.label === "Visit" && (
                     <div className="mobile-nav-link py-2">
                       <p className="font-display text-3xl font-extrabold uppercase leading-tight text-paper">Events</p>
@@ -535,6 +682,66 @@ export default function Nav() {
                 </p>
               ),
             )}
+          </div>,
+          document.body,
+        )}
+
+      {mediaOpen &&
+        createPortal(
+          <div
+            ref={mediaPanelRef}
+            id="media-menu"
+            role="menu"
+            aria-label="Media"
+            className="fixed z-[70] hidden min-w-[210px] rounded-2xl border border-ink/10 bg-white p-2 shadow-[0_18px_40px_rgba(1,83,71,0.14)] md:block"
+            style={{
+              top: (mediaButtonRef.current?.getBoundingClientRect().bottom ?? 72) + 10,
+              left: mediaButtonRef.current?.getBoundingClientRect().left ?? 0,
+            }}
+            onMouseEnter={cancelMediaClose}
+            onMouseLeave={scheduleMediaClose}
+          >
+            {MEDIA_LINKS.map((item, index) => {
+              const active = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  role="menuitem"
+                  onClick={() => setMediaOpen(false)}
+                  onKeyDown={(event) => {
+                    const items = mediaPanelRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]');
+                    if (event.key === "Escape") {
+                      event.preventDefault();
+                      setMediaOpen(false);
+                      mediaButtonRef.current?.focus();
+                    } else if (event.key === "ArrowDown" && items) {
+                      event.preventDefault();
+                      items[(index + 1) % items.length]?.focus();
+                    } else if (event.key === "ArrowUp" && items) {
+                      event.preventDefault();
+                      items[(index - 1 + items.length) % items.length]?.focus();
+                    } else if (event.key === "Tab" && event.shiftKey && index === 0) {
+                      event.preventDefault();
+                      setMediaOpen(false);
+                      mediaButtonRef.current?.focus();
+                    } else if (event.key === "Tab" && !event.shiftKey && index === MEDIA_LINKS.length - 1) {
+                      event.preventDefault();
+                      setMediaOpen(false);
+                      const header = mediaButtonRef.current?.closest("header");
+                      const focusable = header
+                        ? Array.from(header.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))
+                        : [];
+                      const buttonIndex = mediaButtonRef.current ? focusable.indexOf(mediaButtonRef.current) : -1;
+                      focusable[buttonIndex + 1]?.focus();
+                    }
+                  }}
+                  className={`block rounded-xl px-3 py-2.5 text-[12px] font-medium uppercase tracking-[0.14em] hover:bg-paper hover:text-gold ${active ? "text-gold" : "text-ink"}`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>,
           document.body,
         )}

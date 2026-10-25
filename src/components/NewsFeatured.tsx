@@ -49,7 +49,7 @@ export default function NewsFeatured({ article, r2PublicUrl }: { article: NewsPo
           </h2>
           {article.excerpt && <p className="mt-4 text-sm leading-relaxed text-ink">{article.excerpt}</p>}
           <Link
-            href={`/news/${article.slug}`}
+            href={`/blog/${article.slug}`}
             className="mt-6 inline-flex w-fit items-center gap-2 text-sm font-semibold text-gold-deep hover:opacity-75"
           >
             Read Story

@@ -6,7 +6,7 @@ import { SITE } from "@/lib/constants";
 
 export default function ShareRow({ slug }: { slug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `${SITE.url}/news/${slug}`;
+  const url = `${SITE.url}/blog/${slug}`;
   const linkedInShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
 
   const handleCopy = async () => {

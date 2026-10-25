@@ -12,7 +12,7 @@ function NewsCard({ article, r2PublicUrl }: { article: NewsPost; r2PublicUrl: st
   const date = article.published_at ?? article.created_at;
 
   return (
-    <Link href={`/news/${article.slug}`} className="news-card group block">
+    <Link href={`/blog/${article.slug}`} className="news-card group block">
       {article.cover_image_url ? (
         <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl">
           <NewsCoverImage
@@ -68,7 +68,7 @@ export default function NewsGrid({ articles, r2PublicUrl }: { articles: NewsPost
   if (articles.length === 0) return null;
 
   return (
-    <section ref={container} aria-label="All news and press" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
+    <section ref={container} aria-label="Blog posts" className="bg-paper px-6 pb-20 md:px-16 md:pb-28">
       <div className="mx-auto max-w-6xl">
         <div ref={gridRef} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (

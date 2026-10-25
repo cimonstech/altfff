@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
         ]
       : [],
   },
+  async redirects() {
+    return [
+      { source: "/news", destination: "/blog", permanent: true },
+      { source: "/news/:slug", destination: "/blog/:slug", permanent: true },
+    ];
+  },
   async headers() {
     const csp = buildContentSecurityPolicy(r2Hostname);
     return [
