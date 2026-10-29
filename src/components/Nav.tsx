@@ -351,13 +351,13 @@ export default function Nav() {
   const path = dims ? barPath(dims.w, dims.h) : null;
 
   const linkClass =
-    "relative inline-flex items-center pb-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 hover:text-gold";
+    "relative inline-flex items-center whitespace-nowrap pb-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-200 hover:text-gold";
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center">
       <header
         ref={barRef}
-        className="pointer-events-auto relative w-full max-w-[920px]"
+        className="pointer-events-auto relative w-full max-w-[1012px]"
         style={{
           backgroundColor: "#FFFFFF",
           clipPath: path ? `path("${path}")` : undefined,
