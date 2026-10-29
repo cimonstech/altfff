@@ -32,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     })),
     { url: `${SITE.url}/altfff2026`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${SITE.url}/advertisement`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE.url}/altfff2026/gallery`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${SITE.url}/contact`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${SITE.url}/terms`, changeFrequency: "yearly", priority: 0.3 },

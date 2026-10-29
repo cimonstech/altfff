@@ -8,7 +8,9 @@ import GuideLogo from "@/components/GuideLogo";
 import {
   entryMatchesBrowse,
   entryMatchesQuery,
+  guideVisual,
   GUIDE_TYPE_LABEL,
+  GUIDE_TYPE_PLURAL,
   GUIDE_TYPES,
   GUIDE_ZONE_LABEL,
   GUIDE_ZONES,
@@ -23,11 +25,10 @@ const HERO_TEXTILE = "/event/2026/materials/AltFashionFair-88.jpg";
 
 const TYPE_PILLS: { id: GuideBrowse; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "exhibitor", label: "Exhibitors" },
-  { id: "sponsor", label: "Sponsors" },
-  { id: "partner", label: "Partners" },
-  { id: "supporter", label: "Supporters" },
+  ...GUIDE_TYPES.map((type) => ({ id: type, label: GUIDE_TYPE_PLURAL[type] })),
 ];
+
+const MORE_TYPES: GuideType[] = ["sponsor", "supporter", "supporting-brand", "media-partner"];
 
 const DOCK: { id: GuideBrowse | "more"; label: string; icon: typeof LayoutGrid }[] = [
   { id: "all", label: "All", icon: LayoutGrid },
@@ -41,7 +42,7 @@ const SIDEBAR: { id: GuideBrowse; label: string }[] = [
   ...GUIDE_ZONES.map((zone) => ({ id: zone, label: GUIDE_ZONE_LABEL[zone] })),
   ...GUIDE_TYPES.filter((type) => type !== "exhibitor").map((type) => ({
     id: type,
-    label: type === "sponsor" ? "Sponsors" : type === "partner" ? "Partners" : "Supporters",
+    label: GUIDE_TYPE_PLURAL[type],
   })),
 ];
 
@@ -53,7 +54,8 @@ function badgeFor(entry: GuideEntry): string {
 
 function GuideCard({ entry }: { entry: GuideEntry }) {
   const website = entry.links?.find((link) => link.label === "Visit Website");
-  const photo = Boolean(entry.imageSrc);
+  const visual = guideVisual(entry);
+  const photo = visual.cover;
   const logoOnWhite = entry.type !== "exhibitor";
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_0_rgba(1,83,71,0.04)]">
@@ -65,7 +67,7 @@ function GuideCard({ entry }: { entry: GuideEntry }) {
               : "h-16 w-16 items-center justify-center rounded-xl md:h-44 md:w-full md:rounded-none"
           }`}
         >
-          <GuideLogo src={entry.imageSrc ?? entry.logoSrc} name={entry.name} cover={photo} />
+          <GuideLogo src={visual.src} name={entry.name} cover={photo} />
         </div>
         <div className="min-w-0 flex-1 py-0.5 md:px-4 md:pb-4 md:pt-3">
           <h3 className="font-display text-base font-extrabold leading-tight tracking-tight text-ink md:text-lg">
@@ -80,16 +82,28 @@ function GuideCard({ entry }: { entry: GuideEntry }) {
           ) : null}
         </div>
       </Link>
-      {website ? (
-        <div className="px-3 pb-3 md:px-4 md:pb-4">
-          <a
-            href={website.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-ink hover:text-gold-deep"
-          >
-            Visit Website →
-          </a>
+      {website || entry.emails?.length || entry.phone ? (
+        <div className="flex flex-col gap-1 px-3 pb-3 md:px-4 md:pb-4">
+          {entry.emails?.map((email) => (
+            <a key={email} href={`mailto:${email}`} className="inline-flex min-h-11 items-center text-sm text-ink/75 hover:text-gold-deep">
+              {email}
+            </a>
+          ))}
+          {entry.phone ? (
+            <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="inline-flex min-h-11 items-center text-sm text-ink/75 hover:text-gold-deep">
+              {entry.phone}
+            </a>
+          ) : null}
+          {website ? (
+            <a
+              href={website.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-ink hover:text-gold-deep"
+            >
+              Visit Website →
+            </a>
+          ) : null}
         </div>
       ) : null}
     </article>
@@ -164,7 +178,7 @@ export default function TradeShowGuide() {
             The businesses, makers and organisations that joined us at <BrandName /> 2026.
           </p>
           <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-ink/60">
-            A searchable directory of exhibitors, sponsors, partners and supporters from the 2026 edition.
+            A searchable directory of exhibitors, sponsors, partners, supporters, supporting brands and media partners from the 2026 edition.
           </p>
         </div>
       </section>
@@ -288,7 +302,7 @@ export default function TradeShowGuide() {
 
       {moreOpen && (
         <div className="fixed inset-x-4 bottom-24 z-40 mx-auto max-w-sm rounded-2xl border border-ink/10 bg-white p-2 shadow-[0_16px_40px_rgba(1,83,71,0.18)] md:hidden">
-          {(["sponsor", "supporter"] as GuideType[]).map((type) => (
+          {MORE_TYPES.map((type) => (
             <button
               key={type}
               type="button"
@@ -297,7 +311,7 @@ export default function TradeShowGuide() {
                 browse === type ? "bg-[#f3e4d8] text-ink" : "text-ink"
               }`}
             >
-              {type === "sponsor" ? "Sponsors" : "Supporters"}
+              {GUIDE_TYPE_PLURAL[type]}
               <span className="text-ink/45">{counts.get(type) ?? 0}</span>
             </button>
           ))}
@@ -311,7 +325,7 @@ export default function TradeShowGuide() {
         {DOCK.map((item) => {
           const active =
             item.id === "more"
-              ? moreOpen || browse === "sponsor" || browse === "supporter"
+              ? moreOpen || MORE_TYPES.includes(browse as GuideType)
               : item.id === "exhibitor"
                 ? browse === "exhibitor" || (browse !== "all" && !isGuideType(browse))
                 : browse === item.id;

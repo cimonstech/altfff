@@ -8,7 +8,7 @@ const LEFT = [
 
 const RIGHT = [
   { label: "Trade Guide", href: "/trade-show-guide" },
-  { label: "2026", href: "/altfff2026" },
+  { label: "Advertisement", href: "/advertisement" },
 ];
 
 const LINKS = [...LEFT, ...RIGHT];

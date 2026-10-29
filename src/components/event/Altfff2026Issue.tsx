@@ -8,10 +8,11 @@ import { listEventFolder } from "@/lib/fairGallery";
 import {
   DAY_CHAPTERS,
   FAIR_STATS,
-  HERO_LANDSCAPE,
   HERO_PORTRAITS,
   ISSUE_QUOTE,
 } from "@/data/altfff2026";
+
+const HERO_BACKGROUND = "/event/2026/random/AltFashionFair-313.jpg";
 
 const CHAPTER_LINKS = [
   { label: "Opening", href: "#opening" },
@@ -32,7 +33,7 @@ export default function Altfff2026Issue() {
   return (
     <article>
       <section className="relative isolate overflow-hidden bg-[#015347] text-white">
-        <Image src={HERO_LANDSCAPE} alt="" fill priority className="object-cover" sizes="100vw" />
+        <Image src={HERO_BACKGROUND} alt="" fill priority className="object-cover" sizes="100vw" />
         <div className="absolute inset-0 bg-[#015347]/70" aria-hidden="true" />
         <div className="relative">
         <EventMasthead />

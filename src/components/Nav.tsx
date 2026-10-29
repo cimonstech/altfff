@@ -13,8 +13,7 @@ const ALL_LINKS = [
   { label: "Home", href: "/", page: true },
   { label: "About", href: "/about", page: true },
   { label: "Exhibiting", href: "/exhibiting", page: true },
-  { label: "Guide", href: "/trade-show-guide", page: true },
-  { label: "Visit", href: "/visit", page: true },
+  { label: "Trade Guide", href: "/trade-show-guide", page: true },
   { label: "Sponsorship", href: "/sponsorship", page: true },
   { label: "Contact", href: "/contact", page: true },
 ];
@@ -34,7 +33,7 @@ const LEFT_LINKS = [
 ];
 
 const RIGHT_LINKS = [
-  { label: "Visit", href: "/visit", page: true },
+  { label: "Trade Guide", href: "/trade-show-guide", page: true },
   { label: "Sponsorship", href: "/sponsorship", page: true },
   { label: "Contact", href: "/contact", page: true },
 ];
@@ -568,7 +567,7 @@ export default function Nav() {
 
               return (
                 <span key={l.label} className="contents">
-                  {l.label === "Guide" && (
+                  {l.label === "Trade Guide" && (
                     <div className="mobile-nav-link py-2">
                       <button
                         type="button"
@@ -600,7 +599,7 @@ export default function Nav() {
                       )}
                     </div>
                   )}
-                  {l.label === "Visit" && (
+                  {l.label === "Trade Guide" && (
                     <div className="mobile-nav-link py-2">
                       <p className="font-display text-3xl font-extrabold uppercase leading-tight text-paper">Events</p>
                       <div className="mt-2 flex flex-col gap-1 pl-1">

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import GuideLogo from "@/components/GuideLogo";
 import {
+  guideVisual,
   GUIDE_TYPE_LABEL,
   GUIDE_ZONE_LABEL,
   type GuideEntry,
@@ -38,6 +39,7 @@ export default function GuideProfile({ entry }: { entry: GuideEntry }) {
       entry.representative ||
       entry.featuredWork,
   );
+  const visual = guideVisual(entry);
 
   return (
     <article className="bg-paper px-5 pb-20 pt-28 md:px-10 md:pt-36">
@@ -47,10 +49,10 @@ export default function GuideProfile({ entry }: { entry: GuideEntry }) {
         </Link>
         <div
           className={`mt-6 flex overflow-hidden rounded-2xl ${entry.type === "exhibitor" ? "bg-[#f3efe6]" : "bg-white"} ${
-            entry.imageSrc ? "h-72 md:h-96" : "h-40 items-center justify-center"
+            visual.cover ? "h-72 md:h-96" : "h-40 items-center justify-center"
           }`}
         >
-          <GuideLogo src={entry.imageSrc ?? entry.logoSrc} name={entry.name} cover={Boolean(entry.imageSrc)} />
+          <GuideLogo src={visual.src} name={entry.name} cover={visual.cover} />
         </div>
         <h1 className="mt-6 font-display text-4xl font-extrabold leading-tight tracking-tight text-ink">
           {entry.name}
@@ -137,6 +139,26 @@ export default function GuideProfile({ entry }: { entry: GuideEntry }) {
         ) : (
           <p className="mt-8 text-sm text-ink/70">Profile information coming soon.</p>
         )}
+
+        {entry.contact || entry.emails?.length || entry.phone ? (
+          <Section title="Contact">
+            {entry.contact ? <p>{entry.contact}</p> : null}
+            {entry.emails?.map((email) => (
+              <p key={email} className={entry.contact ? "mt-1" : undefined}>
+                <a className="font-semibold text-gold-deep hover:opacity-75" href={`mailto:${email}`}>
+                  {email}
+                </a>
+              </p>
+            ))}
+            {entry.phone ? (
+              <p className="mt-1">
+                <a className="font-semibold text-gold-deep hover:opacity-75" href={`tel:${entry.phone.replace(/\s/g, "")}`}>
+                  {entry.phone}
+                </a>
+              </p>
+            ) : null}
+          </Section>
+        ) : null}
 
         <Section title="Alt.FFF 2026">
           <p>Participated in the 2026 edition of Alt.FFF.</p>
