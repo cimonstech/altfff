@@ -6,12 +6,10 @@
 
 export type GuideZone =
   | "materials"
-  | "experience"
   | "business-services"
   | "sustainability"
   | "furniture"
-  | "green-artist"
-  | "food-court";
+  | "green-artist";
 
 export type GuideType =
   | "exhibitor"
@@ -19,7 +17,8 @@ export type GuideType =
   | "partner"
   | "supporter"
   | "supporting-brand"
-  | "media-partner";
+  | "media-partner"
+  | "advert";
 
 export type GuideBrowse = "all" | GuideType | GuideZone;
 
@@ -77,6 +76,7 @@ export const GUIDE_TYPE_LABEL: Record<GuideType, string> = {
   supporter: "Supporter",
   "supporting-brand": "Supporting brand",
   "media-partner": "Media partner",
+  advert: "Advert",
 };
 
 export const GUIDE_TYPE_PLURAL: Record<GuideType, string> = {
@@ -86,26 +86,23 @@ export const GUIDE_TYPE_PLURAL: Record<GuideType, string> = {
   supporter: "Supporters",
   "supporting-brand": "Supporting brands",
   "media-partner": "Media partners",
+  advert: "Adverts",
 };
 
 export const GUIDE_ZONE_LABEL: Record<GuideZone, string> = {
   materials: "Materials Zone",
-  experience: "Experience Hall",
   "business-services": "Business & Service Zone",
   sustainability: "Sustainability Zone",
   furniture: "Furniture Zone",
   "green-artist": "Green Artist Area",
-  "food-court": "Food Court",
 };
 
 export const GUIDE_ZONES: GuideZone[] = [
   "materials",
-  "experience",
   "business-services",
   "sustainability",
   "furniture",
   "green-artist",
-  "food-court",
 ];
 
 export const GUIDE_TYPES: GuideType[] = [
@@ -115,6 +112,7 @@ export const GUIDE_TYPES: GuideType[] = [
   "supporter",
   "supporting-brand",
   "media-partner",
+  "advert",
 ];
 
 const TYPE_BROWSE = new Set<GuideBrowse>(GUIDE_TYPES);
@@ -594,4 +592,7 @@ export const tradeShowEntries: GuideEntry[] = [
     type: "media-partner",
     logoSrc: "/tradeguide/media/fashionghana.png",
   },
+  { id: "iamadinkra", name: "IamAdinkra", type: "advert", phone: "026 234 6572" },
+  { id: "motivo-limited", name: "Motivo Limited", type: "advert", phone: "055 301 8172" },
+  { id: "mhaxillian-concepts", name: "Mhaxillian Concepts", type: "advert", phone: "024 443 7799" },
 ];

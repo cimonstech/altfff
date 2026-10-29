@@ -28,7 +28,10 @@ const TYPE_PILLS: { id: GuideBrowse; label: string }[] = [
   ...GUIDE_TYPES.map((type) => ({ id: type, label: GUIDE_TYPE_PLURAL[type] })),
 ];
 
-const MORE_TYPES: GuideType[] = ["sponsor", "supporter", "supporting-brand", "media-partner"];
+const MORE_TYPES: GuideType[] = ["sponsor", "supporter", "supporting-brand", "media-partner", "advert"];
+
+/** Sit in the category list where Experience Hall and Food Court were. */
+const PLACED_TYPES: GuideType[] = ["supporting-brand", "media-partner", "advert"];
 
 const DOCK: { id: GuideBrowse | "more"; label: string; icon: typeof LayoutGrid }[] = [
   { id: "all", label: "All", icon: LayoutGrid },
@@ -40,11 +43,14 @@ const DOCK: { id: GuideBrowse | "more"; label: string; icon: typeof LayoutGrid }
 const SIDEBAR: { id: GuideBrowse; label: string }[] = [
   { id: "all", label: "All" },
   ...GUIDE_ZONES.map((zone) => ({ id: zone, label: GUIDE_ZONE_LABEL[zone] })),
-  ...GUIDE_TYPES.filter((type) => type !== "exhibitor").map((type) => ({
+  ...PLACED_TYPES.map((type) => ({ id: type, label: GUIDE_TYPE_PLURAL[type] })),
+  ...GUIDE_TYPES.filter((type) => type !== "exhibitor" && !PLACED_TYPES.includes(type)).map((type) => ({
     id: type,
     label: GUIDE_TYPE_PLURAL[type],
   })),
 ];
+
+const CATEGORY_CHIPS: { id: GuideBrowse; label: string }[] = SIDEBAR.filter((item) => item.id !== "all");
 
 function badgeFor(entry: GuideEntry): string {
   const type = GUIDE_TYPE_LABEL[entry.type];
@@ -178,7 +184,7 @@ export default function TradeShowGuide() {
             The businesses, makers and organisations that joined us at <BrandName /> 2026.
           </p>
           <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-ink/60">
-            A searchable directory of exhibitors, sponsors, partners, supporters, supporting brands and media partners from the 2026 edition.
+            A searchable directory of exhibitors, sponsors, partners, supporters, supporting brands, media partners and adverts from the 2026 edition.
           </p>
         </div>
       </section>
@@ -222,20 +228,20 @@ export default function TradeShowGuide() {
           </div>
 
           <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden" role="group" aria-label="Browse by category">
-            {GUIDE_ZONES.map((zone) => {
-              const active = browse === zone;
+            {CATEGORY_CHIPS.map((item) => {
+              const active = browse === item.id;
               return (
                 <button
-                  key={zone}
+                  key={item.id}
                   type="button"
                   aria-pressed={active}
-                  onClick={() => choose(zone)}
+                  onClick={() => choose(item.id)}
                   className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-sm ${
                     active ? "bg-[#f3e4d8] font-semibold text-ink" : "border border-ink/10 bg-white text-ink"
                   }`}
                 >
-                  {GUIDE_ZONE_LABEL[zone]}
-                  <span className="ml-2 text-ink/45">{counts.get(zone) ?? 0}</span>
+                  {item.label}
+                  <span className="ml-2 text-ink/45">{counts.get(item.id) ?? 0}</span>
                 </button>
               );
             })}
