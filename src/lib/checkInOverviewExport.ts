@@ -1,4 +1,5 @@
 import type { CheckInOverviewListRow } from "@/lib/checkInOverview";
+import { HEARD_ABOUT_LABEL_BY_VALUE, type HeardAboutValue } from "@/lib/heardAboutSources";
 
 function displayName(row: Pick<CheckInOverviewListRow, "full_name" | "email">): string {
   const name = row.full_name?.trim();
@@ -21,6 +22,13 @@ export type CheckInOverviewExportLists = {
 
 function text(value: string | null | undefined): string {
   return value?.trim() ?? "";
+}
+
+/** Stored values are labels. Older rows may still hold the form key. */
+function heardAbout(value: string | null | undefined): string {
+  const raw = text(value);
+  if (!raw) return "";
+  return HEARD_ABOUT_LABEL_BY_VALUE[raw as HeardAboutValue] ?? raw;
 }
 
 function asDate(iso: string | null): Date | null {
@@ -82,7 +90,7 @@ function appendSheet(
 }
 
 function preRegisteredRows(rows: CheckInOverviewListRow[]): Cell[][] {
-  return rows.map((row) => [displayName(row), row.email, text(row.phone)]);
+  return rows.map((row) => [displayName(row), row.email, text(row.phone), heardAbout(row.heard_about_us)]);
 }
 
 function checkedInRows(rows: CheckInOverviewListRow[]): Cell[][] {
@@ -90,30 +98,43 @@ function checkedInRows(rows: CheckInOverviewListRow[]): Cell[][] {
     displayName(row),
     row.email,
     text(row.phone),
+    heardAbout(row.heard_about_us),
     asDate(row.checked_in_at),
     text(row.checked_in_by_email),
   ]);
 }
 
 function walkInRows(rows: CheckInOverviewListRow[]): Cell[][] {
-  return rows.map((row) => [displayName(row), row.email, text(row.phone), asDate(row.created_at)]);
+  return rows.map((row) => [
+    displayName(row),
+    row.email,
+    text(row.phone),
+    heardAbout(row.heard_about_us),
+    asDate(row.created_at),
+  ]);
 }
 
 export function buildCheckInOverviewWorkbook(xlsx: XlsxModule, lists: CheckInOverviewExportLists) {
   const workbook = xlsx.utils.book_new();
-  appendSheet(xlsx, workbook, "Confirmed pre-registered", ["Name", "Email", "Phone"], preRegisteredRows(lists.preRegistered));
+  appendSheet(
+    xlsx,
+    workbook,
+    "Confirmed pre-registered",
+    ["Name", "Email", "Phone", "Heard about Alt.FFF"],
+    preRegisteredRows(lists.preRegistered),
+  );
   appendSheet(
     xlsx,
     workbook,
     "Checked in so far",
-    ["Name", "Email", "Phone", "Checked in", "Checked in by"],
+    ["Name", "Email", "Phone", "Heard about Alt.FFF", "Checked in", "Checked in by"],
     checkedInRows(lists.checkedIn),
   );
   appendSheet(
     xlsx,
     workbook,
     "Walk-in registrations",
-    ["Name", "Email", "Phone", "Registered"],
+    ["Name", "Email", "Phone", "Heard about Alt.FFF", "Registered"],
     walkInRows(lists.walkIns),
   );
   return workbook;
