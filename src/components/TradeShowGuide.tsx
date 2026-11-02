@@ -248,7 +248,7 @@ export default function TradeShowGuide() {
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[15rem_1fr]">
-            <aside className="hidden lg:block">
+            <aside className="sticky top-24 hidden max-h-[calc(100vh-7rem)] self-start overflow-y-auto overscroll-contain lg:block">
               <p className="text-sm font-semibold text-ink">Browse by category</p>
               <ul className="mt-3 flex flex-col gap-1">
                 {SIDEBAR.map((item) => {
