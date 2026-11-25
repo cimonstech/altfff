@@ -28,10 +28,10 @@ const TYPE_PILLS: { id: GuideBrowse; label: string }[] = [
   ...GUIDE_TYPES.map((type) => ({ id: type, label: GUIDE_TYPE_PLURAL[type] })),
 ];
 
-const MORE_TYPES: GuideType[] = ["sponsor", "supporter", "supporting-brand", "media-partner", "advert"];
+const MORE_TYPES: GuideType[] = ["sponsor", "supporter", "supporting-brand", "media-partner"];
 
 /** Sit in the category list where Experience Hall and Food Court were. */
-const PLACED_TYPES: GuideType[] = ["supporting-brand", "media-partner", "advert"];
+const PLACED_TYPES: GuideType[] = ["supporting-brand", "media-partner"];
 
 const DOCK: { id: GuideBrowse | "more"; label: string; icon: typeof LayoutGrid }[] = [
   { id: "all", label: "All", icon: LayoutGrid },
@@ -59,10 +59,9 @@ function badgeFor(entry: GuideEntry): string {
 }
 
 function GuideCard({ entry }: { entry: GuideEntry }) {
-  const website = entry.links?.find((link) => link.label === "Visit Website");
   const visual = guideVisual(entry);
   const photo = visual.cover;
-  const logoOnWhite = entry.type !== "exhibitor";
+  const logoOnWhite = !photo;
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_0_rgba(1,83,71,0.04)]">
       <Link href={`/trade-show-guide/${entry.id}`} className="flex gap-3 p-3 md:flex-col md:p-0">
@@ -75,7 +74,7 @@ function GuideCard({ entry }: { entry: GuideEntry }) {
         >
           <GuideLogo src={visual.src} name={entry.name} cover={photo} />
         </div>
-        <div className="min-w-0 flex-1 py-0.5 md:px-4 md:pb-4 md:pt-3">
+        <div className="min-w-0 flex-1 py-0.5 md:px-4 md:pb-2 md:pt-3">
           <h3 className="font-display text-base font-extrabold leading-tight tracking-tight text-ink md:text-lg">
             {entry.name}
           </h3>
@@ -88,28 +87,44 @@ function GuideCard({ entry }: { entry: GuideEntry }) {
           ) : null}
         </div>
       </Link>
-      {website || entry.emails?.length || entry.phone ? (
-        <div className="flex flex-col gap-1 px-3 pb-3 md:px-4 md:pb-4">
+      {entry.links?.length || entry.emails?.length || entry.phone ? (
+        <div className="flex flex-col px-3 pb-3 md:px-4 md:pb-4">
           {entry.emails?.map((email) => (
-            <a key={email} href={`mailto:${email}`} className="inline-flex min-h-11 items-center text-sm text-ink/75 hover:text-gold-deep">
+            <a key={email} href={`mailto:${email}`} className="inline-flex py-0.5 text-sm leading-5 text-ink/75 hover:text-gold-deep">
               {email}
             </a>
           ))}
+          {entry.links
+            ?.filter((link) => link.label !== "Visit Website" && link.label !== "Instagram" && link.label !== "X")
+            .map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex py-0.5 text-sm leading-5 text-ink/75 hover:text-gold-deep"
+              >
+                {link.label}
+              </a>
+            ))}
           {entry.phone ? (
-            <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="inline-flex min-h-11 items-center text-sm text-ink/75 hover:text-gold-deep">
+            <a href={`tel:${entry.phone.replace(/\s/g, "")}`} className="inline-flex py-0.5 text-sm leading-5 text-ink/75 hover:text-gold-deep">
               {entry.phone}
             </a>
           ) : null}
-          {website ? (
-            <a
-              href={website.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center text-sm font-semibold text-ink hover:text-gold-deep"
-            >
-              Visit Website →
-            </a>
-          ) : null}
+          {entry.links
+            ?.filter((link) => link.label === "Visit Website" || link.label === "Instagram" || link.label === "X")
+            .map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex py-0.5 text-sm font-semibold leading-5 text-ink hover:text-gold-deep"
+              >
+                {link.label === "Visit Website" ? "Visit Website →" : link.label}
+              </a>
+            ))}
         </div>
       ) : null}
     </article>
@@ -184,7 +199,7 @@ export default function TradeShowGuide() {
             The businesses, makers and organisations that joined us at <BrandName /> 2026.
           </p>
           <p className="mt-3 max-w-[46ch] text-sm leading-relaxed text-ink/60">
-            A searchable directory of exhibitors, sponsors, partners, supporters, supporting brands, media partners and adverts from the 2026 edition.
+            A searchable directory of exhibitors, sponsors, partners, supporters, supporting brands and media partners from the 2026 edition.
           </p>
         </div>
       </section>

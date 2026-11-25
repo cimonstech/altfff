@@ -17,8 +17,7 @@ export type GuideType =
   | "partner"
   | "supporter"
   | "supporting-brand"
-  | "media-partner"
-  | "advert";
+  | "media-partner";
 
 export type GuideBrowse = "all" | GuideType | GuideZone;
 
@@ -76,7 +75,6 @@ export const GUIDE_TYPE_LABEL: Record<GuideType, string> = {
   supporter: "Supporter",
   "supporting-brand": "Supporting brand",
   "media-partner": "Media partner",
-  advert: "Advert",
 };
 
 export const GUIDE_TYPE_PLURAL: Record<GuideType, string> = {
@@ -86,7 +84,6 @@ export const GUIDE_TYPE_PLURAL: Record<GuideType, string> = {
   supporter: "Supporters",
   "supporting-brand": "Supporting brands",
   "media-partner": "Media partners",
-  advert: "Adverts",
 };
 
 export const GUIDE_ZONE_LABEL: Record<GuideZone, string> = {
@@ -112,7 +109,6 @@ export const GUIDE_TYPES: GuideType[] = [
   "supporter",
   "supporting-brand",
   "media-partner",
-  "advert",
 ];
 
 const TYPE_BROWSE = new Set<GuideBrowse>(GUIDE_TYPES);
@@ -137,8 +133,11 @@ export function getGuideEntry(id: string): GuideEntry | undefined {
   return tradeShowEntries.find((entry) => entry.id === id);
 }
 
-/** Exhibitors use a photo only. A logo on an exhibitor is not shown. */
+/** Exhibitors use a photo. A logo in /acknowledgement/ is shown instead. */
 export function guideVisual(entry: GuideEntry): { src?: string; cover: boolean } {
+  if (entry.logoSrc?.startsWith("/acknowledgement/")) {
+    return { src: entry.logoSrc, cover: true };
+  }
   if (entry.type === "exhibitor") {
     return { src: entry.imageSrc, cover: Boolean(entry.imageSrc) };
   }
@@ -169,6 +168,7 @@ function searchHaystack(entry: GuideEntry): string {
     entry.contact,
     ...(entry.emails ?? []),
     entry.phone,
+    ...(entry.links?.flatMap((link) => [link.label, link.href]) ?? []),
     entry.featuredWork?.title,
     entry.featuredWork?.type,
     entry.featuredWork?.description,
@@ -197,7 +197,7 @@ export const tradeShowEntries: GuideEntry[] = [
   {
     id: "bonwire-kente-weavers-association",
     name: "Bonwire Kente Weavers Association",
-    imageSrc: "/event/2026/trade-images/bonwire.jpg",
+    imageSrc: "/tradeguide/bonwire.jpg",
     type: "exhibitor",
     zone: "materials",
     location: "Accra, Ghana",
@@ -266,7 +266,7 @@ export const tradeShowEntries: GuideEntry[] = [
   {
     id: "godfrey-km-tietaah",
     name: "Godfrey K.M. Tietaah",
-    imageSrc: "/event/2026/trade-images/godfrey.jpg",
+    imageSrc: "/tradeguide/godfrey.jpg",
     type: "exhibitor",
     zone: "materials",
     location: "Tamale, Ghana",
@@ -283,7 +283,12 @@ export const tradeShowEntries: GuideEntry[] = [
     type: "exhibitor",
     zone: "materials",
     location: "Accra, Ghana / Abuja, Nigeria",
-    links: [{ label: "Visit Website", href: "https://www.thegelecenter.com" }],
+    logoSrc: "/acknowledgement/thegelecenter.jpg",
+    phone: "020 531 9430",
+    links: [
+      { label: "Visit Website", href: "https://www.thegelecenter.com" },
+      { label: "Instagram", href: "https://www.instagram.com/The_Gele_Center" },
+    ],
     shortDescription: "Custom autogele headwraps, made to colour and size, with turban tying.",
     about: ["The Gele Center makes custom autogele headwraps to a chosen colour and size, and offers turban tying."],
     services: ["Custom autogele", "Turban tying", "Made-to-order headwraps"],
@@ -319,6 +324,11 @@ export const tradeShowEntries: GuideEntry[] = [
     type: "exhibitor",
     zone: "materials",
     location: "Accra, Ghana",
+    phone: "024 226 9920",
+    links: [
+      { label: "Visit Website", href: "https://www.nuavahandmade.com" },
+      { label: "Instagram", href: "https://www.instagram.com/NuaVa_handmade" },
+    ],
     shortDescription: "Handmade pieces, made in small runs.",
     about: ["Nuava handmade makes pieces by hand, in small runs."],
     services: ["Handmade goods", "Small-run making", "Made-to-order pieces"],
@@ -585,6 +595,10 @@ export const tradeShowEntries: GuideEntry[] = [
     id: "wrap-to-go",
     name: "Wrap to go (Mrs. Ngonadi)",
     type: "supporting-brand",
+    logoSrc: "/acknowledgement/WrappedToGo.jpeg",
+    phone: "059 506 6264",
+    emails: ["wrappedtogo@gmail.com"],
+    links: [{ label: "Instagram", href: "https://www.instagram.com/Styledby_mrsngonadi" }],
   },
   {
     id: "melange-africa",
@@ -604,7 +618,4 @@ export const tradeShowEntries: GuideEntry[] = [
     type: "media-partner",
     logoSrc: "/tradeguide/media/fashionghana.png",
   },
-  { id: "iamadinkra", name: "IamAdinkra", type: "advert", phone: "026 234 6572" },
-  { id: "motivo-limited", name: "Motivo Limited", type: "advert", phone: "055 301 8172" },
-  { id: "mhaxillian-concepts", name: "Mhaxillian Concepts", type: "advert", phone: "024 443 7799" },
 ];

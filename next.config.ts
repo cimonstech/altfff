@@ -39,6 +39,15 @@ const nextConfig: NextConfig = {
     return [
       { source: "/news", destination: "/blog", permanent: true },
       { source: "/news/:slug", destination: "/blog/:slug", permanent: true },
+      { source: "/advertisement", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/iamadinkra", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/motivo-limited", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/mhaxillian-concepts", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/theephotoberry", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/dakope", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/versatile-agency", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/jaywillz-studios", destination: "/altfff2026/acknowledgement", permanent: true },
+      { source: "/trade-show-guide/nueva-comms", destination: "/altfff2026/acknowledgement", permanent: true },
     ];
   },
   async headers() {

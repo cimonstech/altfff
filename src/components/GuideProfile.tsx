@@ -136,7 +136,7 @@ export default function GuideProfile({ entry }: { entry: GuideEntry }) {
               </Section>
             ) : null}
           </>
-        ) : (
+        ) : entry.phone || entry.emails?.length || entry.links?.length ? null : (
           <p className="mt-8 text-sm text-ink/70">Profile information coming soon.</p>
         )}
 
