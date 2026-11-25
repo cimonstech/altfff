@@ -139,7 +139,6 @@ export default function Footer() {
                 <li>{EVENT.tradeFairDateLabel}</li>
                 <li>{EVENT.launchCeremonyLabel}</li>
                 <li>{EVENT.doorsOpenLabel}</li>
-                <li>{EVENT.venue}</li>
               </ul>
             </div>
             <div>
